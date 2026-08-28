@@ -1,0 +1,64 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+@theme {
+  --color-pine-950: #10170F;
+  --color-pine-900: #16201A;
+  --color-pine-800: #1E2B23;
+  --color-pine-700: #2A3A30;
+  --color-pine-600: #3B4F42;
+  --color-cream: #F3EBD8;
+  --color-cream-dim: #C9BFA8;
+  --color-sign: #5C3B1E;
+  --color-sign-deep: #46290F;
+  --color-signgold: #F2C94C;
+  --color-ok: #4CAF50;
+  --color-ok-deep: #2E7D32;
+  --color-amber: #E0A100;
+  --color-ember: #E4572E;
+  --color-ember-deep: #B7360D;
+  --color-unknown: #8A8F8B;
+
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-sans: "Barlow", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+html, body, #root { height: 100%; }
+body {
+  background: var(--color-pine-900);
+  color: var(--color-cream);
+  font-family: var(--font-sans);
+  overscroll-behavior: none;
+}
+
+/* Sign-board texture: subtle routed-wood grain on brown panels */
+.sign {
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.06) 0 2px, transparent 2px 9px),
+    linear-gradient(180deg, #674323, #4E3116);
+  color: var(--color-signgold);
+  border: 3px solid var(--color-signgold);
+  box-shadow: inset 0 0 0 2px #3f2510, 0 10px 30px rgba(0,0,0,.45);
+}
+
+.leaflet-container { background: #0E1512; font-family: var(--font-sans); }
+/* Mute the basemap so stage fills read clearly against terrain */
+.basemap { filter: saturate(0.25) brightness(0.85) contrast(0.95); }
+.leaflet-popup-content-wrapper { background: var(--color-pine-800); color: var(--color-cream); border-radius: 6px; border: 1px solid var(--color-pine-600); }
+.leaflet-popup-tip { background: var(--color-pine-800); }
+.leaflet-control-zoom a { background: var(--color-pine-800) !important; color: var(--color-cream) !important; border-color: var(--color-pine-600) !important; }
+.leaflet-control-attribution { background: rgba(22,32,26,.85) !important; color: var(--color-cream-dim) !important; font-size: 10px; }
+.leaflet-control-attribution a { color: var(--color-signgold) !important; }
+
+:focus-visible { outline: 2px solid var(--color-signgold); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+.pin {
+  width: 22px; height: 22px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+  border: 2px solid #10170F; box-shadow: 0 2px 6px rgba(0,0,0,.5);
+}
+.pin::after { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: #10170F; opacity: .35; }
+.fire-icon { width: 18px; height: 18px; filter: drop-shadow(0 0 3px rgba(228,87,46,.9)) drop-shadow(0 1px 1px rgba(0,0,0,.6)); }
+.fire-icon.big { width: 26px; height: 26px; }
+.fire-icon svg { width: 100%; height: 100%; display: block; }
