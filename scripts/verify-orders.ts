@@ -101,7 +101,8 @@ for (const j of JURISDICTIONS.filter((x) => x.boundary)) {
       }
       const flat = squash(page.replace(/<[^>]+>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&amp;/g, '&').replace(/&#39;|&rsquo;/g, "'"))
       // Fallback on the first distinctive word alone so "Carr/Feeley Lake" or a misspelled alias doesn't nag.
-      const onPage = (n: string) => { const k = key(n); const w = k.match(/^[a-z]{4,}/)?.[0]; return flat.includes(k) || (!!w && !GENERIC.test(w) && flat.includes(w)) }
+      const firstWord = (n: string) => n.replace(/\(.*?\)/g, '').toLowerCase().split(/[^a-z0-9']+/).map((w) => w.replace(/'/g, '')).find((w) => w && !GENERIC.test(w)) ?? ''
+      const onPage = (n: string) => { const w = firstWord(n); return flat.includes(key(n)) || (w.length >= 4 && flat.includes(w)) }
       const found = j.developedSitesListed.filter(onPage)
       // Only trust this when the page clearly carries the whole exhibit; many pages transcribe part of it.
       if (found.length >= j.developedSitesListed.length * 0.85) {
