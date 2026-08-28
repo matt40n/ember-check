@@ -21,7 +21,7 @@ export function latestYearIn(...fields: (string | null | undefined)[]): number |
 
 /** Site text that names an older year is stale. Text with no year can't be trusted either — just less loudly. */
 export function siteFreshness(s: RecSite, now = new Date()): Freshness {
-  const y = latestYearIn(s.season, s.description, s.fee, s.restrictions, s.reservations, s.hours)
+  const y = latestYearIn(s.season, s.description, s.fee, s.restrictions, s.reservations, s.hours, s.openSource?.kind === 'usfs-page' ? (s.openSource.pageUpdated ?? s.openSource.checkedOn) : null)
   const cur = now.getFullYear()
   if (y === null) return { status: 'undated', note: 'USFS site page carries no date; fire rules above come from the forest order, not this page.' }
   if (y < cur) return { status: 'outdated', note: `USFS site page last dated ${y} — season, status and fees may be stale. Fire rules above come from the forest order, not this page.` }

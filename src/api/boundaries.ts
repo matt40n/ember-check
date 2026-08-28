@@ -44,7 +44,11 @@ export interface RecSite {
   forest: string
   kind: 'Campground Camping' | 'Group Camping' | 'Dispersed Camping'
   open: boolean | null
+  /** Where `open` came from: the site's own USFS page (trustworthy, with a check date) or the stale EDW feed */
+  openSource: { kind: 'usfs-page'; checkedOn: string; pageUpdated: string | null } | { kind: 'edw' } | null
+  /** The site's own page on fs.usda.gov when we could resolve it; otherwise the forest's recreation index */
   url: string | null
+  urlIsSitePage: boolean
   restrictions: string | null
   season: string | null
   fee: string | null
@@ -55,22 +59,42 @@ export interface RecSite {
   lng: number
 }
 
+type SitePage = { url: string; status: 'open' | 'closed' | null; statusText: string | null; updated: string | null; checkedOn: string }
+async function sitePages(): Promise<Record<string, SitePage>> {
+  try {
+    const r = await fetch(`${import.meta.env.BASE_URL.replace(/\/$/, '')}/data/site-pages.json`)
+    return r.ok ? await r.json() : {}
+  } catch {
+    return {}
+  }
+}
+/** Legacy EDW links (recarea/?recid=…) now 301 to the forest's recreation index — link there honestly instead. */
+function forestRecreationUrl(legacy: string | null): string | null {
+  const m = legacy?.match(/fs\.usda\.gov\/recarea\/([a-z-]+)\//)
+  return m ? `https://www.fs.usda.gov/recarea/${m[1]}/recreation` : legacy
+}
+
 export function useRecSites() {
   return useQuery({
     queryKey: ['usfs-rec-sites'],
     ...STATIC,
     queryFn: async () => {
-      const fc = await snapshotOrLive<GeoJSON.FeatureCollection<GeoJSON.Point>>('sites')
+      const [fc, pages] = await Promise.all([snapshotOrLive<GeoJSON.FeatureCollection<GeoJSON.Point>>('sites'), sitePages()])
       return fc.features
         .filter((f) => f.geometry)
         .map((f): RecSite => {
           const p = f.properties as Record<string, string | null>
+          const page = pages[`${p.forestname}|${p.recareaname}`]
+          // EDW's openstatus is unmaintained (it calls most of the region "closed" in August); the site's own page wins.
+          const open = page?.status ? page.status === 'open' : p.openstatus === 'open' ? true : p.openstatus === 'closed' ? false : null
           return {
             name: p.recareaname ?? 'Unnamed site',
             forest: p.forestname ?? '',
             kind: (p.markeractivity as RecSite['kind']) ?? 'Campground Camping',
-            open: p.openstatus === 'open' ? true : p.openstatus === 'closed' ? false : null,
-            url: p.recareaurl,
+            open,
+            openSource: page?.status ? { kind: 'usfs-page', checkedOn: page.checkedOn, pageUpdated: page.updated } : open !== null ? { kind: 'edw' } : null,
+            url: page?.url ?? forestRecreationUrl(p.recareaurl),
+            urlIsSitePage: !!page,
             restrictions: stripHtml(p.restrictions),
             season: stripHtml([stripHtml(p.open_season_start), stripHtml(p.open_season_end)].filter(Boolean).join(' – ')),
             fee: stripHtml(p.feedescription),

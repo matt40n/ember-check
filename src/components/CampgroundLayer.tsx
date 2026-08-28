@@ -33,7 +33,7 @@ const FEE_STYLE = {
 export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict; inline?: boolean }) {
   const fee = feeVerdict(s.fee)
   const fresh = siteFreshness(s)
-  const showOpen = s.open !== null && fresh.status !== 'outdated'
+  const showOpen = s.open !== null && (s.openSource?.kind === 'usfs-page' || fresh.status !== 'outdated')
   const rg = `https://www.recreation.gov/search?q=${encodeURIComponent(s.name)}`
   const siteNote = Object.entries(v.jurisdiction?.siteNotes ?? {}).find(([n]) => namesMatch(n, s.name))?.[1]
   return (
@@ -46,6 +46,9 @@ export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict
             {s.forest.replace('National Forest', 'NF')} · {s.kind.replace(' Camping', '')}
             {showOpen && <span className={s.open ? 'text-ok' : 'text-ember'}> · {s.open ? 'open' : 'closed'}</span>}
           </p>
+          {showOpen && s.openSource?.kind === 'usfs-page' && (
+            <p className="text-[11px] text-cream-dim/80">Status from the USFS site page{s.openSource.pageUpdated ? ` (updated ${s.openSource.pageUpdated})` : ''}, checked {s.openSource.checkedOn}</p>
+          )}
         </div>
       </div>
 
@@ -88,7 +91,7 @@ export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict
       <div className="mt-3 flex flex-col gap-1 border-t border-pine-600 pt-2">
         {s.url && (
           <a href={s.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-signgold underline underline-offset-2">
-            <ExternalLink size={12} /> Forest Service site page
+            <ExternalLink size={12} /> {s.urlIsSitePage ? 'USFS page for this site' : 'Forest recreation pages (no page found for this site)'}
           </a>
         )}
         <a href={rg} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-signgold underline underline-offset-2">

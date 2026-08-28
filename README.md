@@ -42,7 +42,7 @@ Static build, hosted on GitHub Pages, deployed by `.github/workflows/deploy.yml`
 | Workflow | When | What it does | Emails you when |
 |---|---|---|---|
 | Deploy | push to main | build + publish | never |
-| Verify fire orders | Mon & Thu 06:00 PT | re-checks every order's agency page; stamps `verifiedOn` on entries that pass; commits and redeploys | an order fails/warns (new order, page edited after `noticeUpdated`, exhibit site missing), or the bot itself breaks |
+| Verify fire orders | Mon & Thu 06:00 PT | re-checks every order's agency page; stamps `verifiedOn` on entries that pass; refreshes each campground's USFS page link and open/closed status (`public/data/site-pages.json`); commits and redeploys | an order fails/warns (new order, page edited after `noticeUpdated`, exhibit site missing), or the bot itself breaks |
 | Refresh boundary snapshots | 1st of month | re-downloads `public/data/*.json` from USFS/BLM/NPS; runs `check-exhibits` | a layer can't be downloaded |
 | Site health | daily | fetches live `/status.json`; checks the site is up and data is < 10 days old | site down, or data going stale |
 | Season reminders | May 15, Nov 1 | opens an issue with the season-open / season-close runbook | every time |
