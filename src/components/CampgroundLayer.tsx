@@ -34,7 +34,7 @@ export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict
   const fee = feeVerdict(s.fee)
   const fresh = siteFreshness(s)
   const showOpen = s.open !== null && (s.openSource?.kind === 'usfs-page' || fresh.status !== 'outdated')
-  const rg = `https://www.recreation.gov/search?q=${encodeURIComponent(s.name)}`
+  const rg = s.ridbId ? `https://www.recreation.gov/camping/campgrounds/${s.ridbId}` : `https://www.recreation.gov/search?q=${encodeURIComponent(s.name)}`
   const siteNote = Object.entries(v.jurisdiction?.siteNotes ?? {}).find(([n]) => namesMatch(n, s.name))?.[1]
   return (
     <div className={inline ? 'text-sm leading-snug' : 'max-h-[60vh] w-[280px] overflow-y-auto text-xs leading-snug'}>
@@ -43,7 +43,7 @@ export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict
         <div className="min-w-0">
           <p className="font-display text-lg font-bold leading-tight">{s.name}</p>
           <p className="text-cream-dim">
-            {s.forest.replace('National Forest', 'NF')} · {s.kind.replace(' Camping', '')}
+            {s.forest.replace('National Forest', 'NF')} · {s.kind.replace(' Camping', '')}{s.siteCount ? ` · ${s.siteCount} sites` : ''}
             {showOpen && <span className={s.open ? 'text-ok' : 'text-ember'}> · {s.open ? 'open' : 'closed'}</span>}
           </p>
           {showOpen && s.openSource?.kind === 'usfs-page' && (
@@ -52,7 +52,7 @@ export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict
         </div>
       </div>
 
-      {fresh.status !== 'current' && (
+      {fresh.status !== 'current' && s.source !== 'ridb' && (
         <p className={`mt-2 flex items-start gap-1.5 rounded border p-1.5 ${fresh.status === 'outdated' ? 'border-ember/60 bg-ember/10 text-cream' : 'border-pine-600 bg-pine-700/60 text-cream-dim'}`}>
           <AlertTriangle size={13} className="mt-0.5 shrink-0" /> <span>{fresh.note}</span>
         </p>
@@ -77,6 +77,8 @@ export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict
       {s.reservations && (
         <p className="mt-2 whitespace-pre-line"><b className="text-cream">Reservations:</b> {s.reservations}</p>
       )}
+      {s.stayLimit && <p className="mt-1 text-cream-dim">{s.stayLimit}</p>}
+      {s.phone && <p className="mt-1 text-cream-dim">☎ {s.phone}</p>}
       {s.season && (
         <p className="mt-2 flex items-start gap-1.5"><CalendarDays size={13} className="mt-0.5 shrink-0 text-cream-dim" /><span className="whitespace-pre-line">{s.season}</span></p>
       )}
@@ -89,13 +91,14 @@ export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict
       )}
 
       <div className="mt-3 flex flex-col gap-1 border-t border-pine-600 pt-2">
+        {s.source === 'ridb' && <p className="text-[11px] text-cream-dim/80">Listing from Recreation.gov (RIDB); no live open/closed status for this site.</p>}
         {s.url && (
           <a href={s.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-signgold underline underline-offset-2">
             <ExternalLink size={12} /> {s.urlIsSitePage ? 'USFS page for this site' : 'Forest recreation pages (no page found for this site)'}
           </a>
         )}
         <a href={rg} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-signgold underline underline-offset-2">
-          <ExternalLink size={12} /> Search Recreation.gov for availability
+          <ExternalLink size={12} /> {s.ridbId ? (s.reservable ? 'Reserve on Recreation.gov' : 'Recreation.gov listing') : 'Search Recreation.gov for availability'}
         </a>
         <a href={reportUrl('site', { name: s.name, jurisdictionId: v.jurisdiction?.id, orderNumber: v.jurisdiction?.orderNumber, extra: v.label })} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-cream-dim underline underline-offset-2">
           <Flag size={12} /> Report a sign or rule that disagrees
@@ -123,7 +126,7 @@ export function CampgroundLayer({ sites, all, boundaries, coarse = false, onSele
         const v = verdicts[i]
         return (
           <CircleMarker
-            key={`${s.name}-${s.lat}-${s.lng}`}
+            key={`${s.ridbId ?? s.forest}-${s.name}-${s.lat}-${s.lng}`}
             center={[s.lat, s.lng]}
             radius={r}
             pane="sites"

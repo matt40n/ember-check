@@ -10,7 +10,8 @@
     "verify": "bun run scripts/verify-orders.ts",
     "snapshot": "bun run scripts/snapshot-boundaries.ts",
     "check-exhibits": "bun run scripts/check-exhibits.ts",
-    "enrich": "bun run scripts/enrich-sites.ts"
+    "enrich": "bun run scripts/enrich-sites.ts",
+    "ridb": "bun run scripts/import-ridb.ts"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",

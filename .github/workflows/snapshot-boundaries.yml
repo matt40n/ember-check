@@ -27,6 +27,8 @@ jobs:
           set +e -o pipefail
           bun run scripts/snapshot-boundaries.ts | tee snapshot.log
           echo "code=$?" >> "$GITHUB_OUTPUT"
+      - name: Import Recreation.gov (RIDB) California campgrounds
+        run: bun run scripts/import-ridb.ts
       - name: Resolve campground pages for any new sites
         run: bun run scripts/enrich-sites.ts
       - name: Exhibit names still match campground records

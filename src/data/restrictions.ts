@@ -169,7 +169,7 @@ export const JURISDICTIONS: Jurisdiction[] = [
 
   // ───────────── National Park Service ─────────────
   {
-    id: 'nps-yosemite', noticeUpdated: '2026-08-02', boundary: { source: 'nps', match: 'Yosemite National Park' }, name: 'Yosemite NP', agency: 'NPS', lat: 37.85, lng: -119.55, radiusKm: 45,
+    id: 'nps-yosemite', developedSitesRule: 'any_developed', noticeUpdated: '2026-08-02', boundary: { source: 'nps', match: 'Yosemite National Park' }, name: 'Yosemite NP', agency: 'NPS', lat: 37.85, lng: -119.55, radiusKm: 45,
     stage: 'stage2', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed', smoking: 'prohibited',
     effective: '2026-08-02', expires: 'until_rescinded', orderNumber: "Superintendent's Stage 2",
     sourceUrl: 'https://www.nps.gov/yose/planyourvisit/firerestrictions.htm',
