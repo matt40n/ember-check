@@ -1,0 +1,58 @@
+# Monthly: refresh the boundary / campground snapshots in public/data from the live agency services.
+name: Refresh boundary snapshots
+
+on:
+  schedule:
+    - cron: '0 14 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pages: write
+  id-token: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Download snapshots
+        id: snap
+        run: |
+          set +e -o pipefail
+          bun run scripts/snapshot-boundaries.ts | tee snapshot.log
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+      - name: Exhibit names still match campground records
+        run: bun run scripts/check-exhibits.ts | tee exhibits.log
+      - name: Commit
+        id: commit
+        run: |
+          git config user.name 'ember-check bot'
+          git config user.email 'actions@users.noreply.github.com'
+          if git diff --quiet public/data; then echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git add public/data
+          git commit -m "snapshot: refresh boundaries $(date -u +%F)"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+      - name: Issue if a layer failed
+        if: steps.snap.outputs.code != '0' || failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ASSIGNEE: ${{ github.repository_owner }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          bash .github/scripts/upsert-issue.sh "Ember Check: boundary snapshot failed" "$(cat .github/issue-templates/snapshot-failed.md)
+
+          \`\`\`
+          $(cat snapshot.log 2>/dev/null)
+          \`\`\`
+          Run: $RUN_URL" bot
+  deploy:
+    needs: snapshot
+    if: needs.snapshot.outputs.changed == 'true'
+    uses: ./.github/workflows/deploy.yml

@@ -1,0 +1,40 @@
+# Twice a year, open an assigned issue (= an email) with the runbook for the season transition.
+name: Season reminders
+
+on:
+  schedule:
+    - cron: '0 15 15 5 *'   # May 15 — orders start re-issuing
+    - cron: '0 15 1 11 *'   # Nov 1 — rescissions after first rain
+  workflow_dispatch:
+    inputs:
+      which:
+        description: 'open or close'
+        default: open
+
+permissions:
+  issues: write
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ASSIGNEE: ${{ github.repository_owner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decide which
+        id: w
+        run: |
+          which="${{ github.event.inputs.which }}"
+          if [ -z "$which" ]; then [ "$(date -u +%m)" = "05" ] && which=open || which=close; fi
+          echo "which=$which" >> "$GITHUB_OUTPUT"
+      - name: Season open
+        if: steps.w.outputs.which == 'open'
+        run: |
+          bash .github/scripts/upsert-issue.sh "Ember Check: fire season $(date -u +%Y) — re-transcribe orders" \
+            "$(cat docs/runbooks/season-open.md)" season
+      - name: Season close
+        if: steps.w.outputs.which == 'close'
+        run: |
+          bash .github/scripts/upsert-issue.sh "Ember Check: season close $(date -u +%Y) — record rescissions" \
+            "$(cat docs/runbooks/season-close.md)" season

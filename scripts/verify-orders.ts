@@ -14,6 +14,8 @@ import { JURISDICTIONS } from '../src/data/restrictions'
 import type { Jurisdiction } from '../src/types'
 
 const stamp = process.argv.includes('--stamp')
+const jsonOut = process.argv[process.argv.indexOf('--json') + 1]
+const writeJson = process.argv.includes('--json') && !!jsonOut
 const today = new Date().toISOString().slice(0, 10)
 const UA = 'ember-check/1.0 (campfire restriction map; personal use)'
 
@@ -43,7 +45,19 @@ function fireAlerts(html: string): { title: string; date: string }[] {
   return out
 }
 
-const results: { id: string; status: 'PASS' | 'WARN' | 'FAIL'; notes: string[] }[] = []
+/** ISO date the page says it was last updated (og:updated_time, article:modified_time, or "Last updated: Month D, YYYY"). */
+function pageUpdatedOn(html: string): string | null {
+  const meta = html.match(/(?:og:updated_time|article:modified_time)"\s+content="(\d{4}-\d{2}-\d{2})/i) ?? html.match(/content="(\d{4}-\d{2}-\d{2})[^"]*"\s+property="(?:og:updated_time|article:modified_time)"/i)
+  if (meta) return meta[1]
+  const text = html.match(/(?:last updated|updated on|date updated)[^A-Za-z0-9]{0,20}((?:January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, 20\d\d)/i)
+  if (text) {
+    const d = new Date(text[1])
+    if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10)
+  }
+  return null
+}
+
+const results: { id: string; name: string; status: 'PASS' | 'WARN' | 'FAIL'; notes: string[]; sourceUrl: string }[] = []
 
 for (const j of JURISDICTIONS.filter((x) => x.boundary)) {
   const notes: string[] = []
@@ -64,6 +78,40 @@ for (const j of JURISDICTIONS.filter((x) => x.boundary)) {
     notes.push('source is a PDF — reachable, but contents not checked; open it to confirm')
   }
 
+  if (page) {
+    // The agency page was edited after the notice date we recorded — Six Rivers revised its exhibit this way
+    // on 2026-08-20 without changing the order number.
+    const updated = pageUpdatedOn(page)
+    if (updated && j.noticeUpdated && updated > j.noticeUpdated) {
+      if (status === 'PASS') status = 'WARN'
+      notes.push(`source page updated ${updated}, after the notice date on file (${j.noticeUpdated}) — re-read it for changed stages or exhibits`)
+    }
+    // If the page transcribes the exhibit, every listed site should still be on it.
+    if (j.developedSitesComplete && j.developedSitesListed?.length) {
+      // Compare on squashed text (no spaces/punctuation) using the site's first distinctive word or two, so
+      // "Kangaroo Lake Campground and Picnic Area" still matches a page that says "Kangaroo Lake Campground".
+      const squash = (t: string) => t.toLowerCase().replace(/[^a-z0-9]/g, '')
+      const GENERIC = /^(campground|campgrounds|group|camp|day|use|area|picnic|site|trailhead|campsite|and|the|of|primitive|fee|walkin|upper|lower|north|south|east|west|big|little|lake|creek|flat|meadow|meadows|springs|spring|point|mountain|mt|river|fork)$/
+      const key = (n: string) => {
+        const words = n.replace(/\(.*?\)/g, '').toLowerCase().split(/[^a-z0-9']+/).map((w) => w.replace(/'/g, '')).filter(Boolean)
+        const sig = words.filter((w) => !GENERIC.test(w))
+        const first = sig[0] ?? words[0]
+        const idx = words.indexOf(first)
+        return first.length >= 7 ? first : words.slice(idx, idx + 2).join('')
+      }
+      const flat = squash(page)
+      const found = j.developedSitesListed.filter((n) => flat.includes(key(n)))
+      // Only trust this when the page clearly carries the whole exhibit; many pages transcribe part of it.
+      if (found.length >= j.developedSitesListed.length * 0.85) {
+        const missing = j.developedSitesListed.filter((n) => !flat.includes(key(n)))
+        if (missing.length) {
+          if (status === 'PASS') status = 'WARN'
+          notes.push(`exhibit may have changed: ${missing.length} listed site(s) not found on the source page — ${missing.join(', ')}`)
+        }
+      }
+    }
+  }
+
   const idx = alertsIndexFor(j)
   if (idx) {
     const html = await text(idx)
@@ -77,7 +125,7 @@ for (const j of JURISDICTIONS.filter((x) => x.boundary)) {
     } else notes.push(`alerts index unreachable: ${idx}`)
   }
 
-  results.push({ id: j.id, status, notes })
+  results.push({ id: j.id, name: j.name, status, notes, sourceUrl: j.sourceUrl })
   console.log(`${status.padEnd(4)} ${j.name}${notes.length ? '\n     - ' + notes.join('\n     - ') : ''}`)
 }
 
@@ -92,6 +140,12 @@ if (stamp && passed.length) {
     src = src.replace(new RegExp(`(id: '${id}',[\\s\\S]*?verifiedOn: )V(,)`), `$1'${today}'$2`)
     src = src.replace(new RegExp(`(id: '${id}',[\\s\\S]*?verifiedOn: )'20\\d\\d-\\d\\d-\\d\\d'(,)`), `$1'${today}'$2`)
   }
+  if (passed.length === results.length) src = src.replace(/export const DATA_VERIFIED_ON = '20\d\d-\d\d-\d\d'/, `export const DATA_VERIFIED_ON = '${today}'`)
   await Bun.write(path, src)
-  console.log(`stamped verifiedOn = ${today} on ${passed.length} entries`)
+  console.log(`stamped verifiedOn = ${today} on ${passed.length} entries${passed.length === results.length ? ' and DATA_VERIFIED_ON' : ''}`)
 }
+if (writeJson) {
+  await Bun.write(jsonOut, JSON.stringify({ ranOn: today, results }, null, 2))
+  console.log(`wrote ${jsonOut}`)
+}
+process.exit(results.some((r) => r.status === 'FAIL') ? 2 : results.some((r) => r.status === 'WARN') ? 1 : 0)

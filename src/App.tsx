@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Flame, Info, X } from 'lucide-react'
 import { MapView } from './components/MapView'
 import { SignPanel } from './components/SignPanel'
@@ -12,6 +12,7 @@ import { WildernessLayer } from './components/WildernessLayer'
 import { DistrictLayer } from './components/DistrictLayer'
 import { CampgroundLayer } from './components/CampgroundLayer'
 import { useRedFlag } from './hooks/useRedFlag'
+import { useLiveStatus } from './hooks/useLiveStatus'
 import { useForestBoundaries } from './api/usfs'
 import { useBlmFieldOffices, useNpsUnits, useRangerDistricts, useRecSites, useWilderness } from './api/boundaries'
 import { JURISDICTIONS as RAW, DATA_VERIFIED_ON } from './data/restrictions'
@@ -35,6 +36,12 @@ export default function App() {
   })
   const [drawer, setDrawer] = useState(false)
   const [showAbout, setShowAbout] = useState(false)
+  const [ack, setAck] = useState(true)
+  useEffect(() => {
+    try { setAck(localStorage.getItem('ember-check-ack') === '1') } catch { setAck(false) }
+  }, [])
+  const acknowledge = () => { setAck(true); try { localStorage.setItem('ember-check-ack', '1') } catch { /* private mode */ } }
+  const live = useLiveStatus()
 
   const forests = useForestBoundaries()
   const blm = useBlmFieldOffices()
@@ -93,6 +100,7 @@ export default function App() {
               NorCal campfire restrictions · verified {DATA_VERIFIED_ON}
               {boundariesLoading && <span className="ml-2 text-signgold">loading boundaries…</span>}
             </p>
+            {live.problem && <p className="mt-0.5 text-[11px] font-semibold text-ember">{live.problem}</p>}
           </div>
         </div>
         <button onClick={() => setShowAbout(true)} className="pointer-events-auto rounded bg-pine-900/90 p-2 text-cream-dim hover:text-cream" aria-label="About and disclaimers">
@@ -163,6 +171,16 @@ export default function App() {
         </div>
       </aside>
 
+      {!ack && (
+        <div className="absolute inset-x-0 bottom-0 z-[1500] flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-ember/60 bg-pine-950/95 px-4 py-2.5 text-center text-xs text-cream backdrop-blur md:bottom-3 md:left-1/2 md:right-auto md:w-auto md:-translate-x-1/2 md:rounded md:border">
+          <span>Not legal advice. Orders change with little notice — <b>posted signs and the ranger district override this map.</b></span>
+          <span className="flex gap-3">
+            <button onClick={() => setShowAbout(true)} className="underline underline-offset-2">How to read it</button>
+            <button onClick={acknowledge} className="rounded bg-signgold px-2.5 py-0.5 font-semibold text-pine-900">Got it</button>
+          </span>
+        </div>
+      )}
+
       {showAbout && (
         <div className="absolute inset-0 z-[2000] flex items-center justify-center bg-pine-950/80 p-4" onClick={() => setShowAbout(false)}>
           <div className="max-h-full max-w-lg overflow-y-auto rounded-md border border-pine-700 bg-pine-900 p-5 text-sm leading-relaxed" onClick={(e) => e.stopPropagation()}>
@@ -172,7 +190,7 @@ export default function App() {
             </div>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-cream-dim">
               <li><b className="text-cream">Restriction stages are hand-verified, not live.</b> Agencies publish orders as PDFs, not APIs. Each unit shows its source order and the date it was checked. Orders change with little notice — confirm with the ranger district the day you leave.</li>
-              <li><b className="text-cream">Boundaries are live</b> from USFS, BLM and NPS map services. BLM field-office boundaries cover whole regions including private land — turn on "BLM land ownership" to see actual BLM parcels.</li>
+              <li><b className="text-cream">Boundaries and campground records</b> come from USFS, BLM and NPS map services, refreshed monthly. BLM field-office boundaries cover whole regions including private land — turn on "BLM land ownership" to see actual BLM parcels.</li>
               <li><b className="text-cream">Green wilderness fills</b> mark wildernesses the enclosing order explicitly exempts from the backcountry-fire ban (still need a CA Campfire Permit). Dotted dark fills are wildernesses with no exemption.</li>
               <li><b className="text-cream">Red Flag Warnings, active fires and perimeters</b> refresh hourly from NWS and NIFC; everything else once a day.</li>
               <li><b className="text-cream">A California Campfire Permit is always required</b> for any fire or stove outside a developed campground. It's free: permit.preventwildfireca.org.</li>

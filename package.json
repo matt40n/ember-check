@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "bun run scripts/write-status.ts && tsc && vite build",
     "preview": "vite preview",
-    "verify": "bun run scripts/verify-orders.ts"
+    "verify": "bun run scripts/verify-orders.ts",
+    "snapshot": "bun run scripts/snapshot-boundaries.ts",
+    "check-exhibits": "bun run scripts/check-exhibits.ts"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",

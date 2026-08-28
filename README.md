@@ -35,6 +35,22 @@ bun run verify --stamp   # also set verifiedOn = today on entries that pass
 ```
 It checks the page is reachable, still mentions the order number, and that no newer fire alert has appeared since the order's effective date. It's a smell test — read anything flagged before editing the data.
 
+## Publishing & automation
+
+Static build, hosted on GitHub Pages, deployed by `.github/workflows/deploy.yml` on every push to `main`. The app is meant to run itself; when it needs a human it opens a GitHub issue **assigned to the repo owner**, which GitHub emails you. Nothing here needs a secret or an API key.
+
+| Workflow | When | What it does | Emails you when |
+|---|---|---|---|
+| Deploy | push to main | build + publish | never |
+| Verify fire orders | Mon & Thu 06:00 PT | re-checks every order's agency page; stamps `verifiedOn` on entries that pass; commits and redeploys | an order fails/warns (new order, page edited after `noticeUpdated`, exhibit site missing), or the bot itself breaks |
+| Refresh boundary snapshots | 1st of month | re-downloads `public/data/*.json` from USFS/BLM/NPS; runs `check-exhibits` | a layer can't be downloaded |
+| Site health | daily | fetches live `/status.json`; checks the site is up and data is < 10 days old | site down, or data going stale |
+| Season reminders | May 15, Nov 1 | opens an issue with the season-open / season-close runbook | every time |
+
+Runbooks for each of those emails: [docs/runbooks/](docs/runbooks/). Field reports from the "report a change" links on every sign and campground card arrive as issues labeled `field-report`.
+
+Boundaries, wilderness, ranger districts and campground records are **build-time snapshots** (`src/api/snapshot.ts`, `bun run snapshot`), so the app stays up when USFS's map servers don't; the live ArcGIS query is only a fallback. Red Flag Warnings, fires and perimeters are always live, and the header says so when they aren't.
+
 ## Updating restrictions
 
 1. Open the forest's alerts page (`https://www.fs.usda.gov/alerts/<forest>/alerts-notices`) or BLM CA fire restrictions page.

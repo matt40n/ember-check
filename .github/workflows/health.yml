@@ -1,0 +1,47 @@
+# Daily: is the live site up, and is its data still fresh? Emails (via an assigned issue) 4 days before
+# the app would start greying orders out, and again if the site itself is unreachable.
+name: Site health
+
+on:
+  schedule:
+    - cron: '30 14 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ASSIGNEE: ${{ github.repository_owner }}
+      SITE: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch status.json
+        id: status
+        run: |
+          if ! curl -fsSL --max-time 30 "$SITE/status.json" -o status.json; then
+            echo "down=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "down=false" >> "$GITHUB_OUTPUT"
+          echo "age=$(jq -r .oldestVerifiedAgeDays status.json)" >> "$GITHUB_OUTPUT"
+          echo "generated=$(jq -r .generatedAt status.json)" >> "$GITHUB_OUTPUT"
+          echo "expiring=$(jq -r '.expiringWithin14Days | map("\(.name) (\(.expires))") | join(", ")' status.json)" >> "$GITHUB_OUTPUT"
+          cat status.json
+      - name: Site down
+        if: steps.status.outputs.down == 'true'
+        run: |
+          bash .github/scripts/upsert-issue.sh "Ember Check: site unreachable" "$(cat .github/issue-templates/site-down.md)
+
+          Site: $SITE" bot
+      - name: Data going stale
+        if: steps.status.outputs.down == 'false' && fromJSON(steps.status.outputs.age) >= 10
+        run: |
+          bash .github/scripts/upsert-issue.sh "Ember Check: order data is ${{ steps.status.outputs.age }} days old" "$(cat .github/issue-templates/data-stale.md)
+
+          Oldest verifiedOn age: ${{ steps.status.outputs.age }} days · site built ${{ steps.status.outputs.generated }}" bot
+      - name: Orders expiring soon (info only, no email)
+        if: steps.status.outputs.expiring != ''
+        run: echo "Expiring within 14 days — ${{ steps.status.outputs.expiring }} (the verify bot flags the replacement order when it appears)"

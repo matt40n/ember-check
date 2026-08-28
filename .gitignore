@@ -2,3 +2,7 @@ node_modules
 dist
 *.png
 .playwright-mcp
+
+# generated at build
+public/status.json
+verify.json

@@ -1,4 +1,5 @@
-import { ExternalLink, Flame, Phone, Trees } from 'lucide-react'
+import { ExternalLink, Flag, Flame, Phone, Trees } from 'lucide-react'
+import { reportUrl } from '../lib/report'
 import type { Allow, Jurisdiction } from '../types'
 import { ALLOW_COLOR, ALLOW_LABEL, STAGE_EXPLAINER, STAGE_LABEL } from '../lib/stage'
 import { countdownLabel, expiryText } from '../lib/time'
@@ -93,6 +94,9 @@ export function SignPanel({ result, redFlag }: { result: ProbeResult; redFlag: b
         <span className="inline-flex items-center gap-1 text-signgold/60">
           <Phone size={12} /> confirm with the ranger district before you go
         </span>
+        <a href={reportUrl('order', { name: j.name, jurisdictionId: j.id, orderNumber: j.orderNumber, extra: STAGE_LABEL[j.stage] })} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-signgold/60 underline underline-offset-2">
+          <Flag size={12} /> report a change
+        </a>
       </div>
     </div>
   )

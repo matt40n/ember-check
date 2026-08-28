@@ -1,11 +1,12 @@
 import { useMemo } from 'react'
 import { CircleMarker, Popup, Tooltip } from 'react-leaflet'
-import { AlertTriangle, CalendarDays, Clock, ExternalLink, Flame, Tent, Ticket } from 'lucide-react'
+import { AlertTriangle, Flag, CalendarDays, Clock, ExternalLink, Flame, Tent, Ticket } from 'lucide-react'
 import type { RecSite } from '../api/boundaries'
 import { useZoom } from '../hooks/useZoom'
 import { feeVerdict } from '../lib/text'
 import { siteFreshness } from '../lib/freshness'
 import { Confidence } from './Confidence'
+import { reportUrl } from '../lib/report'
 import { namesMatch, siteFireVerdict, verdictRing, type FireVerdict } from '../lib/siteFire'
 import type { BoundarySets } from '../lib/probe'
 import type { Jurisdiction } from '../types'
@@ -91,6 +92,9 @@ function SitePopup({ s, v }: { s: RecSite; v: FireVerdict }) {
         )}
         <a href={rg} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-signgold underline underline-offset-2">
           <ExternalLink size={12} /> Search Recreation.gov for availability
+        </a>
+        <a href={reportUrl('site', { name: s.name, jurisdictionId: v.jurisdiction?.id, orderNumber: v.jurisdiction?.orderNumber, extra: v.label })} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-cream-dim underline underline-offset-2">
+          <Flag size={12} /> Report a sign or rule that disagrees
         </a>
       </div>
     </div>
