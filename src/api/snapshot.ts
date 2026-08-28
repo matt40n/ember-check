@@ -13,6 +13,7 @@ export const SNAPSHOTS = {
   wilderness: `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_Wilderness_01/MapServer/0/query?where=1%3D1&outFields=wildernessname,gis_acres&geometryPrecision=4&maxAllowableOffset=0.0004&geometry=-124.5,36.5,-118,42.1&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`,
   districts: `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RangerDistricts_01/MapServer/0/query?where=region%20IN%20(%2705%27,%2704%27)&outFields=districtname,forestname&geometryPrecision=4&geometry=-124.5,36.5,-118,42.1&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`,
   sites: `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RecreationOpportunities_01/MapServer/0/query?where=markeractivity%20IN%20(%27Campground%20Camping%27,%27Dispersed%20Camping%27,%27Group%20Camping%27)&outFields=recareaname,forestname,markeractivity,openstatus,recareaurl,restrictions,open_season_start,open_season_end,feedescription,recareadescription,reservation_info,operational_hours&geometry=-124.5,36.5,-118,42.1&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`,
+  zones: `https://mapservices.weather.noaa.gov/static/rest/services/nws_reference_maps/nws_reference_map/MapServer/9/query?where=STATE%3D%27CA%27&outFields=zone,name,state,state_zone&outSR=4326&geometryPrecision=3&maxAllowableOffset=0.006&f=geojson`,
 } as const
 
 export type SnapshotName = keyof typeof SNAPSHOTS

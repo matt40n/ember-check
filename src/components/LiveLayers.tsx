@@ -30,7 +30,7 @@ export function LiveLayers({ layers, onProbe }: { layers: LayerFlags; onProbe: (
   const zones = useFireZones()
   const incidents = useIncidents()
   const perims = usePerimeters()
-  const danger = useFireDanger()
+  const danger = useFireDanger(layers.danger)
 
   const redFlagZones = useMemo(() => {
     if (!alerts.data || !zones.data) return null

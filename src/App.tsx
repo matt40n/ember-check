@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Flame, Info, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, Flame, Info, X } from 'lucide-react'
 import { MapView } from './components/MapView'
 import { SignPanel } from './components/SignPanel'
 import { JurisdictionList } from './components/JurisdictionList'
@@ -111,11 +111,13 @@ export default function App() {
       <aside
         className={`absolute z-[1000] flex flex-col bg-pine-900/95 backdrop-blur transition-transform
           md:left-3 md:top-16 md:bottom-3 md:w-[380px] md:rounded-md md:border md:border-pine-700
-          max-md:inset-x-0 max-md:bottom-0 max-md:max-h-[70vh] max-md:rounded-t-xl max-md:border-t max-md:border-pine-700
+          max-md:inset-x-0 max-md:bottom-0 max-md:max-h-[62vh] max-md:rounded-t-xl max-md:border-t max-md:border-pine-700
           ${drawer ? '' : 'max-md:translate-y-[calc(100%-44px)]'}`}
       >
-        <button onClick={() => setDrawer((d) => !d)} className="flex items-center justify-center py-2 md:hidden" aria-label="Toggle panel">
+        <button onClick={() => setDrawer((d) => !d)} className="flex h-11 shrink-0 items-center justify-center gap-2 text-xs font-semibold uppercase tracking-widest text-cream-dim md:hidden" aria-label={drawer ? 'Hide panel' : 'Show panel'} aria-expanded={drawer}>
           <span className="h-1.5 w-12 rounded-full bg-pine-600" />
+          {drawer ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+          {drawer ? 'Hide' : selected ? selected.name : 'Details'}
         </button>
         <div className="overflow-y-auto p-3 pt-0 md:pt-3">
           <SignPanel result={result} redFlag={redFlag.active} />
@@ -172,7 +174,7 @@ export default function App() {
       </aside>
 
       {!ack && (
-        <div className="absolute inset-x-0 bottom-0 z-[1500] flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-ember/60 bg-pine-950/95 px-4 py-2.5 text-center text-xs text-cream backdrop-blur md:bottom-3 md:left-1/2 md:right-auto md:w-auto md:-translate-x-1/2 md:rounded md:border">
+        <div className="absolute inset-x-3 top-16 z-[1500] flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded border border-ember/60 bg-pine-950/95 px-4 py-2.5 text-center text-xs text-cream backdrop-blur md:inset-x-auto md:bottom-3 md:top-auto md:left-1/2 md:w-auto md:-translate-x-1/2">
           <span>Not legal advice. Orders change with little notice — <b>posted signs and the ranger district override this map.</b></span>
           <span className="flex gap-3">
             <button onClick={() => setShowAbout(true)} className="underline underline-offset-2">How to read it</button>

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchJson } from './fetchJson'
+import { snapshotOrLive } from './snapshot'
 
 export interface FireAlert {
   id: string
@@ -14,8 +15,6 @@ export interface FireAlert {
 
 const ALERTS_URL =
   'https://api.weather.gov/alerts/active?area=CA&event=Red%20Flag%20Warning,Fire%20Weather%20Watch,Fire%20Warning,Extreme%20Fire%20Danger'
-const ZONES_URL =
-  'https://mapservices.weather.noaa.gov/static/rest/services/nws_reference_maps/nws_reference_map/MapServer/9/query?where=STATE%3D%27CA%27&outFields=zone,name,state,state_zone&outSR=4326&f=geojson'
 
 export function useFireAlerts() {
   return useQuery({
@@ -44,6 +43,7 @@ export function useFireZones() {
   return useQuery({
     queryKey: ['nws-fire-zones-ca'],
     staleTime: 24 * 60 * 60_000,
-    queryFn: () => fetchJson<GeoJSON.FeatureCollection>(ZONES_URL),
+    // Zone polygons rarely change and are 3.5 MB live; the build-time snapshot is ~100 KB gzipped.
+    queryFn: () => snapshotOrLive<GeoJSON.FeatureCollection>('zones'),
   })
 }
