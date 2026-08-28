@@ -33,6 +33,12 @@ export function siteFireVerdict(site: RecSite, all: Jurisdiction[], b: BoundaryS
   const base = { jurisdiction: j, wilderness: r.wilderness }
   if (redFlag) return { ...base, kind: 'no', label: 'No campfires', detail: 'Red Flag Warning active — all open fire prohibited today.' }
   if (!j) return { ...base, kind: 'unknown', label: 'Check locally', detail: 'No tracked fire order covers this site. Ask the ranger district.' }
+  // A state park, county park, USACE lake or private campground sitting inside a forest or field-office
+  // boundary is not the land that order governs — its own operator sets the campfire rule.
+  const otherOperator = site.operator && site.operator !== j.agency && (j.agency === 'USFS' || j.agency === 'BLM') && !['USFS', 'BLM', 'Unknown operator'].includes(site.operator)
+  if (otherOperator) {
+    return { ...base, kind: 'check', label: `Ask ${site.operator === 'State Parks' ? 'the park' : 'the operator'}`, detail: `${site.operator === 'State Parks' ? 'California State Parks' : site.operator} runs this campground, so ${j.name}'s ${STAGE_LABEL[j.stage]} order doesn't apply here — the park or operator sets its own campfire rule and usually follows CAL FIRE conditions. Check the park page or call ahead; posted signs govern.` }
+  }
 
   const dispersed = site.kind === 'Dispersed Camping'
   if (dispersed && r.wildernessExempt) {

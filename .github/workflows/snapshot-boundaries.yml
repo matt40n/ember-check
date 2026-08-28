@@ -29,6 +29,12 @@ jobs:
           echo "code=$?" >> "$GITHUB_OUTPUT"
       - name: Import Recreation.gov (RIDB) California campgrounds
         run: bun run scripts/import-ridb.ts
+      - name: Import California State Parks campgrounds (CDPR GIS)
+        run: bun run scripts/import-csp.ts || echo "CDPR unavailable — keeping previous csp-sites.json"
+      - name: Import county / private campgrounds (OpenStreetMap)
+        run: bun run scripts/import-osm.ts || echo "Overpass unavailable — keeping previous osm-sites.json"
+      - name: Read Recreation.gov seasons and fees (slow, throttled)
+        run: bun run scripts/enrich-ridb.ts
       - name: Resolve campground pages for any new sites
         run: bun run scripts/enrich-sites.ts
       - name: Exhibit names still match campground records

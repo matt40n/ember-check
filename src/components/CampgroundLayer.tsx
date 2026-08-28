@@ -43,7 +43,7 @@ export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict
         <div className="min-w-0">
           <p className="font-display text-lg font-bold leading-tight">{s.name}</p>
           <p className="text-cream-dim">
-            {s.forest.replace('National Forest', 'NF')} · {s.kind.replace(' Camping', '')}{s.siteCount ? ` · ${s.siteCount} sites` : ''}
+            {s.forest.replace('National Forest', 'NF')} · {s.kind.replace(' Camping', '')}{s.siteCount ? ` · ${s.siteCount} site${s.siteCount === 1 ? '' : 's'}` : ''}
             {showOpen && <span className={s.open ? 'text-ok' : 'text-ember'}> · {s.open ? 'open' : 'closed'}</span>}
           </p>
           {showOpen && s.openSource?.kind === 'usfs-page' && (
@@ -52,7 +52,7 @@ export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict
         </div>
       </div>
 
-      {fresh.status !== 'current' && s.source !== 'ridb' && (
+      {fresh.status !== 'current' && s.source === 'edw' && (
         <p className={`mt-2 flex items-start gap-1.5 rounded border p-1.5 ${fresh.status === 'outdated' ? 'border-ember/60 bg-ember/10 text-cream' : 'border-pine-600 bg-pine-700/60 text-cream-dim'}`}>
           <AlertTriangle size={13} className="mt-0.5 shrink-0" /> <span>{fresh.note}</span>
         </p>
@@ -92,14 +92,28 @@ export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict
 
       <div className="mt-3 flex flex-col gap-1 border-t border-pine-600 pt-2">
         {s.source === 'ridb' && <p className="text-[11px] text-cream-dim/80">Listing from Recreation.gov (RIDB); no live open/closed status for this site.</p>}
-        {s.url && (
-          <a href={s.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-signgold underline underline-offset-2">
-            <ExternalLink size={12} /> {s.urlIsSitePage ? 'USFS page for this site' : 'Forest recreation pages (no page found for this site)'}
+        {s.source === 'csp' && <p className="text-[11px] text-cream-dim/80">Listing from California State Parks GIS data; check the park page for status, fees and season.</p>}
+        {s.source === 'osm' && <p className="text-[11px] text-cream-dim/80">Listing from OpenStreetMap (© OpenStreetMap contributors, ODbL) — community-maintained; details may be incomplete.</p>}
+        {s.source === 'csp' && (
+          <a href={`https://www.parks.ca.gov/?q=${encodeURIComponent((s.forest.split(' · ')[1] ?? s.name).replace(/ (SP|SRA|SB|SHP|SNR|SVRA)$/, ''))}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-signgold underline underline-offset-2">
+            <ExternalLink size={12} /> Park page on parks.ca.gov
           </a>
         )}
-        <a href={rg} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-signgold underline underline-offset-2">
-          <ExternalLink size={12} /> {s.ridbId ? (s.reservable ? 'Reserve on Recreation.gov' : 'Recreation.gov listing') : 'Search Recreation.gov for availability'}
-        </a>
+        {s.source === 'csp' && (
+          <a href="https://www.reservecalifornia.com/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-signgold underline underline-offset-2">
+            <ExternalLink size={12} /> Reserve on ReserveCalifornia
+          </a>
+        )}
+        {s.url && (
+          <a href={s.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-signgold underline underline-offset-2">
+            <ExternalLink size={12} /> {s.urlIsSitePage ? 'USFS page for this site' : s.source === 'edw' ? 'Forest recreation pages (no page found for this site)' : 'Website'}
+          </a>
+        )}
+        {(s.ridbId || s.source === 'edw') && (
+          <a href={rg} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-signgold underline underline-offset-2">
+            <ExternalLink size={12} /> {s.ridbId ? (s.reservable ? 'Reserve on Recreation.gov' : 'Recreation.gov listing') : 'Search Recreation.gov for availability'}
+          </a>
+        )}
         <a href={reportUrl('site', { name: s.name, jurisdictionId: v.jurisdiction?.id, orderNumber: v.jurisdiction?.orderNumber, extra: v.label })} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-cream-dim underline underline-offset-2">
           <Flag size={12} /> Report a sign or rule that disagrees
         </a>

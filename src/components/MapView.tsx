@@ -28,7 +28,7 @@ export function MapView({ children, onClick, probe }: { children: ReactNode; onC
           <TileLayer
             className="basemap"
             url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>, <a href="https://opentopomap.org">OpenTopoMap</a>'
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>, <a href="https://opentopomap.org">OpenTopoMap</a> · campgrounds: USFS, Recreation.gov, CA State Parks, OSM'
             maxZoom={17}
           />
         </LayersControl.BaseLayer>

@@ -1,0 +1,2248 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-08-28T23:05:34Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "node",
+  "id": 320028606,
+  "lat": 40.7496303,
+  "lon": -122.1761351,
+  "tags": {
+    "name": "Rend Island Campground",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 320120352,
+  "lat": 40.8260024,
+  "lon": -122.2545827,
+  "tags": {
+    "access": "yes",
+    "fee": "no",
+    "name": "Greens Creek Campground",
+    "picnic_table": "yes",
+    "tents": "no",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/r05/shasta-trinity/recreation/greens-creek-boat-campground"
+  }
+},
+{
+  "type": "node",
+  "id": 320120959,
+  "lat": 40.8885348,
+  "lon": -122.2253408,
+  "tags": {
+    "designation": "Open as overflow May-Sept, 12 single sites-$20, $130 group site-up to 90 people(by reservation only), Bear boxes, Vault toilets, Tent/trailer max 16', No host",
+    "name": "Moore Creek Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 320120960,
+  "lat": 40.8746047,
+  "lon": -122.2360183,
+  "tags": {
+    "designation": "Reservation only, Open mid May-Labor Day, Fee $130-up to 60 people, Vault toilets, Tent/trailer max 16', Drinking water, No host, Access by vehicle or boat, Unpaved overflow parking",
+    "name": "Dekkas Rock  Group Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 358799963,
+  "lat": 40.7598727,
+  "lon": -122.2588936,
+  "tags": {
+    "designation": "Boat in Campground, Vault toilets, No fee, No drinking water, No host, Tent camping only-23 sites, No trash cans, No bear box, Yes swimming, No reservation",
+    "ele": "357",
+    "gnis:feature_id": "267257",
+    "name": "Ski Island",
+    "place": "island",
+    "source": "Common Knowledge",
+    "tourism": "camp_site",
+    "wikidata": "Q125873125"
+  }
+},
+{
+  "type": "node",
+  "id": 470797721,
+  "lat": 41.1513999,
+  "lon": -122.3126103,
+  "tags": {
+    "name": "Lower Loop Campground",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 1709517678,
+  "lat": 40.6001972,
+  "lon": -122.5946770,
+  "tags": {
+    "name": "Sheep Creek Campground",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 1711177999,
+  "lat": 40.6240145,
+  "lon": -122.5809998,
+  "tags": {
+    "name": "Dry Creek Campground",
+    "source": "local_knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 1711193503,
+  "lat": 40.6239391,
+  "lon": -122.5842212,
+  "tags": {
+    "description": "Dry Creek Campground entrance.",
+    "ele": "376",
+    "name": "Dry Creek Campground",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 1886483090,
+  "lat": 41.2323593,
+  "lon": -121.9903785,
+  "tags": {
+    "name": "Camp 4",
+    "note": "undeveloped",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 1888662237,
+  "lat": 41.1541154,
+  "lon": -122.0686336,
+  "tags": {
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 1888827081,
+  "lat": 41.1171272,
+  "lon": -122.0605753,
+  "tags": {
+    "name": "Ash Camp",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 1888827088,
+  "lat": 41.2649286,
+  "lon": -121.9043211,
+  "tags": {
+    "name": "Fourmile Camp",
+    "note": "undeveloped",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 1888827093,
+  "lat": 41.2657124,
+  "lon": -121.9176138,
+  "tags": {
+    "name": "Nitwit Camp",
+    "note": "undeveloped",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 1888827095,
+  "lat": 41.2658215,
+  "lon": -121.9147229,
+  "tags": {
+    "name": "Skunk Hollow Camp",
+    "note": "undeveloped",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304174844,
+  "lat": 40.7306634,
+  "lon": -122.2298311,
+  "tags": {
+    "designation": "Open only as needed for overflow, No host, Tent/trailer max length 16', 8 sites, Vault toilets, Fee $18, Drinking water yes, No reservations, Access by vehicle or boat",
+    "name": "Upper Jones Valley Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304186285,
+  "lat": 40.7541843,
+  "lon": -122.2538353,
+  "tags": {
+    "designation": "Open May-Sept, $10 fee-xtra car $6, Tent/trailer, Dispersed camping, 7 Picnic tables & fire rings, No reservation, Vault toilet, Trash cans provided, Vehicle or boat access",
+    "name": "Mariners Point Shoreline Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304190971,
+  "lat": 40.7285560,
+  "lon": -122.2296579,
+  "tags": {
+    "designation": "Open year-round, 8 Single sites $18-$6 xtra car, 3 Double sites $30-$6 xtra car, No reservations, No host, Vehicle access only, Valt toilets, Bear boxes, Tent/trailer max 16', Drinking water",
+    "name": "Lower Jones Valley Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304212750,
+  "lat": 40.8298224,
+  "lon": -122.4252016,
+  "tags": {
+    "designation": "Open year-round, No fee, Vault toilet, 8 Sites, No drinking water, Boat access only, No host",
+    "name": "Gooseneck Cove",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304215908,
+  "lat": 40.8428952,
+  "lon": -122.3541767,
+  "tags": {
+    "designation": "Open year-round, May-Sept=$10 fee/Offseason no fee, no services, Tent/trailer max 30', Dispersed camping, No drinking water, Vehicle and boat access, No host, No reservation, Port-a-potty May-Sept only",
+    "name": "Lower Salt Creek Shoreline Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304426634,
+  "lat": 40.8492860,
+  "lon": -122.3461043,
+  "tags": {
+    "designation": "Open June-Sept, Over flow for single sites-$10, Group site $100 up to 60 people, Reservations needed for group site, No host, Tent/trailer max 16', Vault toilets, Bear boxes, Access by vehicle or boat, No water",
+    "name": "Nelson Point Group/Family Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304428145,
+  "lat": 40.8473342,
+  "lon": -122.4040267,
+  "tags": {
+    "designation": "Dispersed camping, $10 May-Sept, Off season no fee-no services, Tent/trailer max 30', vault toilet(May-Sept), No drinking water, Vehicle or boat access, No host",
+    "name": "Beehive Point Shoreline",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304430543,
+  "lat": 40.8722940,
+  "lon": -122.3884806,
+  "tags": {
+    "designation": "Open year round, 17 single sites $20-3 are Yurts $65, 6 double sites $30- xtra car $6, Reservable May-Sept, Tent/trailer max 30', Camp host, Drinking water, Flush toilets, Vehicle and boat access",
+    "name": "Lakeshore East Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304433607,
+  "lat": 40.8876984,
+  "lon": -122.3782184,
+  "tags": {
+    "designation": "Open April 2nd-Sept 15th, Reservable May -Sept, 41 single sites $20, 18 double sites $35, Xtra vehicle $6, Tent/trailer max 30', Flush & vault toilets, Bear boxes, Camp host, Potable water, Access by vehicle",
+    "name": "Antlers Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304434152,
+  "lat": 40.8872097,
+  "lon": -122.3707404,
+  "tags": {
+    "designation": "Open May-Sept, Fee $10, Dispersed Camping, Tent/trailer max 30', No host, No reservations, Access by vehicle or boat, No water, Vault toilets & trash cans (May-Sept only), Limited services during offseason",
+    "name": "Gregory Beach",
+    "source": "Common Knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304436381,
+  "lat": 40.8878464,
+  "lon": -122.3692035,
+  "tags": {
+    "designation": "Open mid June-Sept, Fee $10, No host, Drinking water, No reservations, Tent/trailer camping",
+    "name": "Gregory Creek Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304439361,
+  "lat": 40.8001784,
+  "lon": -122.3206609,
+  "tags": {
+    "designation": "Open all year, 5 single sites $20, 2 double sites $35, Xtra vehicle $6, Tent/trailer max 30', Camp host, Access by vehicle, Flush toilets, Bear boxes, Reservable May-Sept",
+    "name": "Bailey Cove Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304441749,
+  "lat": 40.8655762,
+  "lon": -122.2560599,
+  "tags": {
+    "designation": "Open year round, Reservable  5/15-9/15, Fee $100- up to 80 people, Tent/trailer max 30', Vault toilets, Drinking water, 9 picnic tables, Paved parking area- up to 23 vehicles, Access by vehicle ",
+    "name": "Hirz Bay #2 Group Campground ",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304449397,
+  "lat": 40.8676208,
+  "lon": -122.2526213,
+  "tags": {
+    "designation": "Reservation only, Opens in April, Fee $130- up to 120 people, 21 paved sites, Vault toilets, Drinking water, Overflow parking, Tent/trailer max 30', Access by vehicle",
+    "name": "Hirz Bay #1 Group Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304458007,
+  "lat": 40.7285657,
+  "lon": -122.2296321,
+  "tags": {
+    "designation": "Open year round, 8 single sites $18, 3 double sites $30, Xtra vehicle $6, Vault toilets, Water available, Bear boxes, Tent/trailer max 16', No reservations, No host, Access by vehicle",
+    "name": "Lower Jones Valley Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304458279,
+  "lat": 40.7307141,
+  "lon": -122.2297018,
+  "tags": {
+    "designation": "Open for overflow, No reservations, 8 sites $18, Tent/trailer max 16', Vault toilets, Water available, Access by vehicle or boat",
+    "name": "Upper Jones Valley Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304458906,
+  "lat": 40.7321104,
+  "lon": -122.2339022,
+  "tags": {
+    "designation": "Open for overflow, 8 sites $18, No reservation, No host, Tent/trailer max 16', Access by vehicle or boat, Vault toilets, Water available",
+    "name": "Jones Valley Inlet Shoreline Campground",
+    "source": "Common Knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304460379,
+  "lat": 40.7648296,
+  "lon": -122.1192351,
+  "tags": {
+    "designation": "Open year round, No fee, 11 sites-tent only, Access by boat, Vault toilet, No host, No water",
+    "name": "Arbuckle Flat Boat in Campground",
+    "source": "Common Knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304461191,
+  "lat": 40.9159995,
+  "lon": -122.2427508,
+  "tags": {
+    "designation": "Open April-Mid September, Fee $20 single space, Xtra car $6, Vault toilets, Drinking water, Bear boxes, Tent/trailer camping, Reservable May-Sept, Access by vehicle or boat",
+    "name": "Ellery Creek Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304463094,
+  "lat": 40.9277219,
+  "lon": -122.2468277,
+  "tags": {
+    "designation": "Open June-Sept, 15 sites, Single sites $20, Group site $130-max 100 people(Reservations needed), Tent/trailer max 24', Bear boxes, Vault toilets, Water available, No host, Access by vehicle or boat",
+    "name": "Pine Point Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 2304465016,
+  "lat": 40.9360868,
+  "lon": -122.2461840,
+  "tags": {
+    "designation": "Opens in Arpil, Tent/trailer max 24', 11 single sites $20, 3 double sites $30, Xtra vehicle $6, Vault toilets, Bear boxes, Drinking water, Camp host, No reservation, Access by vehicle or boat",
+    "name": "McCloud Bridge Campground",
+    "source": "Common knowledge",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 3416144047,
+  "lat": 40.7792500,
+  "lon": -121.5030000,
+  "tags": {
+    "name": "Honn Campground",
+    "operator": "United States Forest Service",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/lassen/recarea/?recid=11428"
+  }
+},
+{
+  "type": "node",
+  "id": 4353379755,
+  "lat": 41.3531137,
+  "lon": -122.2335088,
+  "tags": {
+    "name": "Bunny Flat Trailhead camping",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 4840774722,
+  "lat": 41.0174315,
+  "lon": -121.6506415,
+  "tags": {
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 4852926021,
+  "lat": 40.9242732,
+  "lon": -122.0959143,
+  "tags": {
+    "name": "Madrone Campground",
+    "name:en": "Madrone Campground",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 4866800021,
+  "lat": 41.0339797,
+  "lon": -121.6515282,
+  "tags": {
+    "name": "North Shore Campground",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 4866800022,
+  "lat": 41.0152881,
+  "lon": -121.6109120,
+  "tags": {
+    "name": "Dusty Camp",
+    "name:en": "Dusty Camp",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 4900549683,
+  "lat": 41.0189571,
+  "lon": -121.6491502,
+  "tags": {
+    "name": "91",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 5513389725,
+  "lat": 41.2352819,
+  "lon": -122.3804232,
+  "tags": {
+    "name": "Castle Lake Campground",
+    "operator": "US Forest Service",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 5513390752,
+  "lat": 41.1495002,
+  "lon": -122.3082912,
+  "tags": {
+    "name": "Riverside Campground",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 5513391102,
+  "lat": 41.1530426,
+  "lon": -122.3119470,
+  "tags": {
+    "caravans": "no",
+    "name": "PCT Camp",
+    "tents": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 5513391435,
+  "lat": 41.1540443,
+  "lon": -122.3082322,
+  "tags": {
+    "name": "Upper Loop Campground",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 5513391515,
+  "lat": 41.1533193,
+  "lon": -122.3116788,
+  "tags": {
+    "name": "Little Loop Campground",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 5714341467,
+  "lat": 40.8728447,
+  "lon": -122.9174718,
+  "tags": {
+    "fee": "yes",
+    "horse": "yes",
+    "leisure": "horse_riding",
+    "motor_vehicle": "yes",
+    "name": "Bridge Camp",
+    "operator": "US Forest Service",
+    "sport": "equestrian",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6512"
+  }
+},
+{
+  "type": "node",
+  "id": 5805018174,
+  "lat": 41.3527366,
+  "lon": -122.2830731,
+  "tags": {
+    "capacity": "12",
+    "drinking_water": "yes",
+    "fee": "yes",
+    "name": "McBride Springs Campground",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6574"
+  }
+},
+{
+  "type": "node",
+  "id": 5805018412,
+  "lat": 41.3885937,
+  "lon": -122.2104925,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 5805018828,
+  "lat": 41.3544943,
+  "lon": -122.2032988,
+  "tags": {
+    "capacity": "15",
+    "fee": "no",
+    "name": "Panther Meadows Campground",
+    "tents": "yes",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6576"
+  }
+},
+{
+  "type": "node",
+  "id": 6634058998,
+  "lat": 41.3142969,
+  "lon": -122.9737516,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 6634058999,
+  "lat": 41.2273074,
+  "lon": -122.7450860,
+  "tags": {
+    "backcountry": "yes",
+    "name": "Mosquito Lake Creek",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 6634059000,
+  "lat": 41.3317999,
+  "lon": -122.5764363,
+  "tags": {
+    "name": "Chilcoot Creek",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 6634059001,
+  "lat": 41.3189438,
+  "lon": -122.5027795,
+  "tags": {
+    "backcountry": "yes",
+    "capacity": "4",
+    "name": "Middle Deadfall Lake Campsite",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 6634059002,
+  "lat": 41.1810433,
+  "lon": -122.4967248,
+  "tags": {
+    "name": "Lake Helen",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 6634060087,
+  "lat": 41.2091259,
+  "lon": -122.8927207,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "name": "South Fork Scott River",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 6634060088,
+  "lat": 41.2910732,
+  "lon": -122.6591199,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 6654286986,
+  "lat": 41.1595197,
+  "lon": -122.2801749,
+  "tags": {
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 6787007449,
+  "lat": 40.9911948,
+  "lon": -122.8878787,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7043533899,
+  "lat": 40.9272269,
+  "lon": -121.5421648,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7043549766,
+  "lat": 41.0063604,
+  "lon": -121.6448266,
+  "tags": {
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7578707923,
+  "lat": 41.2067172,
+  "lon": -122.5162107,
+  "tags": {
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7639725281,
+  "lat": 41.2126113,
+  "lon": -122.5112640,
+  "tags": {
+    "access": "yes",
+    "fee": "no",
+    "name": "Gumboot Campground",
+    "operator": "US Forest Service",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6572"
+  }
+},
+{
+  "type": "node",
+  "id": 7639765561,
+  "lat": 41.2746619,
+  "lon": -122.6988959,
+  "tags": {
+    "drinking_water": "no",
+    "fee": "no",
+    "name": "Scott Mountain Campground",
+    "static_caravans": "no",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6520"
+  }
+},
+{
+  "type": "node",
+  "id": 7712520278,
+  "lat": 41.0502870,
+  "lon": -122.9723192,
+  "tags": {
+    "access": "yes",
+    "backcountry": "yes",
+    "capacity": "5",
+    "name": "Campsite 1",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7712520279,
+  "lat": 41.0499655,
+  "lon": -122.9718905,
+  "tags": {
+    "access": "yes",
+    "backcountry": "yes",
+    "capacity": "5",
+    "name": "Campsite 2",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7712520280,
+  "lat": 41.0499154,
+  "lon": -122.9715233,
+  "tags": {
+    "access": "yes",
+    "backcountry": "yes",
+    "capacity": "5",
+    "name": "Campsite 3",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7712520282,
+  "lat": 41.0297920,
+  "lon": -122.9717749,
+  "tags": {
+    "access": "yes",
+    "backcountry": "yes",
+    "capacity": "5",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7712520283,
+  "lat": 41.0294689,
+  "lon": -122.9725281,
+  "tags": {
+    "access": "yes",
+    "backcountry": "yes",
+    "capacity": "5",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7712520284,
+  "lat": 41.0285777,
+  "lon": -122.9730930,
+  "tags": {
+    "access": "yes",
+    "backcountry": "yes",
+    "capacity": "5",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7712520285,
+  "lat": 41.0279410,
+  "lon": -122.9729892,
+  "tags": {
+    "access": "yes",
+    "backcountry": "yes",
+    "capacity": "5",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7712520286,
+  "lat": 41.0272923,
+  "lon": -122.9725828,
+  "tags": {
+    "access": "yes",
+    "backcountry": "yes",
+    "capacity": "5",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7712520287,
+  "lat": 41.0292612,
+  "lon": -122.9729196,
+  "tags": {
+    "access": "yes",
+    "backcountry": "yes",
+    "capacity": "5",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7712520408,
+  "lat": 41.0270469,
+  "lon": -122.9739616,
+  "tags": {
+    "access": "yes",
+    "backcountry": "yes",
+    "capacity": "5",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7712520409,
+  "lat": 41.0229381,
+  "lon": -122.9764482,
+  "tags": {
+    "access": "yes",
+    "backcountry": "yes",
+    "capacity": "5",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7712520410,
+  "lat": 41.0291011,
+  "lon": -122.9727686,
+  "tags": {
+    "access": "yes",
+    "backcountry": "yes",
+    "capacity": "5",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7712520412,
+  "lat": 41.0268022,
+  "lon": -122.9751230,
+  "tags": {
+    "access": "yes",
+    "backcountry": "yes",
+    "capacity": "5",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7752582135,
+  "lat": 41.0676404,
+  "lon": -122.9347820,
+  "tags": {
+    "name": "Big Flat Campground",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7851780576,
+  "lat": 41.3713697,
+  "lon": -122.0015808,
+  "tags": {
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7851834505,
+  "lat": 41.2518661,
+  "lon": -122.0514261,
+  "tags": {
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7928676209,
+  "lat": 40.6160213,
+  "lon": -122.5748634,
+  "tags": {
+    "name": "Brandy Creek Campground",
+    "source": "Bing",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 7928699065,
+  "lat": 40.6499466,
+  "lon": -122.5928452,
+  "tags": {
+    "name": "Oak Bottom Campground",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 8747890861,
+  "lat": 41.2803617,
+  "lon": -122.3467441,
+  "tags": {
+    "caravans": "yes",
+    "internet_access": "wlan",
+    "internet_access:fee": "no",
+    "name": "Lake Siskiyou camp resort",
+    "tents": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 8855115422,
+  "lat": 41.2693650,
+  "lon": -122.7650169,
+  "tags": {
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 8864543328,
+  "lat": 40.9618657,
+  "lon": -122.6614653,
+  "tags": {
+    "name": "Jackass Springs Campground",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6487"
+  }
+},
+{
+  "type": "node",
+  "id": 8866395138,
+  "lat": 40.8454084,
+  "lon": -122.7879748,
+  "tags": {
+    "name": "Ridgeville Island Boat-In Campground",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6496"
+  }
+},
+{
+  "type": "node",
+  "id": 8866395139,
+  "lat": 40.8465363,
+  "lon": -122.7982500,
+  "tags": {
+    "name": "Ridgeville Boat-In Campground",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6495"
+  }
+},
+{
+  "type": "node",
+  "id": 8866395140,
+  "lat": 40.8312700,
+  "lon": -122.7682129,
+  "tags": {
+    "name": "Mariners Roost Boat-In Campground",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6488"
+  }
+},
+{
+  "type": "node",
+  "id": 8866470068,
+  "lat": 40.8627783,
+  "lon": -122.7255022,
+  "tags": {
+    "name": "Captains Point Boat-In Campground",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6478"
+  }
+},
+{
+  "type": "node",
+  "id": 8878410402,
+  "lat": 41.2192713,
+  "lon": -122.9033735,
+  "tags": {
+    "group_only": "yes",
+    "name": "Carter Meadows Campground",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/klamath/recarea/?recid=13111"
+  }
+},
+{
+  "type": "node",
+  "id": 8878424847,
+  "lat": 41.1663331,
+  "lon": -122.6923466,
+  "tags": {
+    "name": "Horse Flat Campground",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6517"
+  }
+},
+{
+  "type": "node",
+  "id": 8910229454,
+  "lat": 40.9654508,
+  "lon": -122.8985220,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 8910229456,
+  "lat": 40.9801633,
+  "lon": -122.9190916,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 8910229457,
+  "lat": 41.0066639,
+  "lon": -122.9960840,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 8910229540,
+  "lat": 41.0176669,
+  "lon": -122.9085428,
+  "tags": {
+    "backcountry": "yes",
+    "ele": "2020",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 8910229571,
+  "lat": 41.0034223,
+  "lon": -122.9103404,
+  "tags": {
+    "backcountry": "yes",
+    "ele": "2164",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 10062705844,
+  "lat": 41.2121977,
+  "lon": -122.3770228,
+  "tags": {
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 10065159717,
+  "lat": 41.3439847,
+  "lon": -122.2531398,
+  "tags": {
+    "name": "Red Fir Flat Group Campground",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11033882658,
+  "lat": 41.1523805,
+  "lon": -122.3117053,
+  "tags": {
+    "fee": "yes",
+    "name": "Hiker Biker Campsite",
+    "operator": "Castle Crags State Park",
+    "tents": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11034254227,
+  "lat": 41.0172377,
+  "lon": -121.6439470,
+  "tags": {
+    "fee": "yes",
+    "name": "Hike and Bike Campsite",
+    "tents": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11060476737,
+  "lat": 41.1431239,
+  "lon": -122.1707882,
+  "tags": {
+    "name": "Cabin Creek campsites",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11144117192,
+  "lat": 41.2019951,
+  "lon": -122.9023576,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11144117193,
+  "lat": 41.2029295,
+  "lon": -122.9007509,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11144334723,
+  "lat": 41.1789992,
+  "lon": -122.8200540,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11145443325,
+  "lat": 41.2295320,
+  "lon": -122.7867034,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11149316196,
+  "lat": 41.2181135,
+  "lon": -122.8009915,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11149334146,
+  "lat": 41.2322249,
+  "lon": -122.7951926,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "description": "Water withing 1/4 mile on either side.",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11149358506,
+  "lat": 41.2106198,
+  "lon": -122.8047466,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11149480678,
+  "lat": 41.1694436,
+  "lon": -122.8013724,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11149480679,
+  "lat": 41.1817225,
+  "lon": -122.7927893,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11149480680,
+  "lat": 41.2011879,
+  "lon": -122.7975422,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11149480683,
+  "lat": 41.2103635,
+  "lon": -122.7797484,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11149480684,
+  "lat": 41.2389961,
+  "lon": -122.7930522,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11149480685,
+  "lat": 41.2266554,
+  "lon": -122.7817762,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11149480686,
+  "lat": 41.2294352,
+  "lon": -122.7835196,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11149480687,
+  "lat": 41.2330862,
+  "lon": -122.7850753,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11149489489,
+  "lat": 41.2224996,
+  "lon": -122.7627057,
+  "tags": {
+    "backcountry": "yes",
+    "camp_site": "basic",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11163203091,
+  "lat": 41.2125797,
+  "lon": -122.5124712,
+  "tags": {
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11163260302,
+  "lat": 41.2130276,
+  "lon": -122.5117948,
+  "tags": {
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11218791754,
+  "lat": 41.4092725,
+  "lon": -122.1962837,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11218791826,
+  "lat": 41.3911437,
+  "lon": -122.1703996,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11218791827,
+  "lat": 41.3923614,
+  "lon": -122.1727771,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11218791828,
+  "lat": 41.3963433,
+  "lon": -122.1789752,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11218791829,
+  "lat": 41.3879499,
+  "lon": -122.1521924,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11218791830,
+  "lat": 41.3876123,
+  "lon": -122.1647740,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 11218791831,
+  "lat": 41.3943239,
+  "lon": -122.1759181,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 12002191685,
+  "lat": 41.2301225,
+  "lon": -122.7215779,
+  "tags": {
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 12015917669,
+  "lat": 40.8396745,
+  "lon": -122.7708824,
+  "tags": {
+    "backcountry": "yes",
+    "capacity": "7",
+    "drinking_water": "no",
+    "fee": "no",
+    "name": "Miners Roost Boat-in Campground",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6488"
+  }
+},
+{
+  "type": "node",
+  "id": 12054082635,
+  "lat": 41.2839000,
+  "lon": -122.4918514,
+  "tags": {
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 12789612928,
+  "lat": 40.5857058,
+  "lon": -122.5519002,
+  "tags": {
+    "capacity": "9",
+    "drinking_water": "no",
+    "fee": "yes",
+    "name": "Peltier Bridge Campground",
+    "tents": "yes",
+    "tourism": "camp_site",
+    "website": "https://www.nps.gov/whis/planyourvisit/peltier-bridge.htm"
+  }
+},
+{
+  "type": "node",
+  "id": 12789612984,
+  "lat": 40.5764431,
+  "lon": -122.5310513,
+  "tags": {
+    "capacity": "2",
+    "name": "Horse Camp",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 12918251578,
+  "lat": 40.9916955,
+  "lon": -121.5072690,
+  "tags": {
+    "fee": "yes",
+    "name": "Pit River Campground",
+    "operator": "BLM",
+    "tourism": "camp_site",
+    "website": "https://www.blm.gov/visit/pit-river-campground"
+  }
+},
+{
+  "type": "node",
+  "id": 13084978492,
+  "lat": 40.5257726,
+  "lon": -121.5618111,
+  "tags": {
+    "caravans": "no",
+    "drinking_water": "yes",
+    "name": "D-19",
+    "power_supply": "no",
+    "shower": "yes",
+    "tents": "yes",
+    "toilets": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 13121442839,
+  "lat": 40.6423175,
+  "lon": -122.6707000,
+  "tags": {
+    "name": "Crystal Creek Campground",
+    "operator": "National Park Service",
+    "tourism": "camp_site",
+    "website": "https://www.nps.gov/whis/planyourvisit/crystal-creek-campground.htm"
+  }
+},
+{
+  "type": "node",
+  "id": 13121452424,
+  "lat": 40.6014217,
+  "lon": -122.5823347,
+  "tags": {
+    "name": "Brandy Creek Campground",
+    "operator": "National Park Service",
+    "tourism": "camp_site",
+    "website": "https://www.nps.gov/whis/planyourvisit/brandy-creek.htm"
+  }
+},
+{
+  "type": "node",
+  "id": 13398994864,
+  "lat": 41.2935958,
+  "lon": -122.4970892,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 13988695212,
+  "lat": 40.9316556,
+  "lon": -122.9577183,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 13988695213,
+  "lat": 40.9398067,
+  "lon": -122.9520765,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 13988695214,
+  "lat": 40.9813918,
+  "lon": -122.9583403,
+  "tags": {
+    "backcountry": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 13988695215,
+  "lat": 40.9381179,
+  "lon": -122.8877878,
+  "tags": {
+    "backcountry": "yes",
+    "name": "Blue boulder camp",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 13988695216,
+  "lat": 40.9403393,
+  "lon": -122.8834393,
+  "tags": {
+    "backcountry": "yes",
+    "name": "Siligo Springs overlook camp",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 13988695218,
+  "lat": 40.9361313,
+  "lon": -122.8629738,
+  "tags": {
+    "backcountry": "yes",
+    "name": "Long Canyon Campsite",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 13988695219,
+  "lat": 40.9448595,
+  "lon": -122.8933852,
+  "tags": {
+    "backcountry": "yes",
+    "name": "Deer Lake Campsite",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "node",
+  "id": 13988695220,
+  "lat": 40.9400734,
+  "lon": -122.8975169,
+  "tags": {
+    "backcountry": "yes",
+    "name": "Summit Lake Campsite",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "way",
+  "id": 178252189,
+  "center": {
+    "lat": 40.8667294,
+    "lon": -122.2510302
+  },
+  "tags": {
+    "name": "Hirz Bay Campgrounds",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "way",
+  "id": 178280530,
+  "center": {
+    "lat": 41.2594162,
+    "lon": -121.9403966
+  },
+  "tags": {
+    "name": "Cattle Camp Campground",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "way",
+  "id": 178280531,
+  "center": {
+    "lat": 41.2442568,
+    "lon": -122.0234274
+  },
+  "tags": {
+    "caravans": "yes",
+    "drinking_water": "yes",
+    "name": "Fowlers Campground",
+    "tents": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "way",
+  "id": 178280533,
+  "center": {
+    "lat": 40.8727721,
+    "lon": -122.3888018
+  },
+  "tags": {
+    "name": "Lakeshore Campground",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "way",
+  "id": 178280540,
+  "center": {
+    "lat": 41.0619587,
+    "lon": -122.3610720
+  },
+  "tags": {
+    "name": "Sims Flat Campground",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "way",
+  "id": 340474048,
+  "center": {
+    "lat": 41.3351669,
+    "lon": -122.6391088
+  },
+  "tags": {
+    "name": "Kangaroo Lake Campground",
+    "operator": "United States Forest Service",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/klamath/recarea/?recid=13114"
+  }
+},
+{
+  "type": "way",
+  "id": 509679705,
+  "center": {
+    "lat": 40.8352883,
+    "lon": -122.8453296
+  },
+  "tags": {
+    "cost": "24 USD",
+    "fee": "yes",
+    "name": "Tannery Gulch Campground",
+    "operator": "Shasta Recreation Company for United States Forest Service",
+    "reservation": "yes",
+    "seasonal": "summer/autumn",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6503"
+  }
+},
+{
+  "type": "way",
+  "id": 918438166,
+  "center": {
+    "lat": 40.5304196,
+    "lon": -121.5622207
+  },
+  "tags": {
+    "name": "Manzanita Lake Campground",
+    "note": "area is approx",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "way",
+  "id": 918439894,
+  "center": {
+    "lat": 40.5636121,
+    "lon": -121.5200638
+  },
+  "tags": {
+    "name": "Crags Campground",
+    "note": "area is approx",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "way",
+  "id": 918439895,
+  "center": {
+    "lat": 40.5618379,
+    "lon": -121.5177312
+  },
+  "tags": {
+    "group_only": "yes",
+    "name": "Lost Creek Organization Campground",
+    "note": "area is approx",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "way",
+  "id": 956676435,
+  "center": {
+    "lat": 41.2555354,
+    "lon": -121.8834945
+  },
+  "tags": {
+    "access": "yes",
+    "capacity": "8",
+    "name": "Algoma Campground",
+    "operator": "US Forest Service",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "way",
+  "id": 958241997,
+  "center": {
+    "lat": 40.8538730,
+    "lon": -122.8178160
+  },
+  "tags": {
+    "access:conditional": "yes @ (18 May-31 Oct)",
+    "camp_site": "standard",
+    "caravans": "yes",
+    "drinking_water": "yes",
+    "fee": "yes",
+    "name": "Bushytail Campground",
+    "operator": "Shasta Recreation Company",
+    "owner": "Shasta-Trinity National Forest",
+    "reservation": "available",
+    "seasonal": "yes",
+    "tents": "yes",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recreation/recarea/?recid=6477&actid=29"
+  }
+},
+{
+  "type": "way",
+  "id": 958242002,
+  "center": {
+    "lat": 40.8517169,
+    "lon": -122.8128071
+  },
+  "tags": {
+    "description": "Walk-in sites always available, drive in sites are seasonal.",
+    "drinking_water": "no",
+    "fee": "yes",
+    "motor_vehicle:conditional": "yes @ (1 May-31 Oct)",
+    "name": "Minersville Campground",
+    "operator": "Shasta Recreation Company",
+    "owner": "Shasta-Trinity National Forest",
+    "seasonal": "yes",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6490"
+  }
+},
+{
+  "type": "way",
+  "id": 958243198,
+  "center": {
+    "lat": 40.8733193,
+    "lon": -122.7687440
+  },
+  "tags": {
+    "access:conditional": "yes @ (18 May-15 Sep)",
+    "capacity": "98",
+    "caravans": "yes",
+    "cost": "24 USD",
+    "drinking_water": "yes",
+    "fee": "yes",
+    "name": "Hayward Flat Campground",
+    "seasonal": "yes",
+    "tents": "yes",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6486"
+  }
+},
+{
+  "type": "way",
+  "id": 958243888,
+  "center": {
+    "lat": 40.8860838,
+    "lon": -122.7655835
+  },
+  "tags": {
+    "access:conditional": "yes @ (18 May-15 Sep)",
+    "capacity": "54",
+    "caravans": "yes",
+    "cost": "24 USD",
+    "drinking_water": "yes",
+    "fee": "yes",
+    "name": "Alpine View Campground",
+    "operator": "Shasta-Trinity National Forest",
+    "reservation": "available",
+    "seasonal": "yes",
+    "tents": "yes",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6474",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 958250341,
+  "center": {
+    "lat": 40.8447646,
+    "lon": -122.8436065
+  },
+  "tags": {
+    "access:conditional": "yes @ (1 May-30 Sep)",
+    "cost": "140 USD",
+    "drinking_water": "yes",
+    "fee": "yes",
+    "group_only": "yes",
+    "name": "Fawn Group Campground",
+    "operator": "Shasta Recreation Company",
+    "owner": "Shasta-Trinity National Forest",
+    "reservation": "yes",
+    "seasonal": "yes",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6484"
+  }
+},
+{
+  "type": "way",
+  "id": 958250343,
+  "center": {
+    "lat": 40.8488040,
+    "lon": -122.8593542
+  },
+  "tags": {
+    "caravans": "no",
+    "description": "walk-in sites only",
+    "drinking_water": "yes",
+    "fee": "yes",
+    "name": "Stoney Point Campground",
+    "tents": "yes",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6500"
+  }
+},
+{
+  "type": "way",
+  "id": 958251504,
+  "center": {
+    "lat": 40.9632201,
+    "lon": -122.7307993
+  },
+  "tags": {
+    "name": "Preacher Meadow Campground",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6518"
+  }
+},
+{
+  "type": "way",
+  "id": 958252820,
+  "center": {
+    "lat": 41.1087297,
+    "lon": -122.7060796
+  },
+  "tags": {
+    "name": "Trinity River Campground",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6523"
+  }
+},
+{
+  "type": "way",
+  "id": 958304757,
+  "center": {
+    "lat": 40.7861714,
+    "lon": -122.7715179
+  },
+  "tags": {
+    "fee": "yes",
+    "name": "Ackerman Campground",
+    "picnic_table": "yes",
+    "sanitary_dump_station": "customers",
+    "source": "Mapbox",
+    "toilets": "yes",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6473"
+  }
+},
+{
+  "type": "way",
+  "id": 958308729,
+  "center": {
+    "lat": 40.9308079,
+    "lon": -122.5865646
+  },
+  "tags": {
+    "name": "Clear Creek Campground",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6513"
+  }
+},
+{
+  "type": "way",
+  "id": 959581444,
+  "center": {
+    "lat": 41.2188053,
+    "lon": -122.9118375
+  },
+  "tags": {
+    "name": "Hidden Horse Campground",
+    "operator": "United States Forest Service",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/klamath/recarea/?recid=13112"
+  }
+},
+{
+  "type": "way",
+  "id": 959582928,
+  "center": {
+    "lat": 41.2283477,
+    "lon": -122.9729461
+  },
+  "tags": {
+    "fee": "yes",
+    "name": "Trail Creek Campground",
+    "operator": "United States Forest Service",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/klamath/recarea/?recid=13116"
+  }
+},
+{
+  "type": "way",
+  "id": 959587439,
+  "center": {
+    "lat": 41.1531246,
+    "lon": -122.6696576
+  },
+  "tags": {
+    "camp_site": "standard",
+    "name": "Eagle Creek Campground",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6514"
+  }
+},
+{
+  "type": "way",
+  "id": 1076981490,
+  "center": {
+    "lat": 40.5159216,
+    "lon": -121.6794237
+  },
+  "tags": {
+    "addr:city": "Viola",
+    "addr:housenumber": "8071",
+    "addr:state": "CA",
+    "addr:street": "Mineral Road",
+    "name": "Lassen Pines Camp",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "way",
+  "id": 1211712690,
+  "center": {
+    "lat": 40.7726302,
+    "lon": -122.9218049
+  },
+  "tags": {
+    "camp_site": "standard",
+    "capacity": "10",
+    "cost": "110 USD",
+    "fee": "yes",
+    "group_only": "yes",
+    "name": "East Weaver Group Campground",
+    "operator": "Shasta Recreation Company for USFS",
+    "reservation": "required",
+    "seasonal": "summer/autumn",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6515"
+  }
+},
+{
+  "type": "way",
+  "id": 1212146163,
+  "center": {
+    "lat": 40.8181797,
+    "lon": -122.8976637
+  },
+  "tags": {
+    "camp_site": "standard",
+    "cost": "10 USD",
+    "drinking_water": "no",
+    "fee": "yes",
+    "name": "Rush Creek Campground",
+    "operator": "USDA Forest Service",
+    "reservation": "no",
+    "seasonal": "summer/autumn",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6519"
+  }
+},
+{
+  "type": "way",
+  "id": 1212410895,
+  "center": {
+    "lat": 40.7294661,
+    "lon": -122.8055862
+  },
+  "tags": {
+    "camp_site": "standard",
+    "caravans": "no",
+    "cost": "$24 per day, per site, $8 per day per extra vehicle Glamping sites $104-$125",
+    "description": "Except for a large cluster of sites at campground entrance (sites 2-9), all campsites are walk-in and clustered in small groups. Glamping Tents are also available.",
+    "drinking_water": "yes",
+    "fee": "yes",
+    "name": "Mary Smith Campground",
+    "operator": "Shasta Recreation Company for USFS",
+    "reservation": "yes",
+    "seasonal": "spring;summer;autumn",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6489"
+  }
+},
+{
+  "type": "way",
+  "id": 1212410909,
+  "center": {
+    "lat": 40.7459646,
+    "lon": -122.8060985
+  },
+  "tags": {
+    "alt_name": "Cooper Gulch Day Use Area",
+    "capacity": "5",
+    "cost": "24 USD",
+    "drinking_water": "yes",
+    "fee": "yes",
+    "name": "Cooper Gulch Campground",
+    "operator": "Shasta Recreation Company for USFS",
+    "reservation": "yes",
+    "seasonal": "spring;summer;autumn",
+    "tourism": "camp_site",
+    "website": "https://fs.usda.gov/recarea/stnf/recarea/?recid=6482"
+  }
+},
+{
+  "type": "way",
+  "id": 1296428920,
+  "center": {
+    "lat": 41.1008538,
+    "lon": -122.7796660
+  },
+  "tags": {
+    "drinking_water": "no",
+    "fee": "no",
+    "name": "Goldfield Campground",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6516"
+  }
+},
+{
+  "type": "way",
+  "id": 1297170940,
+  "center": {
+    "lat": 40.8573891,
+    "lon": -122.8146896
+  },
+  "tags": {
+    "access:conditional": "yes @ (May-Oct)",
+    "capacity": "20",
+    "caravans": "yes",
+    "cost": "21 USD",
+    "drinking_water": "yes",
+    "fee": "yes",
+    "name": "Clark Springs Campground",
+    "operator": "Shasta Recreation Company",
+    "owner": "Shasta-Trinity National Forest",
+    "reservation": "no",
+    "seasonal": "yes",
+    "tents": "yes",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6479"
+  }
+},
+{
+  "type": "way",
+  "id": 1297209697,
+  "center": {
+    "lat": 40.8513241,
+    "lon": -122.8503080
+  },
+  "tags": {
+    "access:conditional": "yes @ (1 May-30 Sep)",
+    "camp_site": "standard",
+    "caravans": "no",
+    "cost": "120 USD",
+    "drinking_water": "yes",
+    "fee": "yes",
+    "group_only": "yes",
+    "name": "Stoney Creek Group Campground",
+    "operator": "Shasta Recreation Company",
+    "owner": "Shasta-Trinity National Forest",
+    "reservation": "required",
+    "seasonal": "yes",
+    "tents": "yes",
+    "tourism": "camp_site",
+    "website": "https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6498"
+  }
+},
+{
+  "type": "way",
+  "id": 1297224211,
+  "center": {
+    "lat": 40.8727362,
+    "lon": -122.9151088
+  },
+  "tags": {
+    "cost": "16 USD",
+    "drinking_water:conditional": "yes @ (15 May-31 Oct)",
+    "fee": "yes",
+    "name": "Bridge Camp Campground",
+    "operator": "Shasta Recreation Company",
+    "owner": "Shasta-Trinity National Forest",
+    "reservation": "no",
+    "tents": "yes",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "way",
+  "id": 1337434582,
+  "center": {
+    "lat": 41.1096739,
+    "lon": -122.0986551
+  },
+  "tags": {
+    "name": "Ah-Di-Na Campground",
+    "tourism": "camp_site"
+  }
+},
+{
+  "type": "way",
+  "id": 1410137261,
+  "center": {
+    "lat": 41.4588054,
+    "lon": -122.9002912
+  },
+  "tags": {
+    "camp_site": "basic",
+    "caravans": "no",
+    "charge": "10 USD",
+    "description": "Fee is payable at Park Kiosk.",
+    "fee": "yes",
+    "picnic_table": "yes",
+    "shower": "yes",
+    "static_caravans": "no",
+    "tents": "yes",
+    "toilets": "yes",
+    "tourism": "camp_site"
+  }
+}
+
+  ]
+}

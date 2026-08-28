@@ -43,7 +43,11 @@ export interface RecSite {
   name: string
   /** Managing unit label: forest name for USFS EDW sites; agency + rec area for Recreation.gov sites */
   forest: string
-  source: 'edw' | 'ridb'
+  source: 'edw' | 'ridb' | 'csp' | 'osm'
+  /** Who runs it (RIDB/CSP/OSM sites): 'NPS', 'State Parks', 'County / regional', 'Private'… */
+  operator?: string | null
+  website?: string | null
+  backcountry?: boolean
   /** Recreation.gov facility id (RIDB sites only) */
   ridbId?: string
   reservable?: boolean
@@ -87,7 +91,7 @@ export function useRecSites() {
     queryKey: ['usfs-rec-sites'],
     ...STATIC,
     queryFn: async () => {
-      const [fc, pages, ridb] = await Promise.all([snapshotOrLive<GeoJSON.FeatureCollection<GeoJSON.Point>>('sites'), sitePages(), ridbSites()])
+      const [fc, pages, ridb, extra, csp, osm] = await Promise.all([snapshotOrLive<GeoJSON.FeatureCollection<GeoJSON.Point>>('sites'), sitePages(), local<RidbSite[]>('ridb-sites.json', []), local<Record<string, RidbExtra>>('ridb-extra.json', {}), local<CspSite[]>('csp-sites.json', []), local<OsmSite[]>('osm-sites.json', [])])
       const edw = fc.features
         .filter((f) => f.geometry)
         .map((f): RecSite => {
@@ -114,56 +118,74 @@ export function useRecSites() {
             lat: f.geometry.coordinates[1],
           }
         })
-      return mergeRidb(edw, ridb)
+      return mergeAll(edw, ridb, extra, csp, osm)
     },
   })
 }
 
 type RidbSite = { id: string; name: string; agency: string; area: string | null; lat: number; lng: number; reservable: boolean; sites: number | null; fee: string | null; description: string | null; stayLimit: string | null; phone: string | null; updated: string | null }
-async function ridbSites(): Promise<RidbSite[]> {
+type RidbExtra = { season: string | null; openMonths: string[]; fee: string | null; checkedOn: string }
+type CspSite = { id: string; name: string; park: string | null; type: string | null; subtype: string | null; detail: string | null; lat: number; lng: number }
+type OsmSite = { id: string; name: string; operator?: string; kind: string; federalOrState?: boolean; lat: number; lng: number; backcountry?: boolean; groupOnly?: boolean; fee?: string; reservation?: string; seasonal?: string; openingHours?: string; capacity?: number; website?: string; phone?: string; description?: string; drinkingWater?: string; toilets?: string; fireplace?: string }
+
+async function local<T>(file: string, fallback: T): Promise<T> {
   try {
-    const r = await fetch(`${import.meta.env.BASE_URL.replace(/\/$/, '')}/data/ridb-sites.json`)
-    return r.ok ? await r.json() : []
+    const r = await fetch(`${import.meta.env.BASE_URL.replace(/\/$/, '')}/data/${file}`)
+    return r.ok ? await r.json() : fallback
   } catch {
-    return []
+    return fallback
   }
 }
-const norm = (s: string) => s.toLowerCase().replace(/\b(campground|campgrounds|group|camp|cg|site|sites|recreation|area|day use|picnic|equestrian|horse)\b/g, '').replace(/[^a-z]/g, '')
-/** Recreation.gov carries many of the same USFS campgrounds as EDW; keep the EDW record (it has the USFS page + status) and add the rest. */
-function mergeRidb(edw: RecSite[], ridb: RidbSite[]): RecSite[] {
-  const extra: RecSite[] = []
+const norm = (s: string) => s.toLowerCase().replace(/\b(campground|campgrounds|group|camp|cg|site|sites|recreation|area|day use|picnic|equestrian|horse|lower|upper|loop|family|environmental|primitive|walk-in|boat-in|state park|sp|sra|sb)\b/g, '').replace(/[^a-z]/g, '')
+const near = (a: { lat: number; lng: number }, b: { lat: number; lng: number }, km = 1.5) => Math.abs(a.lat - b.lat) * 111 < km && Math.abs(a.lng - b.lng) * 85 < km
+const sameName = (a: string, b: string) => { const x = norm(a), y = norm(b); return x.length > 2 && y.length > 2 && (x === y || x.startsWith(y) || y.startsWith(x)) }
+
+/**
+ * One pin per campground. Precedence when two sources describe the same place (same-ish name within ~1.5 km):
+ * USFS EDW (has the site's own USFS page + status) → Recreation.gov → State Parks → OpenStreetMap.
+ * Higher-precedence records still pick up the Recreation.gov reservation link and any OSM website.
+ */
+function mergeAll(edw: RecSite[], ridb: RidbSite[], extra: Record<string, RidbExtra>, csp: CspSite[], osm: OsmSite[]): RecSite[] {
+  const all: RecSite[] = [...edw]
+  const findDup = (name: string, pt: { lat: number; lng: number }) => all.find((e) => near(e, pt) && sameName(e.name, name))
   for (const r of ridb) {
-    const key = norm(r.name)
-    const dup = edw.some((e) => Math.abs(e.lat - r.lat) < 0.02 && Math.abs(e.lng - r.lng) < 0.025 && (norm(e.name) === key || norm(e.name).startsWith(key) || key.startsWith(norm(e.name))) && key.length > 2)
+    const x = extra[r.id]
+    const dup = findDup(r.name, r)
     if (dup) {
-      // Let the EDW record link to Recreation.gov's reservation page too
-      const e = edw.find((e) => Math.abs(e.lat - r.lat) < 0.02 && Math.abs(e.lng - r.lng) < 0.025 && (norm(e.name) === key || norm(e.name).startsWith(key) || key.startsWith(norm(e.name))))
-      if (e && r.reservable && !e.ridbId) { e.ridbId = r.id; e.reservable = true }
+      if (r.reservable && !dup.ridbId) { dup.ridbId = r.id; dup.reservable = true }
+      if (x?.season && !dup.season) dup.season = x.season
       continue
     }
-    extra.push({
-      name: r.name,
-      forest: [r.agency, r.area].filter(Boolean).join(' · '),
-      source: 'ridb',
-      ridbId: r.id,
-      reservable: r.reservable,
-      siteCount: r.sites,
-      stayLimit: r.stayLimit,
-      phone: r.phone,
-      kind: 'Campground Camping',
-      open: null,
-      openSource: null,
-      url: null,
-      urlIsSitePage: false,
-      restrictions: null,
-      season: null,
-      fee: r.fee,
-      description: r.description,
-      reservations: r.reservable ? 'Reservable on Recreation.gov' : 'First-come, first-served (per Recreation.gov)',
-      hours: null,
-      lat: r.lat,
-      lng: r.lng,
+    all.push({
+      name: r.name, forest: [r.agency, r.area].filter(Boolean).join(' · '), source: 'ridb', operator: r.agency, ridbId: r.id, reservable: r.reservable, siteCount: r.sites, stayLimit: r.stayLimit, phone: r.phone,
+      kind: 'Campground Camping', open: null, openSource: null, url: null, urlIsSitePage: false, restrictions: null,
+      season: x?.season ?? null, fee: x?.fee ?? r.fee, description: r.description,
+      reservations: r.reservable ? 'Reservable on Recreation.gov' : 'First-come, first-served (per Recreation.gov)', hours: null, lat: r.lat, lng: r.lng,
     })
   }
-  return [...edw, ...extra]
+  for (const c of csp) {
+    if (findDup(c.name, c) || (c.park && findDup(c.park, c))) continue
+    all.push({
+      name: c.park && !c.name.toLowerCase().includes(c.park.replace(/ (SP|SRA|SB|SHP|SNR|SVRA)$/, '').toLowerCase()) ? `${c.name} — ${c.park}` : c.name,
+      forest: ['State Parks', c.park].filter(Boolean).join(' · '), source: 'csp', operator: 'State Parks',
+      kind: 'Campground Camping', open: null, openSource: null, url: null, urlIsSitePage: false, restrictions: null, season: null, fee: null,
+      description: [c.type, c.subtype, c.detail].filter(Boolean).join(' · ') || null,
+      reservations: 'Reserve on ReserveCalifornia', hours: null, lat: c.lat, lng: c.lng,
+    })
+  }
+  for (const o of osm) {
+    const dup = findDup(o.name, o)
+    if (dup) { if (o.website && !dup.url && dup.source !== 'edw') { dup.url = o.website; dup.website = o.website } ; continue }
+    if (o.federalOrState) continue // a federal/state site every other feed missed is usually a duplicate under another name; don't double-pin
+    all.push({
+      name: o.name, forest: o.kind + (o.operator && o.operator !== o.kind ? ` · ${o.operator}` : ''), source: 'osm', operator: o.kind, website: o.website ?? null, backcountry: !!o.backcountry,
+      siteCount: o.capacity ?? null, phone: o.phone ?? null,
+      kind: o.backcountry ? 'Dispersed Camping' : 'Campground Camping', open: null, openSource: null, url: o.website ?? null, urlIsSitePage: false, restrictions: null,
+      season: o.seasonal ? (o.seasonal === 'yes' ? 'Seasonal' : `Seasonal: ${o.seasonal}`) : o.openingHours ?? null,
+      fee: o.fee ?? null,
+      description: [o.description, o.groupOnly ? 'Group only' : null, o.drinkingWater ? `Drinking water: ${o.drinkingWater}` : null, o.toilets ? `Toilets: ${o.toilets}` : null, o.fireplace ? `Fire rings/places: ${o.fireplace}` : null].filter(Boolean).join(' · ') || null,
+      reservations: o.reservation ? `Reservation: ${o.reservation}` : null, hours: null, lat: o.lat, lng: o.lng,
+    })
+  }
+  return all
 }
