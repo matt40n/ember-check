@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import L from 'leaflet'
 import { CircleMarker, Popup, Tooltip } from 'react-leaflet'
 import { AlertTriangle, Flag, CalendarDays, Clock, ExternalLink, Flame, Tent, Ticket } from 'lucide-react'
 import type { RecSite } from '../api/boundaries'
@@ -29,14 +30,14 @@ const FEE_STYLE = {
   unknown: 'bg-pine-700 text-cream-dim border-pine-600',
 }
 
-function SitePopup({ s, v }: { s: RecSite; v: FireVerdict }) {
+export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict; inline?: boolean }) {
   const fee = feeVerdict(s.fee)
   const fresh = siteFreshness(s)
   const showOpen = s.open !== null && fresh.status !== 'outdated'
   const rg = `https://www.recreation.gov/search?q=${encodeURIComponent(s.name)}`
   const siteNote = Object.entries(v.jurisdiction?.siteNotes ?? {}).find(([n]) => namesMatch(n, s.name))?.[1]
   return (
-    <div className="max-h-[60vh] w-[280px] overflow-y-auto text-xs leading-snug">
+    <div className={inline ? 'text-sm leading-snug' : 'max-h-[60vh] w-[280px] overflow-y-auto text-xs leading-snug'}>
       <div className="flex items-start gap-2">
         <Tent size={18} className="mt-0.5 shrink-0 text-signgold" />
         <div className="min-w-0">
@@ -101,14 +102,17 @@ function SitePopup({ s, v }: { s: RecSite; v: FireVerdict }) {
   )
 }
 
-export function CampgroundLayer({ sites, all, boundaries }: { sites: RecSite[] | undefined; all: Jurisdiction[]; boundaries: BoundarySets }) {
+export function CampgroundLayer({ sites, all, boundaries, coarse = false, onSelect }: { sites: RecSite[] | undefined; all: Jurisdiction[]; boundaries: BoundarySets; coarse?: boolean; onSelect?: (s: RecSite, v: FireVerdict) => void }) {
   const zoom = useZoom()
+  // The 'sites' pane gets its own canvas; tolerance is the extra hit-test slack in px around each pin.
+  const renderer = useMemo(() => L.canvas({ pane: 'sites', tolerance: coarse ? 14 : 4 }), [coarse])
   const verdicts = useMemo(() => {
     if (!sites) return []
     return sites.map((s) => siteFireVerdict(s, all, boundaries))
   }, [sites, all, boundaries])
   if (!sites || zoom < 8) return null
-  const r = zoom < 10 ? 5 : 7 // ring color = campfire verdict, fill = site type
+  // ring color = campfire verdict, fill = site type; fingers need roughly double the target of a cursor
+  const r = coarse ? (zoom < 10 ? 8 : 11) : zoom < 10 ? 5 : 7
   return (
     <>
       {sites.map((s, i) => {
@@ -120,8 +124,11 @@ export function CampgroundLayer({ sites, all, boundaries }: { sites: RecSite[] |
             center={[s.lat, s.lng]}
             radius={r}
             pane="sites"
-            pathOptions={{ color: verdictRing(v), weight: 2.5, fillColor: s.open === false ? '#8A8F8B' : KIND_COLOR[s.kind], fillOpacity: 0.95 }}
+            pathOptions={{ color: verdictRing(v), weight: coarse ? 3.5 : 2.5, fillColor: s.open === false ? '#8A8F8B' : KIND_COLOR[s.kind], fillOpacity: 0.95, bubblingMouseEvents: false }}
+            renderer={renderer}
+            eventHandlers={coarse && onSelect ? { click: () => onSelect(s, v) } : undefined}
           >
+            {coarse ? null : (<>
             <Tooltip direction="top" offset={[0, -6]}>
               <span className="font-display text-sm font-bold">{s.name}</span>
               <span className="ml-1.5 text-xs opacity-80">{fee.headline}</span>
@@ -130,6 +137,7 @@ export function CampgroundLayer({ sites, all, boundaries }: { sites: RecSite[] |
             <Popup maxWidth={320} closeButton>
               <SitePopup s={s} v={v} />
             </Popup>
+            </>)}
           </CircleMarker>
         )
       })}

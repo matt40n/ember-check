@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronDown, ChevronUp, Flame, Info, X } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronUp, Flame, Info, X } from 'lucide-react'
 import { MapView } from './components/MapView'
 import { SignPanel } from './components/SignPanel'
 import { JurisdictionList } from './components/JurisdictionList'
@@ -10,7 +10,10 @@ import { SpotConditions } from './components/SpotConditions'
 import { JurisdictionFills } from './components/JurisdictionFills'
 import { WildernessLayer } from './components/WildernessLayer'
 import { DistrictLayer } from './components/DistrictLayer'
-import { CampgroundLayer } from './components/CampgroundLayer'
+import { CampgroundLayer, SitePopup } from './components/CampgroundLayer'
+import type { RecSite } from './api/boundaries'
+import type { FireVerdict } from './lib/siteFire'
+import { useCoarsePointer } from './hooks/useCoarsePointer'
 import { useRedFlag } from './hooks/useRedFlag'
 import { useLiveStatus } from './hooks/useLiveStatus'
 import { useForestBoundaries } from './api/usfs'
@@ -42,6 +45,8 @@ export default function App() {
   }, [])
   const acknowledge = () => { setAck(true); try { localStorage.setItem('ember-check-ack', '1') } catch { /* private mode */ } }
   const live = useLiveStatus()
+  const coarse = useCoarsePointer()
+  const [site, setSite] = useState<{ s: RecSite; v: FireVerdict } | null>(null)
 
   const forests = useForestBoundaries()
   const blm = useBlmFieldOffices()
@@ -59,17 +64,26 @@ export default function App() {
   const redFlag = useRedFlag(probe)
   const boundariesLoading = forests.isLoading || blm.isLoading || nps.isLoading || wilderness.isLoading
 
+  function selectSite(s: RecSite, v: FireVerdict) {
+    setSite({ s, v })
+    setProbe({ lat: s.lat, lng: s.lng })
+    setResult(resolveProbe(s.lat, s.lng, JURISDICTIONS, boundaries))
+    setDrawer(true)
+  }
   function probeAt(lat: number, lng: number) {
+    setSite(null)
     setProbe({ lat, lng })
     setResult(resolveProbe(lat, lng, JURISDICTIONS, boundaries))
     setDrawer(true)
   }
   function pickFromList(j: Jurisdiction) {
+    setSite(null)
     setProbe({ lat: j.lat, lng: j.lng })
     setResult({ ...resolveProbe(j.lat, j.lng, JURISDICTIONS, boundaries), jurisdiction: j })
     setDrawer(true)
   }
   const pickFromMap = (j: Jurisdiction, lat: number, lng: number) => {
+    setSite(null)
     setProbe({ lat, lng })
     setResult({ ...resolveProbe(lat, lng, JURISDICTIONS, boundaries), jurisdiction: j })
     setDrawer(true)
@@ -88,7 +102,7 @@ export default function App() {
         )}
         {layers.districts && <DistrictLayer fc={districts.data} />}
         {layers.wilderness && <WildernessLayer fc={wilderness.data} all={JURISDICTIONS} onClick={probeAt} />}
-        {layers.campgrounds && <CampgroundLayer sites={sites.data} all={JURISDICTIONS} boundaries={boundaries} />}
+        {layers.campgrounds && <CampgroundLayer sites={sites.data} all={JURISDICTIONS} boundaries={boundaries} coarse={coarse} onSelect={selectSite} />}
       </MapView>
 
       <header className="pointer-events-none absolute left-0 right-0 top-0 z-[1000] flex items-start justify-between p-3">
@@ -117,11 +131,20 @@ export default function App() {
         <button onClick={() => setDrawer((d) => !d)} className="flex h-11 shrink-0 items-center justify-center gap-2 text-xs font-semibold uppercase tracking-widest text-cream-dim md:hidden" aria-label={drawer ? 'Hide panel' : 'Show panel'} aria-expanded={drawer}>
           <span className="h-1.5 w-12 rounded-full bg-pine-600" />
           {drawer ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-          {drawer ? 'Hide' : selected ? selected.name : 'Details'}
+          {drawer ? 'Hide' : site ? site.s.name : selected ? selected.name : 'Details'}
         </button>
         <div className="overflow-y-auto p-3 pt-0 md:pt-3">
-          <SignPanel result={result} redFlag={redFlag.active} />
-          {probe && !selected && (
+          {site ? (
+            <div className="rounded-md border border-pine-600 bg-pine-800 p-3">
+              <SitePopup s={site.s} v={site.v} inline />
+              <button onClick={() => setSite(null)} className="mt-3 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-signgold">
+                <ChevronLeft size={14} /> Area rules{selected ? ` · ${selected.name}` : ''}
+              </button>
+            </div>
+          ) : (
+            <SignPanel result={result} redFlag={redFlag.active} />
+          )}
+          {probe && !selected && !site && (
             <p className="mt-2 text-xs text-cream-dim">
               {result.unitName ? `Inside ${result.unitName}, but no current order is tracked for it.` : 'No tracked jurisdiction covers this point. It may be private, state, or county land — CAL FIRE burn rules apply.'}
             </p>
