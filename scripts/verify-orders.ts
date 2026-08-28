@@ -100,10 +100,12 @@ for (const j of JURISDICTIONS.filter((x) => x.boundary)) {
         return first.length >= 7 ? first : words.slice(idx, idx + 2).join('')
       }
       const flat = squash(page.replace(/<[^>]+>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&amp;/g, '&').replace(/&#39;|&rsquo;/g, "'"))
-      const found = j.developedSitesListed.filter((n) => flat.includes(key(n)))
+      // Fallback on the first distinctive word alone so "Carr/Feeley Lake" or a misspelled alias doesn't nag.
+      const onPage = (n: string) => { const k = key(n); const w = k.match(/^[a-z]{4,}/)?.[0]; return flat.includes(k) || (!!w && !GENERIC.test(w) && flat.includes(w)) }
+      const found = j.developedSitesListed.filter(onPage)
       // Only trust this when the page clearly carries the whole exhibit; many pages transcribe part of it.
       if (found.length >= j.developedSitesListed.length * 0.85) {
-        const missing = j.developedSitesListed.filter((n) => !flat.includes(key(n)))
+        const missing = j.developedSitesListed.filter((n) => !onPage(n))
         if (missing.length) {
           if (status === 'PASS') status = 'WARN'
           notes.push(`exhibit may have changed: ${missing.length} listed site(s) not found on the source page — ${missing.join(', ')}`)
