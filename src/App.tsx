@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronDown, ChevronLeft, ChevronUp, Flame, Info, ListTree, X } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Flame, Info, X } from 'lucide-react'
 import { MapView } from './components/MapView'
 import { SignPanel } from './components/SignPanel'
 import { JurisdictionList } from './components/JurisdictionList'
-import { Legend } from './components/Legend'
+import { Legend, LegendStrip } from './components/Legend'
 import { Toggle } from './components/Toggle'
 import { LiveLayers } from './components/LiveLayers'
 import { SpotConditions } from './components/SpotConditions'
@@ -136,22 +136,12 @@ export default function App() {
           </span>
         </div>
       )}
-      <div className="pointer-events-auto self-end md:hidden">
-        <button onClick={toggleLegend} aria-expanded={legendOpen} className="ml-auto flex items-center gap-1.5 rounded bg-pine-900/90 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-cream-dim backdrop-blur">
-          <ListTree size={13} /> Legend {legendOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-        </button>
-        {legendOpen && (
-          <div className="mt-1 max-w-[min(92vw,420px)] rounded border border-pine-700 bg-pine-900/95 p-2.5 backdrop-blur">
-            <Legend />
-          </div>
-        )}
-      </div>
       </div>
 
       <aside
         className={`absolute z-[1000] flex flex-col bg-pine-900/95 backdrop-blur transition-transform
           md:left-3 md:top-16 md:bottom-3 md:w-[380px] md:rounded-md md:border md:border-pine-700
-          max-md:inset-x-0 max-md:bottom-0 max-md:max-h-[62vh] max-md:rounded-t-xl max-md:border-t max-md:border-pine-700
+          max-md:inset-x-0 max-md:max-h-[62vh] ${legendOpen ? 'max-md:bottom-[26px]' : 'max-md:bottom-0'} max-md:rounded-t-xl max-md:border-t max-md:border-pine-700
           ${drawer ? '' : 'max-md:translate-y-[calc(100%-44px)]'}`}
       >
         <button onClick={() => setDrawer((d) => !d)} className="flex h-11 shrink-0 items-center justify-center gap-2 text-xs font-semibold uppercase tracking-widest text-cream-dim md:hidden" aria-label={drawer ? 'Hide panel' : 'Show panel'} aria-expanded={drawer}>
@@ -222,6 +212,13 @@ export default function App() {
         </div>
       </aside>
 
+
+      <div className={`absolute bottom-0 right-0 z-[1100] flex h-[26px] items-stretch md:hidden ${legendOpen ? 'left-0 border-t border-pine-700 bg-pine-950/95 backdrop-blur' : ''}`}>
+        {legendOpen && <div className="min-w-0 flex-1"><div className="flex h-full items-center"><LegendStrip /></div></div>}
+        <button onClick={toggleLegend} aria-expanded={legendOpen} aria-label={legendOpen ? 'Hide legend' : 'Show legend'} className={`flex shrink-0 items-center gap-0.5 px-2 text-[10px] font-semibold uppercase tracking-widest text-cream-dim ${legendOpen ? 'border-l border-pine-700' : 'rounded-tl bg-pine-950/90 backdrop-blur'}`}>
+          {legendOpen ? <ChevronRight size={12} /> : <><ChevronLeft size={12} /> Legend</>}
+        </button>
+      </div>
 
       {showAbout && (
         <div className="absolute inset-0 z-[2000] flex items-center justify-center bg-pine-950/80 p-4" onClick={() => setShowAbout(false)}>
