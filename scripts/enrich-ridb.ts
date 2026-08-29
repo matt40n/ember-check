@@ -7,7 +7,8 @@
 const IN = new URL('../public/data/ridb-sites.json', import.meta.url)
 const OUT = new URL('../public/data/ridb-extra.json', import.meta.url)
 type Site = { id: string; reservable: boolean; name: string }
-type Extra = { season: string | null; openMonths: string[]; fee: string | null; checkedOn: string }
+type MonthStatus = 'open' | 'closed' | 'unknown'
+type Extra = { season: string | null; months: Record<string, MonthStatus>; firstOpen: string | null; lastOpen: string | null; fee: string | null; checkedOn: string }
 const sites = (await Bun.file(IN).json()) as Site[]
 const previous: Record<string, Extra> = (await Bun.file(OUT).exists()) ? await Bun.file(OUT).json() : {}
 const today = new Date()
@@ -30,6 +31,34 @@ async function get(url: string, attempt = 0): Promise<unknown | null> {
 const MONTH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const fmt = (d: string) => { const x = new Date(d); return `${MONTH[x.getUTCMonth()]} ${x.getUTCDate()}` }
 
+
+/** Turn a 12-month open/closed/unknown map into one honest sentence, relative to the check date. */
+export function phrase(months: Record<string, MonthStatus>, firstOpen: string | null, lastOpen: string | null, asOf: string): string | null {
+  const keys = Object.keys(months)
+  const vals = Object.values(months)
+  const openN = vals.filter((m) => m === 'open').length, closedN = vals.filter((m) => m === 'closed').length
+  if (openN + closedN === 0) return null
+  const P = ' (Recreation.gov calendar)'
+  if (openN === 0) return `Closed for the next ${vals.length} months${P}`
+  if (closedN === 0 && openN >= 9) return `Open year-round${P}`
+  const lastIdx = keys.indexOf(lastOpen!.slice(0, 7))
+  const after = months[keys[lastIdx + 1]]
+  const endKnown = after === 'closed'
+  const atWindowEnd = lastIdx === keys.length - 1
+  const tail = endKnown ? `through ${fmt(lastOpen!)}` : atWindowEnd ? `through at least ${fmt(lastOpen!)}` : `through ${fmt(lastOpen!)}; later dates not released yet`
+  if (lastOpen! < asOf) return endKnown || !atWindowEnd ? `Closed since ${fmt(lastOpen!)}; next season not posted yet${P}` : `Closed since ${fmt(lastOpen!)}${P}`
+  if (firstOpen! <= asOf) return `Open now, ${tail}${P}`
+  return `Opens ${fmt(firstOpen!)}, ${tail}${P}`
+}
+
+if (process.argv.includes('--rephrase')) {
+  const cur: Record<string, Extra> = await Bun.file(OUT).json()
+  for (const v of Object.values(cur)) v.season = phrase(v.months, v.firstOpen, v.lastOpen, v.checkedOn)
+  await Bun.write(OUT, JSON.stringify(cur))
+  console.log(`rephrased ${Object.keys(cur).length} seasons`)
+  process.exit(0)
+}
+
 const result: Record<string, Extra> = { ...previous }
 let done = 0, failed = 0
 const queue = sites.filter((s) => s.reservable)
@@ -39,27 +68,26 @@ async function worker() {
     if (!s) return
     const cg = (await get(`https://www.recreation.gov/api/camps/campgrounds/${s.id}`)) as { campground?: { facility_use_fee_description?: string } } | null
     await sleep(300)
-    const openDays: string[] = []
-    let known = 0
+    const months: Record<string, MonthStatus> = {}
+    let firstOpen: string | null = null, lastOpen: string | null = null, known = 0
     for (let i = 0; i < 12; i++) {
       const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + i, 1))
+      const key = d.toISOString().slice(0, 7)
       const av = (await get(`https://www.recreation.gov/api/camps/availability/campground/${s.id}/month?start_date=${d.toISOString().slice(0, 10)}T00%3A00%3A00.000Z`)) as { campsites?: Record<string, { availabilities: Record<string, string> }> } | null
       await sleep(300)
-      if (!av?.campsites) continue
-      const byDay = new Map<string, boolean>()
+      if (!av?.campsites) { months[key] = 'unknown'; continue }
+      let anyKnown = false, anyOpen = false
       for (const c of Object.values(av.campsites)) for (const [day, st] of Object.entries(c.availabilities)) {
-        if (st === 'NYR') continue // not yet released — tells us nothing
-        known++
-        if (st !== 'Closed' && st !== 'Not Available') byDay.set(day, true)
-        else if (!byDay.has(day)) byDay.set(day, false)
+        if (st === 'NYR') continue // not yet released — tells us nothing about the season
+        anyKnown = true
+        if (st !== 'Closed' && st !== 'Not Available') { anyOpen = true; const dd = day.slice(0, 10); if (!firstOpen || dd < firstOpen) firstOpen = dd; if (!lastOpen || dd > lastOpen) lastOpen = dd }
       }
-      for (const [day, open] of byDay) if (open) openDays.push(day)
+      months[key] = anyOpen ? 'open' : anyKnown ? 'closed' : 'unknown'
+      if (anyKnown) known++
     }
-    openDays.sort()
-    const months = [...new Set(openDays.map((d) => d.slice(0, 7)))]
-    const season = openDays.length === 0 ? (known ? 'Closed for the next 12 months (per Recreation.gov calendar)' : null) : months.length >= 12 ? 'Open year-round (per Recreation.gov calendar)' : `Open ${fmt(openDays[0])} – ${fmt(openDays[openDays.length - 1])} (per Recreation.gov calendar)`
+    const season = phrase(months, firstOpen, lastOpen, stamp)
     if (!cg && !known) { failed++; continue }
-    result[s.id] = { season, openMonths: months, fee: cg?.campground?.facility_use_fee_description ? strip(cg.campground.facility_use_fee_description).slice(0, 400) : previous[s.id]?.fee ?? null, checkedOn: stamp }
+    result[s.id] = { season, months, firstOpen, lastOpen, fee: cg?.campground?.facility_use_fee_description ? strip(cg.campground.facility_use_fee_description).slice(0, 400) : previous[s.id]?.fee ?? null, checkedOn: stamp }
     done++
     if (done % 50 === 0) console.log(`${done}/${sites.filter((x) => x.reservable).length}…`)
   }

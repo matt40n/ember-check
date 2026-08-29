@@ -124,7 +124,7 @@ export function useRecSites() {
 }
 
 type RidbSite = { id: string; name: string; agency: string; area: string | null; lat: number; lng: number; reservable: boolean; sites: number | null; fee: string | null; description: string | null; stayLimit: string | null; phone: string | null; updated: string | null }
-type RidbExtra = { season: string | null; openMonths: string[]; fee: string | null; checkedOn: string }
+type RidbExtra = { season: string | null; months: Record<string, string>; firstOpen: string | null; lastOpen: string | null; fee: string | null; checkedOn: string }
 type CspSite = { id: string; name: string; park: string | null; type: string | null; subtype: string | null; detail: string | null; lat: number; lng: number }
 type OsmSite = { id: string; name: string; operator?: string; kind: string; federalOrState?: boolean; lat: number; lng: number; backcountry?: boolean; groupOnly?: boolean; fee?: string; reservation?: string; seasonal?: string; openingHours?: string; capacity?: number; website?: string; phone?: string; description?: string; drinkingWater?: string; toilets?: string; fireplace?: string }
 
