@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronDown, ChevronLeft, ChevronUp, Flame, Info, X } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronUp, Flame, Info, ListTree, X } from 'lucide-react'
 import { MapView } from './components/MapView'
 import { SignPanel } from './components/SignPanel'
 import { JurisdictionList } from './components/JurisdictionList'
@@ -46,6 +46,11 @@ export default function App() {
   const acknowledge = () => { setAck(true); try { localStorage.setItem('ember-check-ack', '1') } catch { /* private mode */ } }
   const live = useLiveStatus()
   const coarse = useCoarsePointer()
+  const [legendOpen, setLegendOpen] = useState(true)
+  useEffect(() => {
+    try { setLegendOpen(localStorage.getItem('ember-check-legend') !== 'hidden') } catch { /* keep default */ }
+  }, [])
+  const toggleLegend = () => setLegendOpen((o) => { try { localStorage.setItem('ember-check-legend', o ? 'hidden' : 'shown') } catch { /* private mode */ } return !o })
   const [site, setSite] = useState<{ s: RecSite; v: FireVerdict } | null>(null)
 
   const forests = useForestBoundaries()
@@ -105,7 +110,8 @@ export default function App() {
         {layers.campgrounds && <CampgroundLayer sites={sites.data} all={JURISDICTIONS} boundaries={boundaries} coarse={coarse} onSelect={selectSite} />}
       </MapView>
 
-      <header className="pointer-events-none absolute left-0 right-0 top-0 z-[1000] flex items-start justify-between p-3">
+      <div className="pointer-events-none absolute left-0 right-0 top-0 z-[1000] flex flex-col gap-2 p-3">
+      <header className="pointer-events-none flex items-start justify-between">
         <div className="pointer-events-auto flex items-center gap-2 rounded bg-pine-900/90 px-3 py-2 backdrop-blur">
           <Flame className="text-signgold" size={20} />
           <div>
@@ -121,6 +127,26 @@ export default function App() {
           <Info size={18} />
         </button>
       </header>
+      {!ack && (
+        <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded border border-ember/60 bg-pine-950/95 px-4 py-2.5 text-center text-xs text-cream backdrop-blur md:absolute md:bottom-3 md:left-1/2 md:top-auto md:w-auto md:-translate-x-1/2">
+          <span>Not legal advice. Orders change with little notice — <b>posted signs and the ranger district override this map.</b></span>
+          <span className="flex gap-3">
+            <button onClick={() => setShowAbout(true)} className="underline underline-offset-2">How to read it</button>
+            <button onClick={acknowledge} className="rounded bg-signgold px-2.5 py-0.5 font-semibold text-pine-900">Got it</button>
+          </span>
+        </div>
+      )}
+      <div className="pointer-events-auto self-end md:hidden">
+        <button onClick={toggleLegend} aria-expanded={legendOpen} className="ml-auto flex items-center gap-1.5 rounded bg-pine-900/90 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-cream-dim backdrop-blur">
+          <ListTree size={13} /> Legend {legendOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+        </button>
+        {legendOpen && (
+          <div className="mt-1 max-w-[min(92vw,420px)] rounded border border-pine-700 bg-pine-900/95 p-2.5 backdrop-blur">
+            <Legend />
+          </div>
+        )}
+      </div>
+      </div>
 
       <aside
         className={`absolute z-[1000] flex flex-col bg-pine-900/95 backdrop-blur transition-transform
@@ -196,15 +222,6 @@ export default function App() {
         </div>
       </aside>
 
-      {!ack && (
-        <div className="absolute inset-x-3 top-16 z-[1500] flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded border border-ember/60 bg-pine-950/95 px-4 py-2.5 text-center text-xs text-cream backdrop-blur md:inset-x-auto md:bottom-3 md:top-auto md:left-1/2 md:w-auto md:-translate-x-1/2">
-          <span>Not legal advice. Orders change with little notice — <b>posted signs and the ranger district override this map.</b></span>
-          <span className="flex gap-3">
-            <button onClick={() => setShowAbout(true)} className="underline underline-offset-2">How to read it</button>
-            <button onClick={acknowledge} className="rounded bg-signgold px-2.5 py-0.5 font-semibold text-pine-900">Got it</button>
-          </span>
-        </div>
-      )}
 
       {showAbout && (
         <div className="absolute inset-0 z-[2000] flex items-center justify-center bg-pine-950/80 p-4" onClick={() => setShowAbout(false)}>
