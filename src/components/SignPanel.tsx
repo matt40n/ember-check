@@ -51,6 +51,11 @@ export function SignPanel({ result, redFlag }: { result: ProbeResult; redFlag: b
         {countdownLabel(exp.days, exp.past)}
         {exp.days !== null && <span className="text-signgold/60">· {exp.label}</span>}
       </p>
+      {(redFlag || result.wilderness) && (
+        <p className={`mt-2 rounded p-2 font-display text-lg font-bold uppercase leading-tight ${redFlag || !exempt ? 'bg-ember/20 text-cream' : 'bg-ok/20 text-cream'}`}>
+          {redFlag ? 'At this spot today: no fires of any kind' : exempt ? 'At this spot: campfire OK with a CA Campfire Permit' : 'At this spot: no campfires'}
+        </p>
+      )}
       {j.stale && (
         <p className="mt-2 rounded border border-unknown bg-pine-950/40 p-2 text-xs text-cream">
           <b>Treated as unverified.</b> {j.stale.reason} Last known: {STAGE_LABEL[j.stale.original.stage]}
@@ -69,14 +74,18 @@ export function SignPanel({ result, redFlag }: { result: ProbeResult; redFlag: b
             <b>Inside {result.wilderness}.</b>{' '}
             {exempt
               ? `This order exempts it: campfires allowed with a CA Campfire Permit.${j.wildernessNote ? ` ${j.wildernessNote}` : ''}`
-              : `No campfire exemption here — the ${STAGE_LABEL[j.stage]} rules apply.${j.wildernessNote ? ` ${j.wildernessNote}` : ''}`}
+              : `This wilderness is NOT exempt from the ${STAGE_LABEL[j.stage]} order — no campfires here.${j.wildernessNote ? ` ${j.wildernessNote}` : ''}`}
           </span>
         </p>
       )}
-      <p className="mt-3 text-sm leading-snug text-signgold/85">{STAGE_EXPLAINER[j.stage]}</p>
+      <p className="mt-3 text-sm leading-snug text-signgold/85">
+        {result.wilderness && <b className="text-signgold">{exempt ? 'Elsewhere in the forest (outside exempt wildernesses): ' : 'Forest-wide: '}</b>}
+        {STAGE_EXPLAINER[j.stage]}
+        {exempt && <span className="text-signgold/70"> The exemption above overrides this where you clicked.</span>}
+      </p>
       <div className="mt-3">
         <Row label="Campground rings" value={j.campfiresDeveloped} />
-        <Row label="Dispersed / backcountry" value={dispersed} note={exempt ? 'wilderness exemption' : undefined} />
+        <Row label="Dispersed / backcountry" value={dispersed} note={exempt ? `here, via ${result.wilderness?.replace(' Wilderness', '')} exemption` : undefined} />
         <Row label="Gas stove" value={j.stoves} />
         <Row label="Smoking" value={j.smoking} />
       </div>
