@@ -6,7 +6,8 @@ import type { Jurisdiction } from '../types'
  * See README "Updating restrictions".
  */
 export const DATA_VERIFIED_ON = '2026-08-28'
-const V = DATA_VERIFIED_ON
+/** Exported (not just a local) so tsc's noUnusedLocals doesn't fail after `verify --stamp` pins every entry to a literal date. */
+export const V = DATA_VERIFIED_ON
 
 export const JURISDICTIONS: Jurisdiction[] = [
   // ───────────── USFS Region 5 ─────────────
