@@ -139,6 +139,7 @@ async function local<T>(file: string, fallback: T): Promise<T> {
 const norm = (s: string) => s.toLowerCase().replace(/\b(campground|campgrounds|group|camp|cg|site|sites|recreation|area|day use|picnic|equestrian|horse|lower|upper|loop|family|environmental|primitive|walk-in|boat-in|state park|sp|sra|sb)\b/g, '').replace(/[^a-z]/g, '')
 const near = (a: { lat: number; lng: number }, b: { lat: number; lng: number }, km = 1.5) => Math.abs(a.lat - b.lat) * 111 < km && Math.abs(a.lng - b.lng) * 85 < km
 const sameName = (a: string, b: string) => { const x = norm(a), y = norm(b); return x.length > 2 && y.length > 2 && (x === y || x.startsWith(y) || y.startsWith(x)) }
+const exactName = (a: string, b: string) => { const x = norm(a); return x.length > 2 && x === norm(b) }
 
 /**
  * One pin per campground. Precedence when two sources describe the same place (same-ish name within ~1.5 km):
@@ -150,7 +151,9 @@ function mergeAll(edw: RecSite[], ridb: RidbSite[], extra: Record<string, RidbEx
   const findDup = (name: string, pt: { lat: number; lng: number }) => all.find((e) => near(e, pt) && sameName(e.name, name))
   for (const r of ridb) {
     const x = extra[r.id]
-    const dup = findDup(r.name, r)
+    // Agencies place the same campground differently (RIDB's Mary Smith point was 23 km off before the
+    // campsite-median fix); an identical name in the same forest within 25 km is the same campground.
+    const dup = findDup(r.name, r) ?? all.find((e) => e.source === 'edw' && r.area === e.forest && exactName(e.name, r.name) && near(e, r, 25))
     if (dup) {
       if (r.reservable && !dup.ridbId) { dup.ridbId = r.id; dup.reservable = true }
       if (x?.season && !dup.season) dup.season = x.season

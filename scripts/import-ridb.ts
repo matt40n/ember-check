@@ -54,14 +54,33 @@ const facilities = parseCsv(await Bun.file(join(dir, 'Facilities_API_v1.csv')).t
 const states = new Map(parseCsv(await Bun.file(join(dir, 'FacilityAddresses_API_v1.csv')).text()).map((a) => [a.FacilityID, a.AddressStateCode]))
 const recAreas = new Map(parseCsv(await Bun.file(join(dir, 'RecAreas_API_v1.csv')).text()).map((a) => [a.RecAreaID, a.RecAreaName]))
 const siteCounts = new Map<string, number>()
-for (const c of parseCsv(await Bun.file(join(dir, 'Campsites_API_v1.csv')).text())) siteCounts.set(c.FacilityID, (siteCounts.get(c.FacilityID) ?? 0) + 1)
+const sitePts = new Map<string, [number, number][]>()
+for (const c of parseCsv(await Bun.file(join(dir, 'Campsites_API_v1.csv')).text())) {
+  siteCounts.set(c.FacilityID, (siteCounts.get(c.FacilityID) ?? 0) + 1)
+  const la = Number(c.CampsiteLatitude), lo = Number(c.CampsiteLongitude)
+  if (la && lo) sitePts.get(c.FacilityID)?.push([la, lo]) ?? sitePts.set(c.FacilityID, [[la, lo]])
+}
+const median = (xs: number[]) => xs.sort((a, b) => a - b)[Math.floor(xs.length / 2)]
+/**
+ * RIDB facility points are sometimes plain wrong (Mary Smith's was 23 km from the campground its own
+ * description locates). The individual campsite coordinates are surveyed; when ≥3 exist and their median
+ * sits >500 m from the facility point, trust the campsites.
+ */
+function bestCoords(fid: string, lat: number, lng: number): [number, number] {
+  const pts = sitePts.get(fid) ?? []
+  if (pts.length < 3) return [lat, lng]
+  const mla = median(pts.map((p) => p[0])), mlo = median(pts.map((p) => p[1]))
+  const km = Math.hypot((mla - lat) * 111, (mlo - lng) * 85)
+  return km > 0.5 ? [mla, mlo] : [lat, lng]
+}
 
 const out = facilities
   .filter((f) => f.FacilityTypeDescription === 'Campground' && f.Enabled === 'true' && f.FacilityLatitude && f.FacilityLongitude)
   .map((f) => ({ f, lat: Number(f.FacilityLatitude), lng: Number(f.FacilityLongitude) }))
   .filter(({ f, lat, lng }) => states.get(f.FacilityID) === 'CA' || (!states.has(f.FacilityID) && inCA(lng, lat)))
   .filter(({ lat, lng }) => inCA(lng, lat))
-  .map(({ f, lat, lng }) => ({
+  .map(({ f, lat, lng }) => ({ f, pt: bestCoords(f.FacilityID, lat, lng) }))
+  .map(({ f, pt: [lat, lng] }) => ({
     id: f.FacilityID,
     name: strip(f.FacilityName),
     agency: AGENCY[f.OrgFacilityID] ?? 'Federal',
