@@ -191,7 +191,7 @@ export const JURISDICTIONS: Jurisdiction[] = [
     notes: 'Closure Order 26-001: no wood, charcoal, pellet or biomass fire anywhere, including Indian Well Campground rings. Gas/pressurized stoves with an integrated shut-off valve are allowed.', verifiedOn: '2026-08-31',
   },
   {
-    id: 'nps-redwood', noticeUpdated: '2026-08-04', confidence: 'low', confidenceNote: 'No 2026 fire order found on nps.gov (conditions page dated Aug 4). Status is inferred, not confirmed.', boundary: { source: 'nps', match: 'Redwood National Park' }, name: 'Redwood National & State Parks', agency: 'NPS', lat: 41.3, lng: -124.0, radiusKm: 30,
+    id: 'nps-redwood', noticeUpdated: '2026-08-31', confidence: 'low', confidenceNote: 'No 2026 fire order found on nps.gov (conditions page rewritten Aug 31, still no order; no fire alerts posted). Status is inferred, not confirmed.', boundary: { source: 'nps', match: 'Redwood National Park' }, name: 'Redwood National & State Parks', agency: 'NPS', lat: 41.3, lng: -124.0, radiusKm: 30,
     stage: 'unknown', campfiresDeveloped: 'allowed', campfiresDispersed: 'unknown', stoves: 'allowed', smoking: 'unknown',
     expires: 'until_rescinded',
     sourceUrl: 'https://www.nps.gov/redw/planyourvisit/conditions.htm',
