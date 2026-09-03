@@ -209,7 +209,7 @@ export default function App() {
         {layers.campgrounds && <CampgroundLayer sites={sites.data} all={JURISDICTIONS} boundaries={boundaries} coarse={coarse} onSelect={selectSite} backcountryOnly={layers.backcountryOnly} />}
       </MapView>
 
-      <div className="pointer-events-none absolute left-0 right-0 top-0 z-[1000] flex flex-col gap-2 p-3">
+      <div className="pointer-events-none absolute left-0 right-0 top-0 z-[1300] flex flex-col gap-2 p-3">
       <header className="pointer-events-none flex items-start justify-between gap-2">
         <div className="pointer-events-auto flex min-w-0 items-center gap-2 rounded bg-pine-900/90 px-3 py-2 backdrop-blur md:w-[380px]">
           <Flame className="text-signgold" size={20} />
@@ -222,20 +222,15 @@ export default function App() {
             {live.problem && <p className="mt-0.5 text-[11px] font-semibold text-ember">{live.problem}</p>}
           </div>
         </div>
-        <div className="pointer-events-auto flex gap-2">
-          <button onClick={toggleSidebar} className="hidden rounded bg-pine-900/90 p-2 text-cream-dim hover:text-cream md:block" aria-label={sidebarOpen ? 'Hide panel' : 'Show panel'} aria-expanded={sidebarOpen} title={sidebarOpen ? 'Hide panel' : 'Show panel'}>
-            {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
-          </button>
-          <button onClick={() => setShowAbout(true)} className="rounded bg-pine-900/90 p-2 text-cream-dim hover:text-cream" aria-label="About and disclaimers">
-            <Info size={18} />
-          </button>
-        </div>
+        <button onClick={() => setShowAbout(true)} className="pointer-events-auto rounded bg-pine-900/90 p-2 text-cream-dim hover:text-cream" aria-label="About and disclaimers">
+          <Info size={18} />
+        </button>
       </header>
       <div className="pointer-events-auto md:w-[380px]">
         <SearchBox sites={sites.data} orders={JURISDICTIONS} onSite={searchSite} onOrder={searchOrder} onPlace={searchPlace} />
       </div>
       {!ack && (
-        <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded border border-ember/60 bg-pine-950/95 px-4 py-2.5 text-center text-xs text-cream backdrop-blur md:fixed md:bottom-3 md:left-1/2 md:top-auto md:w-auto md:max-w-xl md:-translate-x-1/2">
+        <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded border border-ember/60 bg-pine-950/95 px-4 py-2.5 text-center text-xs text-cream backdrop-blur md:fixed md:bottom-3 md:left-auto md:right-20 md:top-auto md:w-auto md:max-w-xl">
           <span>Not legal advice. Orders change with little notice — <b>posted signs and the ranger district override this map.</b></span>
           <span className="flex gap-3">
             <button onClick={() => setShowAbout(true)} className="underline underline-offset-2">How to read it</button>
@@ -252,7 +247,7 @@ export default function App() {
           ${drawer ? '' : 'max-md:translate-y-[calc(100%-44px)]'}`}
         style={coarse ? { bottom: legendH } : undefined}
       >
-        <button onClick={() => setDrawer((d) => !d)} className="flex h-11 shrink-0 items-center justify-center gap-2 text-xs font-semibold uppercase tracking-widest text-cream-dim md:hidden" aria-label={drawer ? 'Hide panel' : 'Show panel'} aria-expanded={drawer}>
+        <button onClick={() => setDrawer((d) => !d)} className="flex h-11 shrink-0 items-center justify-center gap-2 text-xs font-semibold uppercase tracking-widest text-cream-dim md:hidden" aria-label={drawer ? 'Hide details' : 'Show details'} aria-expanded={drawer}>
           <span className="h-1.5 w-12 rounded-full bg-pine-600" />
           {drawer ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
           {drawer ? 'Hide' : site ? site.s.name : result.wildernessFocus && result.wilderness ? result.wilderness : selected ? selected.name : 'Details'}
@@ -324,15 +319,23 @@ export default function App() {
           </section>
         </div>
         <div className="border-t border-pine-700 p-3 max-md:hidden">
-          <Legend />
+          <Legend ownership={layers.blm || (selected?.agency === 'BLM' && !result.wildernessFocus && !site)} />
+          <button onClick={toggleSidebar} className="mt-2 flex w-full items-center justify-center gap-1.5 rounded border border-pine-600 py-1 text-[11px] font-semibold uppercase tracking-widest text-cream-dim hover:bg-pine-700 hover:text-cream" aria-label="Hide panel" aria-expanded={sidebarOpen}>
+            <PanelLeftClose size={14} /> Hide panel
+          </button>
         </div>
       </aside>
+      {!sidebarOpen && (
+        <button onClick={toggleSidebar} className="absolute bottom-3 left-3 z-[1000] hidden items-center gap-1.5 rounded border border-pine-700 bg-pine-900/95 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-cream-dim backdrop-blur hover:text-cream md:flex" aria-label="Show panel" aria-expanded={false}>
+          <PanelLeftOpen size={14} /> Show panel
+        </button>
+      )}
 
 
       <div className="absolute bottom-0 right-0 z-[1100] flex items-end md:hidden" style={legendOpen ? { left: 0 } : undefined}>
         {legendOpen && (
           <div ref={legendRef} className="min-w-0 flex-1 border-t border-pine-700 bg-pine-950/95 px-2.5 py-1.5 backdrop-blur [&_.text-xs]:text-[10px] [&_.space-y-1\.5>*+*]:mt-0.5">
-            <Legend />
+            <Legend ownership={layers.blm || (selected?.agency === 'BLM' && !result.wildernessFocus && !site)} />
           </div>
         )}
         <button onClick={toggleLegend} aria-expanded={legendOpen} aria-label={legendOpen ? 'Hide legend' : 'Show legend'} className={`flex shrink-0 items-center gap-0.5 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-cream-dim ${legendOpen ? 'self-stretch border-l border-t border-pine-700 bg-pine-950/95' : 'rounded-tl bg-pine-950/90 backdrop-blur'}`}>

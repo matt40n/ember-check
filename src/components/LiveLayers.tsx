@@ -47,7 +47,7 @@ export function LiveLayers({ layers, onProbe }: { layers: LayerFlags; onProbe: (
 
   return (
     <>
-      {layers.blm && <TileLayer url={BLM_TILE_URL} opacity={0.45} attribution="BLM" />}
+      {layers.blm && <TileLayer url={BLM_TILE_URL} opacity={0.45} attribution="BLM" maxNativeZoom={14} maxZoom={19} />}
       {layers.danger && danger.data && (
         <GeoJSON
           key={`danger-${danger.dataUpdatedAt}`}

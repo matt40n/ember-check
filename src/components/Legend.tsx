@@ -10,7 +10,10 @@ const Dot = ({ style, className = '' }: { style?: React.CSSProperties; className
   <span className={`inline-block h-3 w-3 rounded-full ${className}`} style={style} />
 )
 
-export function Legend() {
+/** Colors sampled from BLM's Surface Management Agency tiles (the 'BLM land ownership' layer). */
+export const OWNERSHIP_COLORS: [string, string][] = [['BLM', '#fee679'], ['Forest Service', '#ccebc5'], ['National Park', '#cabddc'], ['Fish & Wildlife', '#7fcca7'], ['Reclamation', '#ffffb3'], ['Tribal (BIA)', '#fdb46c'], ['Military', '#fbb4ce'], ['State', '#b3e3ee'], ['Private / other', 'transparent']]
+
+export function Legend({ ownership = false }: { ownership?: boolean }) {
   return (
     <div className="space-y-1.5 text-xs text-cream-dim">
       <div className="flex flex-wrap gap-x-3 gap-y-1">
@@ -35,6 +38,14 @@ export function Legend() {
         <span className="inline-flex items-center gap-1.5"><Dot className="border-2 border-ember bg-pine-700" />no fires</span>
         <span className="inline-flex items-center gap-1.5"><Flame size={13} className="fill-ember text-pine-950" strokeWidth={1.5} />Active fire</span>
       </div>
+      {ownership && (
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
+          <span className="font-display text-[11px] font-bold uppercase tracking-widest text-cream-dim/70">Land</span>
+          {OWNERSHIP_COLORS.map(([name, c]) => (
+            <span key={name} className="inline-flex items-center gap-1.5"><Sq className={c === 'transparent' ? 'border border-dashed border-cream-dim' : ''} style={{ background: c, opacity: 0.9 }} />{name}</span>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
