@@ -10,6 +10,7 @@ export function WildernessLayer({ fc, all, onClick }: { fc: BoundaryFC | undefin
   if (!fc) return null
   return (
     <GeoJSON
+      pane="wilderness"
       data={fc}
       style={(f) => {
         const exempt = index.has(String(f?.properties.wildernessname))

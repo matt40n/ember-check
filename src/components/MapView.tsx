@@ -10,7 +10,9 @@ function Panes({ mapRef }: { mapRef?: MutableRefObject<L.Map | null> }) {
   const map = useMap()
   useEffect(() => {
     if (mapRef) mapRef.current = map
-    if (!map.getPane('sites')) map.createPane('sites').style.zIndex = '450'
+    // Fixed stacking so smaller areas always sit above the areas that contain them, whatever order the data arrives in
+    for (const [name, z] of [['blm', 401], ['forests', 402], ['nps', 403], ['wilderness', 404], ['districts', 405], ['live', 410], ['sites', 450]] as const)
+      if (!map.getPane(name)) map.createPane(name).style.zIndex = String(z)
     if (import.meta.env.DEV) (window as unknown as { __emberMap?: L.Map }).__emberMap = map
   }, [map, mapRef])
   return null

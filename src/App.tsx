@@ -27,7 +27,7 @@ import { CAMPFIRE_PERMIT_URL } from './lib/permit'
 
 /** Entries older than 14 days or past expiry are shown as Unverified rather than trusted. */
 const JURISDICTIONS = applyFreshness(RAW)
-import { resolveProbe, type ProbeResult } from './lib/probe'
+import { jurisdictionsAt, resolveProbe, type ProbeResult } from './lib/probe'
 import type { Agency, Jurisdiction } from './types'
 
 const AGENCIES: Agency[] = ['USFS', 'BLM', 'NPS', 'CAL FIRE', 'State Parks']
@@ -38,7 +38,7 @@ export default function App() {
   const [result, setResult] = useState<ProbeResult>(EMPTY)
   const [agencies, setAgencies] = useState<Set<Agency>>(new Set(AGENCIES))
   const [layers, setLayers] = useState({
-    fills: true, wilderness: true, districts: true, campgrounds: true,
+    fills: true, wilderness: true, districts: true, campgrounds: true, backcountryOnly: false,
     redFlag: true, fires: true, perimeters: true, danger: false, blm: false,
   })
   const [drawer, setDrawer] = useState(false)
@@ -94,7 +94,22 @@ export default function App() {
 
   useEffect(() => { scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }, [result, site])
 
+  /** Repeated clicks on the same spot walk through every order stacked there (wilderness/park → forest → field office), then clear. */
+  const [cycle, setCycle] = useState<{ lat: number; lng: number; list: Jurisdiction[]; idx: number } | null>(null)
+  const sameSpot = (lat: number, lng: number) => {
+    if (!cycle || !mapRef.current) return false
+    const a = mapRef.current.latLngToContainerPoint([lat, lng]), b = mapRef.current.latLngToContainerPoint([cycle.lat, cycle.lng])
+    return a.distanceTo(b) <= 12
+  }
+  function showAt(lat: number, lng: number, list: Jurisdiction[], idx: number) {
+    setSite(null)
+    setProbe({ lat, lng })
+    setResult({ ...resolveProbe(lat, lng, JURISDICTIONS, boundaries), jurisdiction: list[idx] ?? null })
+    setCycle({ lat, lng, list, idx })
+    setDrawer(true)
+  }
   function clearSelection() {
+    setCycle(null)
     setSite(null)
     setProbe(null)
     setResult(EMPTY)
@@ -120,25 +135,25 @@ export default function App() {
     setDrawer(true)
   }
   function probeAt(lat: number, lng: number) {
-    setSite(null)
-    setProbe({ lat, lng })
-    setResult(resolveProbe(lat, lng, JURISDICTIONS, boundaries))
-    setDrawer(true)
+    if (sameSpot(lat, lng) && cycle) {
+      const next = cycle.idx + 1
+      if (next >= cycle.list.length) { clearSelection(); return }
+      showAt(cycle.lat, cycle.lng, cycle.list, next)
+      return
+    }
+    showAt(lat, lng, jurisdictionsAt(lat, lng, JURISDICTIONS, boundaries), 0)
   }
   function pickFromList(j: Jurisdiction) {
-    setSite(null)
-    setProbe({ lat: j.lat, lng: j.lng })
-    setResult({ ...resolveProbe(j.lat, j.lng, JURISDICTIONS, boundaries), jurisdiction: j })
-    setDrawer(true)
+    showAt(j.lat, j.lng, [j], 0)
   }
   const searchSite = (s: RecSite) => { flyTo(s.lat, s.lng, 13); selectSite(s, siteFireVerdict(s, JURISDICTIONS, boundaries)); if (!coarse) setSidebarOpen(true) }
   const searchOrder = (j: Jurisdiction) => { flyTo(j.lat, j.lng, 9); pickFromList(j); if (!coarse) setSidebarOpen(true) }
   const searchPlace = (lat: number, lng: number) => { flyTo(lat, lng, 12); probeAt(lat, lng); if (!coarse) setSidebarOpen(true) }
   const pickFromMap = (j: Jurisdiction, lat: number, lng: number) => {
-    setSite(null)
-    setProbe({ lat, lng })
-    setResult({ ...resolveProbe(lat, lng, JURISDICTIONS, boundaries), jurisdiction: j })
-    setDrawer(true)
+    if (sameSpot(lat, lng)) { probeAt(lat, lng); return }
+    const list = jurisdictionsAt(lat, lng, JURISDICTIONS, boundaries)
+    const idx = Math.max(0, list.indexOf(j))
+    showAt(lat, lng, list.length ? list : [j], idx)
   }
 
   return (
@@ -154,7 +169,7 @@ export default function App() {
         )}
         {layers.districts && <DistrictLayer fc={districts.data} />}
         {layers.wilderness && <WildernessLayer fc={wilderness.data} all={JURISDICTIONS} onClick={probeAt} />}
-        {layers.campgrounds && <CampgroundLayer sites={sites.data} all={JURISDICTIONS} boundaries={boundaries} coarse={coarse} onSelect={selectSite} />}
+        {layers.campgrounds && <CampgroundLayer sites={sites.data} all={JURISDICTIONS} boundaries={boundaries} coarse={coarse} onSelect={selectSite} backcountryOnly={layers.backcountryOnly} />}
       </MapView>
 
       <div className="pointer-events-none absolute left-0 right-0 top-0 z-[1000] flex flex-col gap-2 p-3">
@@ -214,7 +229,7 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <SignPanel result={result} redFlag={redFlag.active} onClear={clearSelection} />
+            <SignPanel result={result} redFlag={redFlag.active} onClear={clearSelection} stack={cycle && cycle.list.length > 1 ? { names: cycle.list.map((j) => j.name), idx: cycle.idx } : undefined} />
           )}
           {probe && !selected && !site && (
             <p className="mt-2 text-xs text-cream-dim">
@@ -230,6 +245,7 @@ export default function App() {
             <Toggle label="Wilderness fire exemptions" hint="USFS" on={layers.wilderness} onChange={(v) => setLayers({ ...layers, wilderness: v })} />
             <Toggle label="Ranger districts" hint="USFS" on={layers.districts} onChange={(v) => setLayers({ ...layers, districts: v })} />
             <Toggle label="Campgrounds & dispersed sites" hint="zoom in" on={layers.campgrounds} onChange={(v) => setLayers({ ...layers, campgrounds: v })} />
+            <Toggle label="Backcountry sites only" hint="wilderness camps · OSM" on={layers.backcountryOnly} onChange={(v) => setLayers({ ...layers, backcountryOnly: v })} />
             <Toggle label="BLM land ownership" hint="tiles" on={layers.blm} onChange={(v) => setLayers({ ...layers, blm: v })} />
           </section>
 

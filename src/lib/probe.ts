@@ -30,6 +30,17 @@ export function matchUnit(all: Jurisdiction[], source: 'usfs' | 'blm' | 'nps', n
   return all.find((j) => j.boundary?.source === source && j.boundary.match === name) ?? null
 }
 
+/** Every tracked order whose area contains the point, most specific first: park → forest → BLM field office → radius-only units. */
+export function jurisdictionsAt(lat: number, lng: number, all: Jurisdiction[], b: BoundarySets): Jurisdiction[] {
+  const nps = matchUnit(all, 'nps', findName(b.nps, lng, lat, 'UNIT_NAME'))
+  const usfs = matchUnit(all, 'usfs', findName(b.usfs, lng, lat, 'forestname'))
+  const blm = matchUnit(all, 'blm', findName(b.blm, lng, lat, 'ADMU_NAME'))
+  const radius = all.filter((j) => !j.boundary && haversineKm(lat, lng, j.lat, j.lng) <= j.radiusKm).sort((a, c) => (a.agency === 'CAL FIRE' ? 1 : 0) - (c.agency === 'CAL FIRE' ? 1 : 0))
+  const out: Jurisdiction[] = []
+  for (const j of [nps, usfs, blm, ...radius]) if (j && !out.includes(j)) out.push(j)
+  return out
+}
+
 export function resolveProbe(lat: number, lng: number, all: Jurisdiction[], b: BoundarySets): ProbeResult {
   const nps = findName(b.nps, lng, lat, 'UNIT_NAME')
   const usfs = findName(b.usfs, lng, lat, 'forestname')

@@ -128,7 +128,8 @@ export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict
   )
 }
 
-export function CampgroundLayer({ sites, all, boundaries, coarse = false, onSelect }: { sites: RecSite[] | undefined; all: Jurisdiction[]; boundaries: BoundarySets; coarse?: boolean; onSelect?: (s: RecSite, v: FireVerdict) => void }) {
+export function CampgroundLayer({ sites: allSites, all, boundaries, coarse = false, onSelect, backcountryOnly = false }: { sites: RecSite[] | undefined; all: Jurisdiction[]; boundaries: BoundarySets; coarse?: boolean; onSelect?: (s: RecSite, v: FireVerdict) => void; backcountryOnly?: boolean }) {
+  const sites = useMemo(() => (backcountryOnly ? allSites?.filter((s) => s.kind === 'Dispersed Camping' || s.backcountry) : allSites), [allSites, backcountryOnly])
   const zoom = useZoom()
   // The 'sites' pane gets its own canvas; tolerance is the extra hit-test slack in px around each pin.
   const renderer = useMemo(() => L.canvas({ pane: 'sites', tolerance: coarse ? 14 : 4 }), [coarse])

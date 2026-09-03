@@ -22,7 +22,7 @@ function Row({ label, value, note }: { label: string; value: Allow; note?: strin
   )
 }
 
-export function SignPanel({ result, redFlag, onClear }: { result: ProbeResult; redFlag: boolean; onClear?: () => void }) {
+export function SignPanel({ result, redFlag, onClear, stack }: { result: ProbeResult; redFlag: boolean; onClear?: () => void; stack?: { names: string[]; idx: number } }) {
   const j: Jurisdiction | null = result.jurisdiction
   if (!j) {
     return (
@@ -103,6 +103,15 @@ export function SignPanel({ result, redFlag, onClear }: { result: ProbeResult; r
       {j.wildernessExempt && j.wildernessExempt.length > 0 && !exempt && (
         <p className="mt-2 text-xs text-signgold/75">
           Backcountry fires still OK (with permit) inside: {j.wildernessExempt.map((w) => w.replace(' Wilderness', '')).join(', ')} — shown green on the map.
+        </p>
+      )}
+      {stack && (
+        <p className="mt-3 rounded border border-signgold/30 bg-pine-950/25 p-2 text-xs text-signgold/85">
+          <b className="text-signgold">Layers at this spot:</b>{' '}
+          {stack.names.map((n, i) => (
+            <span key={n} className={i === stack.idx ? 'font-semibold text-cream' : ''}>{i > 0 ? ' › ' : ''}{n}</span>
+          ))}
+          . Click the same spot again for the next one{stack.idx === stack.names.length - 1 ? ' — one more click clears' : ''}.
         </p>
       )}
       {j.notes && <p className="mt-3 text-xs leading-snug text-signgold/75">{j.notes}</p>}

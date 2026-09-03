@@ -43,6 +43,7 @@ export function JurisdictionFills({ fc, source, nameField, all, fillOpacity, sel
   return (
     <GeoJSON
       key={source}
+      pane={source === 'usfs' ? 'forests' : source}
       data={joined}
       style={(f) => {
         const stage = f?.properties.stage as Jurisdiction['stage'] | null
