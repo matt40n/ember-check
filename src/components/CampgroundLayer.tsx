@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import L from 'leaflet'
-import { CircleMarker, Popup, Tooltip } from 'react-leaflet'
+import { CircleMarker, Popup, Tooltip, useMap } from 'react-leaflet'
 import { AlertTriangle, Flag, CalendarDays, Clock, ExternalLink, Flame, Tent, Ticket } from 'lucide-react'
 import type { RecSite } from '../api/boundaries'
 import { useZoom } from '../hooks/useZoom'
@@ -131,8 +131,14 @@ export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict
 export function CampgroundLayer({ sites: allSites, all, boundaries, coarse = false, onSelect, backcountryOnly = false }: { sites: RecSite[] | undefined; all: Jurisdiction[]; boundaries: BoundarySets; coarse?: boolean; onSelect?: (s: RecSite, v: FireVerdict) => void; backcountryOnly?: boolean }) {
   const sites = useMemo(() => (backcountryOnly ? allSites?.filter((s) => s.kind === 'Dispersed Camping' || s.backcountry) : allSites), [allSites, backcountryOnly])
   const zoom = useZoom()
-  // The 'sites' pane gets its own canvas; tolerance is the extra hit-test slack in px around each pin.
-  const renderer = useMemo(() => L.canvas({ pane: 'sites', tolerance: coarse ? 14 : 4 }), [coarse])
+  // One shared canvas renderer for the 'sites' pane, kept on the map so toggling the layer off and on
+  // doesn't leak a fresh canvas each time. Tolerance is the extra hit-test slack in px around each pin.
+  const map = useMap() as L.Map & { __sitesRenderer?: L.Canvas }
+  const renderer = useMemo(() => {
+    if (!map.__sitesRenderer) map.__sitesRenderer = L.canvas({ pane: 'sites', tolerance: coarse ? 14 : 4 })
+    map.__sitesRenderer.options.tolerance = coarse ? 14 : 4
+    return map.__sitesRenderer
+  }, [map, coarse])
   const verdicts = useMemo(() => {
     if (!sites) return []
     return sites.map((s) => siteFireVerdict(s, all, boundaries))

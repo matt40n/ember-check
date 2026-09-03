@@ -10,6 +10,8 @@ export interface ProbeResult {
   wilderness: string | null
   /** true when the enclosing order lists this wilderness as a campfire exemption */
   wildernessExempt: boolean
+  /** true when the user is looking at the wilderness itself (cycle step), not the enclosing order */
+  wildernessFocus?: boolean
 }
 
 export interface BoundarySets {

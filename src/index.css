@@ -24,7 +24,7 @@
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
-html, body, #root { height: 100%; }
+html, body, #root { height: 100%; overflow: clip; }
 body {
   background: var(--color-pine-900);
   color: var(--color-cream);

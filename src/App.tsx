@@ -32,6 +32,8 @@ import type { Agency, Jurisdiction } from './types'
 
 const AGENCIES: Agency[] = ['USFS', 'BLM', 'NPS', 'CAL FIRE', 'State Parks']
 const EMPTY: ProbeResult = { jurisdiction: null, unitName: null, district: null, wilderness: null, wildernessExempt: false }
+/** One step of the click-cycle at a spot: the wilderness itself, or one of the orders stacked there. */
+type Step = { kind: 'wilderness'; name: string; j: Jurisdiction | null } | { kind: 'order'; j: Jurisdiction }
 
 export default function App() {
   const [probe, setProbe] = useState<{ lat: number; lng: number } | null>(null)
@@ -95,16 +97,25 @@ export default function App() {
   useEffect(() => { scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }, [result, site])
 
   /** Repeated clicks on the same spot walk through every order stacked there (wilderness/park → forest → field office), then clear. */
-  const [cycle, setCycle] = useState<{ lat: number; lng: number; list: Jurisdiction[]; idx: number } | null>(null)
+  const [cycle, setCycle] = useState<{ lat: number; lng: number; list: Step[]; idx: number } | null>(null)
   const sameSpot = (lat: number, lng: number) => {
     if (!cycle || !mapRef.current) return false
     const a = mapRef.current.latLngToContainerPoint([lat, lng]), b = mapRef.current.latLngToContainerPoint([cycle.lat, cycle.lng])
     return a.distanceTo(b) <= 12
   }
-  function showAt(lat: number, lng: number, list: Jurisdiction[], idx: number) {
+  function stepsAt(lat: number, lng: number): Step[] {
+    const base = resolveProbe(lat, lng, JURISDICTIONS, boundaries)
+    const orders = jurisdictionsAt(lat, lng, JURISDICTIONS, boundaries)
+    const steps: Step[] = orders.map((j) => ({ kind: 'order', j }))
+    if (base.wilderness) steps.unshift({ kind: 'wilderness', name: base.wilderness, j: orders[0] ?? null })
+    return steps
+  }
+  function showAt(lat: number, lng: number, list: Step[], idx: number) {
+    const step = list[idx]
     setSite(null)
     setProbe({ lat, lng })
-    setResult({ ...resolveProbe(lat, lng, JURISDICTIONS, boundaries), jurisdiction: list[idx] ?? null })
+    const base = resolveProbe(lat, lng, JURISDICTIONS, boundaries)
+    setResult(step ? { ...base, jurisdiction: step.j, wildernessFocus: step.kind === 'wilderness' } : base)
     setCycle({ lat, lng, list, idx })
     setDrawer(true)
   }
@@ -141,34 +152,35 @@ export default function App() {
       showAt(cycle.lat, cycle.lng, cycle.list, next)
       return
     }
-    showAt(lat, lng, jurisdictionsAt(lat, lng, JURISDICTIONS, boundaries), 0)
+    showAt(lat, lng, stepsAt(lat, lng), 0)
   }
   function pickFromList(j: Jurisdiction) {
-    showAt(j.lat, j.lng, [j], 0)
+    showAt(j.lat, j.lng, [{ kind: 'order', j }], 0)
   }
   const searchSite = (s: RecSite) => { flyTo(s.lat, s.lng, 13); selectSite(s, siteFireVerdict(s, JURISDICTIONS, boundaries)); if (!coarse) setSidebarOpen(true) }
   const searchOrder = (j: Jurisdiction) => { flyTo(j.lat, j.lng, 9); pickFromList(j); if (!coarse) setSidebarOpen(true) }
   const searchPlace = (lat: number, lng: number) => { flyTo(lat, lng, 12); probeAt(lat, lng); if (!coarse) setSidebarOpen(true) }
   const pickFromMap = (j: Jurisdiction, lat: number, lng: number) => {
     if (sameSpot(lat, lng)) { probeAt(lat, lng); return }
-    const list = jurisdictionsAt(lat, lng, JURISDICTIONS, boundaries)
-    const idx = Math.max(0, list.indexOf(j))
-    showAt(lat, lng, list.length ? list : [j], idx)
+    const list = stepsAt(lat, lng)
+    // A click that landed on a unit's own polygon starts on that unit, but a wilderness on top comes first
+    const idx = Math.max(0, list.findIndex((st) => st.kind === 'wilderness' || st.j === j))
+    showAt(lat, lng, list.length ? list : [{ kind: 'order', j }], idx)
   }
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
+    <div className="relative h-full w-full overflow-clip">
       <MapView onClick={probeAt} probe={probe} mapRef={mapRef}>
         <LiveLayers layers={layers} onProbe={probeAt} />
         {layers.fills && (
           <>
-            <JurisdictionFills fc={blm.data} source="blm" nameField="ADMU_NAME" all={JURISDICTIONS} fillOpacity={0.03} selectedId={selected?.id ?? null} onPick={pickFromMap} onMiss={probeAt} />
+            <JurisdictionFills fc={blm.data} source="blm" nameField="ADMU_NAME" all={JURISDICTIONS} fillOpacity={0} hiddenUnlessSelected selectedId={selected?.id ?? null} onPick={pickFromMap} onMiss={probeAt} />
             <JurisdictionFills fc={forests.data} source="usfs" nameField="forestname" all={JURISDICTIONS} fillOpacity={0.32} selectedId={selected?.id ?? null} onPick={pickFromMap} onMiss={probeAt} />
             <JurisdictionFills fc={nps.data} source="nps" nameField="UNIT_NAME" all={JURISDICTIONS} fillOpacity={0.32} selectedId={selected?.id ?? null} onPick={pickFromMap} onMiss={probeAt} />
           </>
         )}
         {layers.districts && <DistrictLayer fc={districts.data} />}
-        {layers.wilderness && <WildernessLayer fc={wilderness.data} all={JURISDICTIONS} onClick={probeAt} />}
+        {layers.wilderness && <WildernessLayer fc={wilderness.data} all={JURISDICTIONS} onClick={probeAt} selectedName={result.wildernessFocus ? result.wilderness : null} />}
         {layers.campgrounds && <CampgroundLayer sites={sites.data} all={JURISDICTIONS} boundaries={boundaries} coarse={coarse} onSelect={selectSite} backcountryOnly={layers.backcountryOnly} />}
       </MapView>
 
@@ -218,7 +230,7 @@ export default function App() {
         <button onClick={() => setDrawer((d) => !d)} className="flex h-11 shrink-0 items-center justify-center gap-2 text-xs font-semibold uppercase tracking-widest text-cream-dim md:hidden" aria-label={drawer ? 'Hide panel' : 'Show panel'} aria-expanded={drawer}>
           <span className="h-1.5 w-12 rounded-full bg-pine-600" />
           {drawer ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-          {drawer ? 'Hide' : site ? site.s.name : selected ? selected.name : 'Details'}
+          {drawer ? 'Hide' : site ? site.s.name : result.wildernessFocus && result.wilderness ? result.wilderness : selected ? selected.name : 'Details'}
         </button>
         <div ref={scrollRef} className="overflow-y-auto p-3 pt-0 md:pt-3">
           {site ? (
@@ -229,7 +241,7 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <SignPanel result={result} redFlag={redFlag.active} onClear={clearSelection} stack={cycle && cycle.list.length > 1 ? { names: cycle.list.map((j) => j.name), idx: cycle.idx } : undefined} />
+            <SignPanel result={result} redFlag={redFlag.active} onClear={clearSelection} stack={cycle && cycle.list.length > 1 ? { names: cycle.list.map((st) => (st.kind === 'wilderness' ? st.name : st.j.name)), idx: cycle.idx } : undefined} />
           )}
           {probe && !selected && !site && (
             <p className="mt-2 text-xs text-cream-dim">
@@ -310,7 +322,8 @@ export default function App() {
             </div>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-cream-dim">
               <li><b className="text-cream">Restriction stages are hand-verified, not live.</b> Agencies publish orders as PDFs, not APIs. Each unit shows its source order and the date it was checked. Orders change with little notice — confirm with the ranger district the day you leave.</li>
-              <li><b className="text-cream">Boundaries and campground records</b> come from USFS, BLM and NPS map services, refreshed monthly. BLM field-office boundaries cover whole regions including private land — turn on "BLM land ownership" to see actual BLM parcels.</li>
+              <li><b className="text-cream">Boundaries and campground records</b> come from USFS, BLM and NPS map services, refreshed monthly. BLM field-office <i>jurisdictions</i> cover whole regions including private land, so they're not drawn — they only appear as a step when you click through the layers at a spot. Turn on "BLM land ownership" to see actual BLM parcels.</li>
+              <li><b className="text-cream">Click the same spot again</b> to step through everything stacked there — wilderness, then forest or park, then BLM field office — and once more to clear. Esc clears too.</li>
               <li><b className="text-cream">Green wilderness fills</b> mark wildernesses the enclosing order explicitly exempts from the backcountry-fire ban (still need a CA Campfire Permit). Dotted dark fills are wildernesses with no exemption.</li>
               <li><b className="text-cream">Red Flag Warnings, active fires and perimeters</b> refresh hourly from NWS and NIFC; everything else once a day.</li>
               <li><b className="text-cream">A California Campfire Permit is always required</b> for any fire or stove outside a developed campground. It's free from CAL FIRE: <a href={CAMPFIRE_PERMIT_URL} target="_blank" rel="noreferrer" className="text-signgold underline underline-offset-2">get a Campfire Permit</a>.</li>

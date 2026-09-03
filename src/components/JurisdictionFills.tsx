@@ -11,13 +11,15 @@ interface Props {
   nameField: string
   all: Jurisdiction[]
   fillOpacity: number
+  /** Draw nothing unless this unit is the current selection (BLM field-office jurisdictions cover whole regions, not BLM land) */
+  hiddenUnlessSelected?: boolean
   selectedId: string | null
   onPick: (j: Jurisdiction, lat: number, lng: number) => void
   onMiss: (lat: number, lng: number) => void
 }
 
 /** Stage-colored fills over the agency's real boundary polygons. */
-export function JurisdictionFills({ fc, source, nameField, all, fillOpacity, selectedId, onPick, onMiss }: Props) {
+export function JurisdictionFills({ fc, source, nameField, all, fillOpacity, hiddenUnlessSelected = false, selectedId, onPick, onMiss }: Props) {
   const joined = useMemo(() => {
     if (!fc) return null
     // Largest polygons first so smaller units inside them are drawn (and clickable) on top
@@ -48,6 +50,7 @@ export function JurisdictionFills({ fc, source, nameField, all, fillOpacity, sel
       style={(f) => {
         const stage = f?.properties.stage as Jurisdiction['stage'] | null
         const sel = !!selectedId && f?.properties.jid === selectedId
+        if (hiddenUnlessSelected && !sel) return { opacity: 0, fillOpacity: 0, weight: 0, interactive: false }
         // The selected unit gets a heavier, brighter outline and a denser fill so it reads at a glance
         return {
           color: sel ? '#F3EBD8' : stage ? STAGE_COLOR[stage] : '#8A8F8B',

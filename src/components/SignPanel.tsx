@@ -46,12 +46,14 @@ export function SignPanel({ result, redFlag, onClear, stack }: { result: ProbeRe
         </button>
       )}
       <p className="pr-6 font-display text-xs font-semibold uppercase tracking-[0.2em] text-signgold/75">
-        {j.agency} · {j.name}
+        {result.wildernessFocus ? `Wilderness · inside ${j.name}` : `${j.agency} · ${j.name}`}
+        {j.agency === 'BLM' && !result.wildernessFocus && <span className="text-signgold/55"> · applies on BLM-managed land</span>}
         {result.district && <span className="text-signgold/55"> · {result.district.replace(' Ranger District', ' RD')}</span>}
       </p>
       <p className="mt-1 font-display text-4xl font-extrabold uppercase leading-[0.95]">
-        {redFlag ? 'Red flag — no fires' : STAGE_LABEL[j.stage]}
+        {redFlag ? 'Red flag — no fires' : result.wildernessFocus && result.wilderness ? result.wilderness.replace(/ Wilderness$/, '') : STAGE_LABEL[j.stage]}
       </p>
+      {result.wildernessFocus && <p className="font-display text-base font-semibold uppercase tracking-wide text-signgold/80">Wilderness · under the {STAGE_LABEL[j.stage]} order</p>}
       <p className="mt-2 flex items-center gap-2 font-mono text-sm">
         <Flame size={14} className={noFires ? 'text-ember' : 'text-ok'} />
         {countdownLabel(exp.days, exp.past)}
