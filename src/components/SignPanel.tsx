@@ -24,6 +24,29 @@ function Row({ label, value, note }: { label: string; value: Allow; note?: strin
 
 export function SignPanel({ result, redFlag, onClear, stack }: { result: ProbeResult; redFlag: boolean; onClear?: () => void; stack?: { names: string[]; idx: number } }) {
   const j: Jurisdiction | null = result.jurisdiction
+  const surface = result.surface
+  if (!j && surface && surface !== 'pending' && surface !== 'unknown') {
+    const label = ({ Private: 'Private land', State: 'State land', Local: 'County / city land', USFW: 'Wildlife refuge', USBR: 'Bureau of Reclamation land', DOD: 'Military land', BIA: 'Tribal land', OtherFederal: 'Other federal land', USFS: 'National Forest land', NPS: 'National Park land', BLM: 'BLM land' } as Record<string, string>)[surface] ?? surface
+    return (
+      <div className="sign relative rounded-md p-4" aria-live="polite">
+        {onClear && (
+          <button onClick={onClear} className="absolute right-2 top-2 rounded p-1 text-signgold/70 hover:bg-signgold/15 hover:text-signgold" aria-label="Clear selection (Esc)" title="Clear selection (Esc)">
+            <X size={16} />
+          </button>
+        )}
+        <p className="pr-6 font-display text-xs font-semibold uppercase tracking-[0.2em] text-signgold/75">Surface ownership · BLM SMA data{result.unitName ? ` · within ${result.unitName}` : ''}</p>
+        <p className="mt-1 font-display text-4xl font-extrabold uppercase leading-[0.95]">{label}</p>
+        <p className="mt-2 rounded p-2 font-display text-lg font-bold uppercase leading-tight bg-pine-950/30 text-cream">No federal fire order applies here</p>
+        <p className="mt-3 text-sm leading-snug text-signgold/85">
+          {surface === 'Private' ? 'Private property — you need the landowner\'s permission to camp or have a fire at all. ' : surface === 'State' ? 'State-managed land — the managing agency (State Parks, CDFW, etc.) sets its own rules; check its page. ' : surface === 'Local' ? 'County or city land — the local parks department sets the rules. ' : 'The managing agency sets its own rules. '}
+          Outside a developed campground, California law still requires a free CA Campfire Permit for any campfire or stove, and CAL FIRE burn-permit suspensions and county ordinances apply during fire season. Call the local CAL FIRE unit or fire district before lighting anything.
+        </p>
+        <a href={CAMPFIRE_PERMIT_URL} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 rounded border border-signgold/50 bg-pine-950/30 px-2.5 py-1.5 text-xs font-semibold text-signgold underline-offset-2 hover:underline">
+          <ExternalLink size={12} /> Get the free California Campfire Permit (CAL FIRE)
+        </a>
+      </div>
+    )
+  }
   if (!j) {
     return (
       <div className="sign rounded-md p-4">
@@ -47,7 +70,7 @@ export function SignPanel({ result, redFlag, onClear, stack }: { result: ProbeRe
       )}
       <p className="pr-6 font-display text-xs font-semibold uppercase tracking-[0.2em] text-signgold/75">
         {result.wildernessFocus ? `Wilderness · inside ${j.name}` : `${j.agency} · ${j.name}`}
-        {j.agency === 'BLM' && !result.wildernessFocus && <span className="text-signgold/55"> · applies on BLM-managed land</span>}
+        {j.agency === 'BLM' && !result.wildernessFocus && <span className="text-signgold/55"> · {result.surface === 'BLM' ? 'BLM-managed land here' : result.surface === 'Undetermined' ? "applies on BLM parcels — BLM's land records don't say who owns this exact spot" : 'applies on BLM-managed land'}</span>}
         {result.district && <span className="text-signgold/55"> · {result.district.replace(' Ranger District', ' RD')}</span>}
       </p>
       <p className="mt-1 font-display text-4xl font-extrabold uppercase leading-[0.95]">

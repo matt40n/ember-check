@@ -12,6 +12,8 @@ export interface ProbeResult {
   wildernessExempt: boolean
   /** true when the user is looking at the wilderness itself (cycle step), not the enclosing order */
   wildernessFocus?: boolean
+  /** Surface manager at the point per BLM's SMA layer, once known; 'pending' while the lookup runs */
+  surface?: string | 'pending'
 }
 
 export interface BoundarySets {

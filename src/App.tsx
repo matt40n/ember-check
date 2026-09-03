@@ -28,12 +28,14 @@ import { CAMPFIRE_PERMIT_URL } from './lib/permit'
 /** Entries older than 14 days or past expiry are shown as Unverified rather than trusted. */
 const JURISDICTIONS = applyFreshness(RAW)
 import { jurisdictionsAt, resolveProbe, type ProbeResult } from './lib/probe'
+import { NOT_BLM, surfaceManagerAt, type SurfaceManager } from './api/sma'
 import type { Agency, Jurisdiction } from './types'
 
 const AGENCIES: Agency[] = ['USFS', 'BLM', 'NPS', 'CAL FIRE', 'State Parks']
+const LAND_LABEL: Record<SurfaceManager, string> = { Undetermined: 'Land (ownership not mapped)', BLM: 'BLM land', USFS: 'National Forest land', NPS: 'National Park land', USFW: 'Wildlife refuge land', USBR: 'Bureau of Reclamation land', DOD: 'Military land', BIA: 'Tribal land', State: 'State land', Local: 'County / city land', Private: 'Private land', OtherFederal: 'Other federal land', unknown: 'Land (ownership unknown)' }
 const EMPTY: ProbeResult = { jurisdiction: null, unitName: null, district: null, wilderness: null, wildernessExempt: false }
 /** One step of the click-cycle at a spot: the wilderness itself, or one of the orders stacked there. */
-type Step = { kind: 'wilderness'; name: string; j: Jurisdiction | null } | { kind: 'order'; j: Jurisdiction }
+type Step = { kind: 'wilderness'; name: string; j: Jurisdiction | null } | { kind: 'order'; j: Jurisdiction } | { kind: 'land'; surface: SurfaceManager; j: null }
 
 export default function App() {
   const [probe, setProbe] = useState<{ lat: number; lng: number } | null>(null)
@@ -103,21 +105,44 @@ export default function App() {
     const a = mapRef.current.latLngToContainerPoint([lat, lng]), b = mapRef.current.latLngToContainerPoint([cycle.lat, cycle.lng])
     return a.distanceTo(b) <= 12
   }
-  function stepsAt(lat: number, lng: number): Step[] {
+  /** BLM field-office orders only govern BLM-managed parcels; a private, state or county spot inside the office's
+   *  jurisdiction gets a 'land' step instead, once the SMA lookup answers. */
+  function stepsAt(lat: number, lng: number, surface: SurfaceManager | 'pending' = 'pending'): Step[] {
     const base = resolveProbe(lat, lng, JURISDICTIONS, boundaries)
     const orders = jurisdictionsAt(lat, lng, JURISDICTIONS, boundaries)
-    const steps: Step[] = orders.map((j) => ({ kind: 'order', j }))
+    const steps: Step[] = []
+    for (const j of orders) {
+      if (j.agency === 'BLM' && j.boundary && surface !== 'pending' && NOT_BLM.includes(surface as SurfaceManager)) continue
+      steps.push({ kind: 'order', j })
+    }
+    if (!steps.some((st) => st.kind === 'order' && st.j.agency !== 'CAL FIRE') && surface !== 'pending' && NOT_BLM.includes(surface as SurfaceManager)) steps.unshift({ kind: 'land', surface, j: null })
     if (base.wilderness) steps.unshift({ kind: 'wilderness', name: base.wilderness, j: orders[0] ?? null })
     return steps
   }
+  const [surface, setSurface] = useState<{ key: string; value: SurfaceManager | 'pending' }>({ key: '', value: 'pending' })
   function showAt(lat: number, lng: number, list: Step[], idx: number) {
     const step = list[idx]
     setSite(null)
     setProbe({ lat, lng })
     const base = resolveProbe(lat, lng, JURISDICTIONS, boundaries)
-    setResult(step ? { ...base, jurisdiction: step.j, wildernessFocus: step.kind === 'wilderness' } : base)
+    const key = `${lat.toFixed(4)},${lng.toFixed(4)}`
+    const surf = surface.key === key ? surface.value : 'pending'
+    setResult(step ? { ...base, jurisdiction: step.j, wildernessFocus: step.kind === 'wilderness', surface: surf } : { ...base, surface: surf })
     setCycle({ lat, lng, list, idx })
     setDrawer(true)
+    if (surface.key !== key) {
+      setSurface({ key, value: 'pending' })
+      surfaceManagerAt(lat, lng).then((value) => {
+        setSurface({ key, value })
+        // Re-derive the stack now that we know who manages the surface; keep the user's current step if it survived
+        const fresh = stepsAt(lat, lng, value)
+        const cur = list[idx]
+        const nIdx = Math.max(0, fresh.findIndex((st) => (cur?.kind === 'wilderness' && st.kind === 'wilderness') || (cur?.kind === 'order' && st.kind === 'order' && st.j === cur.j)))
+        const nStep = fresh[nIdx]
+        setResult(nStep ? { ...base, jurisdiction: nStep.j, wildernessFocus: nStep.kind === 'wilderness', surface: value } : { ...base, jurisdiction: null, surface: value })
+        setCycle({ lat, lng, list: fresh, idx: nIdx })
+      })
+    }
   }
   function clearSelection() {
     setCycle(null)
@@ -152,7 +177,7 @@ export default function App() {
       showAt(cycle.lat, cycle.lng, cycle.list, next)
       return
     }
-    showAt(lat, lng, stepsAt(lat, lng), 0)
+    showAt(lat, lng, stepsAt(lat, lng, surface.key === `${lat.toFixed(4)},${lng.toFixed(4)}` ? surface.value : 'pending'), 0)
   }
   function pickFromList(j: Jurisdiction) {
     showAt(j.lat, j.lng, [{ kind: 'order', j }], 0)
@@ -171,12 +196,12 @@ export default function App() {
   return (
     <div className="relative h-full w-full overflow-clip">
       <MapView onClick={probeAt} probe={probe} mapRef={mapRef}>
-        <LiveLayers layers={layers} onProbe={probeAt} />
+        <LiveLayers layers={{ ...layers, blm: layers.blm || (selected?.agency === 'BLM' && !result.wildernessFocus && !site) }} onProbe={probeAt} />
         {layers.fills && (
           <>
-            <JurisdictionFills fc={blm.data} source="blm" nameField="ADMU_NAME" all={JURISDICTIONS} fillOpacity={0} hiddenUnlessSelected selectedId={selected?.id ?? null} onPick={pickFromMap} onMiss={probeAt} />
-            <JurisdictionFills fc={forests.data} source="usfs" nameField="forestname" all={JURISDICTIONS} fillOpacity={0.32} selectedId={selected?.id ?? null} onPick={pickFromMap} onMiss={probeAt} />
-            <JurisdictionFills fc={nps.data} source="nps" nameField="UNIT_NAME" all={JURISDICTIONS} fillOpacity={0.32} selectedId={selected?.id ?? null} onPick={pickFromMap} onMiss={probeAt} />
+            <JurisdictionFills fc={blm.data} source="blm" nameField="ADMU_NAME" all={JURISDICTIONS} fillOpacity={0} hiddenUnlessSelected selectedId={result.wildernessFocus ? null : selected?.id ?? null} onPick={pickFromMap} onMiss={probeAt} />
+            <JurisdictionFills fc={forests.data} source="usfs" nameField="forestname" all={JURISDICTIONS} fillOpacity={0.32} selectedId={result.wildernessFocus ? null : selected?.id ?? null} onPick={pickFromMap} onMiss={probeAt} />
+            <JurisdictionFills fc={nps.data} source="nps" nameField="UNIT_NAME" all={JURISDICTIONS} fillOpacity={0.32} selectedId={result.wildernessFocus ? null : selected?.id ?? null} onPick={pickFromMap} onMiss={probeAt} />
           </>
         )}
         {layers.districts && <DistrictLayer fc={districts.data} />}
@@ -241,11 +266,13 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <SignPanel result={result} redFlag={redFlag.active} onClear={clearSelection} stack={cycle && cycle.list.length > 1 ? { names: cycle.list.map((st) => (st.kind === 'wilderness' ? st.name : st.j.name)), idx: cycle.idx } : undefined} />
+            <SignPanel result={result} redFlag={redFlag.active} onClear={clearSelection} stack={cycle && cycle.list.length > 1 ? { names: cycle.list.map((st) => (st.kind === 'wilderness' ? st.name : st.kind === 'land' ? LAND_LABEL[st.surface] : st.j.name)), idx: cycle.idx } : undefined} />
           )}
-          {probe && !selected && !site && (
+          {probe && !selected && !site && !(result.surface && result.surface !== 'pending' && result.surface !== 'unknown') && (
             <p className="mt-2 text-xs text-cream-dim">
-              {result.unitName ? `Inside ${result.unitName}, but no current order is tracked for it.` : 'No tracked jurisdiction covers this point. It may be private, state, or county land — CAL FIRE burn rules apply.'}
+              {result.unitName && result.surface !== 'Private' && result.surface !== 'State' && result.surface !== 'Local'
+                ? `Inside ${result.unitName}, but no current order is tracked for it.`
+                : `${result.surface && result.surface !== 'pending' && result.surface !== 'unknown' ? LAND_LABEL[result.surface as SurfaceManager] : 'Not federal land'} — no federal fire order applies here. CAL FIRE burn rules and any county ordinance govern; call the local CAL FIRE unit or fire district.`}
             </p>
           )}
           {redFlag.headline && <p className="mt-2 text-xs text-ember">{redFlag.headline}</p>}

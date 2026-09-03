@@ -57,6 +57,19 @@ function pageUpdatedOn(html: string): string | null {
   return null
 }
 
+/** Sentences on the page that talk about fire rules — the part of a conditions page that matters to us. */
+function fireSentences(html: string): string[] {
+  const text = html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ')
+  return text.split(/(?<=[.!?])\s+/).map((t) => t.trim()).filter((t) => /campfire|fire restriction|fire ban|open flame|stove|charcoal|wood fire|burn(?:ing)? (?:ban|restriction|permit)|stage [12i]/i.test(t))
+}
+function fireTextHash(html: string): string {
+  const s = fireSentences(html).join('|').toLowerCase().replace(/\d{1,2}:\d{2}\s*[ap]m/g, '').replace(/[^a-z0-9|]/g, '')
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (Math.imul(h, 31) + s.charCodeAt(i)) | 0
+  return (h >>> 0).toString(36) + ':' + s.length.toString(36)
+}
+const hashes: Record<string, string> = {}
+
 const results: { id: string; name: string; status: 'PASS' | 'WARN' | 'FAIL'; notes: string[]; sourceUrl: string }[] = []
 
 for (const j of JURISDICTIONS.filter((x) => x.boundary)) {
@@ -82,7 +95,15 @@ for (const j of JURISDICTIONS.filter((x) => x.boundary)) {
     // The agency page was edited after the notice date we recorded — Six Rivers revised its exhibit this way
     // on 2026-08-20 without changing the order number.
     const updated = pageUpdatedOn(page)
-    if (updated && j.noticeUpdated && updated > j.noticeUpdated) {
+    const hash = fireTextHash(page)
+    hashes[j.id] = hash
+    if (j.pageFireHash) {
+      // We have a fingerprint of the fire-related text: only a change to *that* text is worth a human read
+      if (hash !== j.pageFireHash) {
+        if (status === 'PASS') status = 'WARN'
+        notes.push(`fire-related text on the source page changed${updated ? ` (page updated ${updated})` : ''} — re-read it: ${fireSentences(page).slice(0, 3).map((t) => `"${t.slice(0, 140)}"`).join(' | ')}`)
+      }
+    } else if (updated && j.noticeUpdated && updated > j.noticeUpdated) {
       if (status === 'PASS') status = 'WARN'
       notes.push(`source page updated ${updated}, after the notice date on file (${j.noticeUpdated}) — re-read it for changed stages or exhibits`)
     }
@@ -139,6 +160,14 @@ if (stamp && passed.length) {
   const path = new URL('../src/data/restrictions.ts', import.meta.url)
   let src = await Bun.file(path).text()
   for (const id of passed) {
+    // record the fire-text fingerprint so later cosmetic page edits don't page a human
+    if (hashes[id]) {
+      const entryRe = new RegExp(`(id: '${id}',)([\\s\\S]*?)(verifiedOn: )`)
+      src = src.replace(entryRe, (_m, a: string, mid: string, c: string) => {
+        const cleaned = mid.replace(/\s*pageFireHash: '[^']*',/, '')
+        return `${a} pageFireHash: '${hashes[id]}',${cleaned}${c}`
+      })
+    }
     // bump only this entry's verifiedOn (entries use `verifiedOn: V`; switch passing ones to a literal date)
     src = src.replace(new RegExp(`(id: '${id}',[\\s\\S]*?verifiedOn: )V(,)`), `$1'${today}'$2`)
     src = src.replace(new RegExp(`(id: '${id}',[\\s\\S]*?verifiedOn: )'20\\d\\d-\\d\\d-\\d\\d'(,)`), `$1'${today}'$2`)
