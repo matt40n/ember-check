@@ -8,6 +8,7 @@ import { feeVerdict } from '../lib/text'
 import { siteFreshness } from '../lib/freshness'
 import { Confidence } from './Confidence'
 import { reportUrl } from '../lib/report'
+import { CAMPFIRE_PERMIT_URL } from '../lib/permit'
 import { namesMatch, siteFireVerdict, verdictRing, type FireVerdict } from '../lib/siteFire'
 import type { BoundarySets } from '../lib/probe'
 import type { Jurisdiction } from '../types'
@@ -64,6 +65,11 @@ export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict
         </p>
         <p className="mt-1 text-cream-dim">{v.detail}</p>
         <p className="mt-1 text-[11px] text-cream-dim/80">Posted signs at the site override this map.</p>
+        {(v.kind === 'permit' || /permit/i.test(v.detail)) && (
+          <a href={CAMPFIRE_PERMIT_URL} target="_blank" rel="noreferrer" className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-signgold underline underline-offset-2">
+            <ExternalLink size={11} /> Get the free CA Campfire Permit (CAL FIRE)
+          </a>
+        )}
         {siteNote && <p className="mt-1 flex items-start gap-1.5 text-cream"><AlertTriangle size={13} className="mt-0.5 shrink-0" /> <span>{siteNote}</span></p>}
         {v.jurisdiction && <div className="mt-1.5 border-t border-cream/15 pt-1.5"><Confidence j={v.jurisdiction} compact /></div>}
       </div>

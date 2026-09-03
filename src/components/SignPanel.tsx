@@ -1,5 +1,6 @@
 import { ExternalLink, Flag, Flame, Phone, Trees } from 'lucide-react'
 import { reportUrl } from '../lib/report'
+import { CAMPFIRE_PERMIT_URL } from '../lib/permit'
 import type { Allow, Jurisdiction } from '../types'
 import { ALLOW_COLOR, ALLOW_LABEL, STAGE_EXPLAINER, STAGE_LABEL } from '../lib/stage'
 import { countdownLabel, expiryText } from '../lib/time'
@@ -89,6 +90,11 @@ export function SignPanel({ result, redFlag }: { result: ProbeResult; redFlag: b
         <Row label="Gas stove" value={j.stoves} />
         <Row label="Smoking" value={j.smoking} />
       </div>
+      {(exempt || dispersed === 'allowed_with_permit' || j.stoves === 'allowed_with_permit' || j.campfiresDeveloped === 'allowed_with_permit') && (
+        <a href={CAMPFIRE_PERMIT_URL} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1.5 rounded border border-signgold/50 bg-pine-950/30 px-2.5 py-1.5 text-xs font-semibold text-signgold underline-offset-2 hover:underline">
+          <ExternalLink size={12} /> Get the free California Campfire Permit (CAL FIRE) — required wherever this sign says "with permit"
+        </a>
+      )}
       {j.wildernessExempt && j.wildernessExempt.length > 0 && !exempt && (
         <p className="mt-2 text-xs text-signgold/75">
           Backcountry fires still OK (with permit) inside: {j.wildernessExempt.map((w) => w.replace(' Wilderness', '')).join(', ')} — shown green on the map.

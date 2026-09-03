@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import type L from 'leaflet'
 import { GeoJSON } from 'react-leaflet'
 import type { Jurisdiction } from '../types'
 import { STAGE_COLOR, STAGE_LABEL } from '../lib/stage'
@@ -37,15 +38,18 @@ export function JurisdictionFills({ fc, source, nameField, all, fillOpacity, sel
       style={(f) => {
         const stage = f?.properties.stage as Jurisdiction['stage'] | null
         const sel = f?.properties.jid === selectedId
+        // The selected unit gets a heavier, brighter outline and a denser fill so it reads at a glance
         return {
-          color: stage ? STAGE_COLOR[stage] : '#8A8F8B',
-          weight: sel ? 3.5 : source === 'blm' ? 2 : 2,
-          dashArray: source === 'blm' ? '8 6' : undefined,
+          color: sel ? '#F3EBD8' : stage ? STAGE_COLOR[stage] : '#8A8F8B',
+          weight: sel ? 5 : 2,
+          opacity: sel ? 1 : 0.9,
+          dashArray: sel ? undefined : source === 'blm' ? '8 6' : undefined,
           fillColor: stage ? STAGE_COLOR[stage] : '#8A8F8B',
-          fillOpacity: stage ? fillOpacity : fillOpacity * 0.4,
+          fillOpacity: sel ? Math.min(0.6, (stage ? fillOpacity : fillOpacity * 0.4) + 0.22) : stage ? fillOpacity : fillOpacity * 0.4,
         }
       }}
       onEachFeature={(f, l) => {
+        if (f.properties.jid && f.properties.jid === selectedId) setTimeout(() => (l as L.Path).bringToFront?.(), 0)
         const j = all.find((x) => x.id === f.properties.jid)
         const e = j ? expiryText(j.expires) : null
         l.bindTooltip(
