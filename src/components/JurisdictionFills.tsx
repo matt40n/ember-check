@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import type L from 'leaflet'
 import { GeoJSON } from 'react-leaflet'
 import type { Jurisdiction } from '../types'
 import { STAGE_COLOR, STAGE_LABEL } from '../lib/stage'
@@ -21,23 +20,33 @@ interface Props {
 export function JurisdictionFills({ fc, source, nameField, all, fillOpacity, selectedId, onPick, onMiss }: Props) {
   const joined = useMemo(() => {
     if (!fc) return null
+    // Largest polygons first so smaller units inside them are drawn (and clickable) on top
+    const area = (g: GeoJSON.Geometry | null) => {
+      if (!g || (g.type !== 'Polygon' && g.type !== 'MultiPolygon')) return 0
+      const rings = g.type === 'Polygon' ? [g.coordinates[0]] : g.coordinates.map((p) => p[0])
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+      for (const r of rings) for (const [x, y] of r) { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y }
+      return (maxX - minX) * (maxY - minY)
+    }
     return {
       type: 'FeatureCollection',
-      features: fc.features.map((f) => {
-        const name = String((f.properties as Record<string, unknown>)[nameField])
-        const j = matchUnit(all, source, name)
-        return { ...f, properties: { name, jid: j?.id ?? null, stage: j?.stage ?? null } }
-      }),
+      features: fc.features
+        .map((f) => {
+          const name = String((f.properties as Record<string, unknown>)[nameField])
+          const j = matchUnit(all, source, name)
+          return { ...f, properties: { name, jid: j?.id ?? null, stage: j?.stage ?? null, area: area(f.geometry) } }
+        })
+        .sort((a, b) => b.properties.area - a.properties.area),
     } as GeoJSON.FeatureCollection
   }, [fc, all, source, nameField])
   if (!joined) return null
   return (
     <GeoJSON
-      key={`${source}-${selectedId}`}
+      key={source}
       data={joined}
       style={(f) => {
         const stage = f?.properties.stage as Jurisdiction['stage'] | null
-        const sel = f?.properties.jid === selectedId
+        const sel = !!selectedId && f?.properties.jid === selectedId
         // The selected unit gets a heavier, brighter outline and a denser fill so it reads at a glance
         return {
           color: sel ? '#F3EBD8' : stage ? STAGE_COLOR[stage] : '#8A8F8B',
@@ -49,7 +58,6 @@ export function JurisdictionFills({ fc, source, nameField, all, fillOpacity, sel
         }
       }}
       onEachFeature={(f, l) => {
-        if (f.properties.jid && f.properties.jid === selectedId) setTimeout(() => (l as L.Path).bringToFront?.(), 0)
         const j = all.find((x) => x.id === f.properties.jid)
         const e = j ? expiryText(j.expires) : null
         l.bindTooltip(

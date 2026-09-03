@@ -1,4 +1,4 @@
-import { ExternalLink, Flag, Flame, Phone, Trees } from 'lucide-react'
+import { ExternalLink, Flag, Flame, Phone, Trees, X } from 'lucide-react'
 import { reportUrl } from '../lib/report'
 import { CAMPFIRE_PERMIT_URL } from '../lib/permit'
 import type { Allow, Jurisdiction } from '../types'
@@ -22,7 +22,7 @@ function Row({ label, value, note }: { label: string; value: Allow; note?: strin
   )
 }
 
-export function SignPanel({ result, redFlag }: { result: ProbeResult; redFlag: boolean }) {
+export function SignPanel({ result, redFlag, onClear }: { result: ProbeResult; redFlag: boolean; onClear?: () => void }) {
   const j: Jurisdiction | null = result.jurisdiction
   if (!j) {
     return (
@@ -39,8 +39,13 @@ export function SignPanel({ result, redFlag }: { result: ProbeResult; redFlag: b
   const dispersed: Allow = exempt ? 'allowed_with_permit' : j.campfiresDispersed
   const noFires = redFlag || (!exempt && (j.stage === 'stage2' || j.stage === 'full_ban'))
   return (
-    <div className="sign rounded-md p-4" aria-live="polite">
-      <p className="font-display text-xs font-semibold uppercase tracking-[0.2em] text-signgold/75">
+    <div className="sign relative rounded-md p-4" aria-live="polite">
+      {onClear && (
+        <button onClick={onClear} className="absolute right-2 top-2 rounded p-1 text-signgold/70 hover:bg-signgold/15 hover:text-signgold" aria-label="Clear selection (Esc)" title="Clear selection (Esc)">
+          <X size={16} />
+        </button>
+      )}
+      <p className="pr-6 font-display text-xs font-semibold uppercase tracking-[0.2em] text-signgold/75">
         {j.agency} · {j.name}
         {result.district && <span className="text-signgold/55"> · {result.district.replace(' Ranger District', ' RD')}</span>}
       </p>

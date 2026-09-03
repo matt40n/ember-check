@@ -94,6 +94,25 @@ export default function App() {
 
   useEffect(() => { scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }, [result, site])
 
+  function clearSelection() {
+    setSite(null)
+    setProbe(null)
+    setResult(EMPTY)
+    setDrawer(false)
+    mapRef.current?.closePopup()
+  }
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      if (showAbout) { setShowAbout(false); return }
+      if (document.activeElement instanceof HTMLInputElement) { (document.activeElement as HTMLInputElement).blur(); return }
+      clearSelection()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showAbout])
+
   function selectSite(s: RecSite, v: FireVerdict) {
     setSite({ s, v })
     setProbe({ lat: s.lat, lng: s.lng })
@@ -195,7 +214,7 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <SignPanel result={result} redFlag={redFlag.active} />
+            <SignPanel result={result} redFlag={redFlag.active} onClear={clearSelection} />
           )}
           {probe && !selected && !site && (
             <p className="mt-2 text-xs text-cream-dim">

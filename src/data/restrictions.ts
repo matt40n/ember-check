@@ -198,7 +198,7 @@ export const JURISDICTIONS: Jurisdiction[] = [
     notes: 'No 2026 park-wide order posted as of Aug 28. Campground rings normally OK; backcountry fires often banned late summer. Call 707-464-6101.', verifiedOn: '2026-08-28',
   },
   {
-    id: 'nps-whiskeytown', noticeUpdated: '2025-11-25', confidence: 'low', confidenceNote: 'nps.gov conditions page has not been updated since Nov 2025, yet Recreation.gov shows a 2026 gas-stove-only notice. Assume campfires are banned until the park says otherwise.', name: 'Whiskeytown NRA', agency: 'NPS', lat: 40.63, lng: -122.6, radiusKm: 15,
+    id: 'nps-whiskeytown', boundary: { source: 'nps', match: 'Whiskeytown-Shasta-Trinity National Recreation Area' }, noticeUpdated: '2025-11-25', confidence: 'low', confidenceNote: 'nps.gov conditions page has not been updated since Nov 2025, yet Recreation.gov shows a 2026 gas-stove-only notice. Assume campfires are banned until the park says otherwise.', name: 'Whiskeytown NRA', agency: 'NPS', lat: 40.63, lng: -122.6, radiusKm: 15,
     stage: 'unknown', campfiresDeveloped: 'unknown', campfiresDispersed: 'prohibited', stoves: 'allowed', smoking: 'unknown',
     expires: 'until_rescinded',
     sourceUrl: 'https://www.nps.gov/whis/planyourvisit/conditions.htm',
