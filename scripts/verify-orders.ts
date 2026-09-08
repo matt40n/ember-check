@@ -82,7 +82,8 @@ const hashes: Record<string, string> = {}
 
 const results: { id: string; name: string; status: 'PASS' | 'WARN' | 'FAIL'; notes: string[]; sourceUrl: string }[] = []
 
-for (const j of JURISDICTIONS.filter((x) => x.boundary)) {
+// Every entry, boundary or not: radius-only units (CAL FIRE, state parks, a ranger district) still have a page to check
+for (const j of JURISDICTIONS) {
   const notes: string[] = []
   let status: 'PASS' | 'WARN' | 'FAIL' = 'PASS'
 
@@ -182,9 +183,12 @@ if (stamp && passed.length) {
     src = src.replace(new RegExp(`(id: '${id}',[\\s\\S]*?verifiedOn: )V(,)`), `$1'${today}'$2`)
     src = src.replace(new RegExp(`(id: '${id}',[\\s\\S]*?verifiedOn: )'20\\d\\d-\\d\\d-\\d\\d'(,)`), `$1'${today}'$2`)
   }
-  if (passed.length === results.length) src = src.replace(/export const DATA_VERIFIED_ON = '20\d\d-\d\d-\d\d'/, `export const DATA_VERIFIED_ON = '${today}'`)
+  // DATA_VERIFIED_ON (= V) is today's bulk-verification date. It's safe to bump whenever no *failing* entry still
+  // references V — a failing entry pinned to a literal date keeps that date regardless.
+  const failingUsesV = results.filter((r) => r.status !== 'PASS').some((r) => new RegExp(`id: '${r.id}',[\\s\\S]*?verifiedOn: V,`).test(src.slice(src.indexOf(`id: '${r.id}',`), src.indexOf(`id: '${r.id}',`) + 6000)))
+  if (!failingUsesV) src = src.replace(/export const DATA_VERIFIED_ON = '20\d\d-\d\d-\d\d'/, `export const DATA_VERIFIED_ON = '${today}'`)
   await Bun.write(path, src)
-  console.log(`stamped verifiedOn = ${today} on ${passed.length} entries${passed.length === results.length ? ' and DATA_VERIFIED_ON' : ''}`)
+  console.log(`stamped verifiedOn = ${today} on ${passed.length} entries${!failingUsesV ? ' and DATA_VERIFIED_ON' : ' (DATA_VERIFIED_ON held: a failing entry still references V)'}`)
 }
 if (rehash) {
   const path = new URL('../src/data/restrictions.ts', import.meta.url)

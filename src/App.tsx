@@ -27,6 +27,8 @@ import { CAMPFIRE_PERMIT_URL } from './lib/permit'
 
 /** Entries older than 14 days or past expiry are shown as Unverified rather than trusted. */
 const JURISDICTIONS = applyFreshness(RAW)
+/** Most recent verification across all tracked orders — what the header shows */
+const LATEST_VERIFIED = RAW.reduce((m, j) => (j.verifiedOn > m ? j.verifiedOn : m), DATA_VERIFIED_ON)
 import { jurisdictionsAt, resolveProbe, type ProbeResult } from './lib/probe'
 import { NOT_BLM, surfaceManagerAt, type SurfaceManager } from './api/sma'
 import type { Agency, Jurisdiction } from './types'
@@ -216,7 +218,7 @@ export default function App() {
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-xl font-extrabold uppercase leading-none tracking-wide">Ember Check</h1>
             <p className="text-[11px] text-cream-dim">
-              NorCal campfire restrictions · verified {DATA_VERIFIED_ON}
+              NorCal campfire restrictions · verified {LATEST_VERIFIED}
               {boundariesLoading && <span className="ml-2 text-signgold">loading boundaries…</span>}
             </p>
             {live.problem && <p className="mt-0.5 text-[11px] font-semibold text-ember">{live.problem}</p>}

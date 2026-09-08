@@ -5,7 +5,7 @@ import type { Jurisdiction } from '../types'
  * Agencies publish these as PDFs, not APIs — re-verify weekly through fire season.
  * See README "Updating restrictions".
  */
-export const DATA_VERIFIED_ON = '2026-09-03'
+export const DATA_VERIFIED_ON = '2026-09-08'
 /** Exported (not just a local) so tsc's noUnusedLocals doesn't fail after `verify --stamp` pins every entry to a literal date. */
 export const V = DATA_VERIFIED_ON
 
@@ -110,11 +110,11 @@ export const JURISDICTIONS: Jurisdiction[] = [
     notes: 'No chainsaws or engine tools 1 pm–1 am. CA Campfire Permit required on the California side.', verifiedOn: '2026-09-08',
   },
   {
-    id: 'usfs-htnf-bridgeport', developedSitesRule: 'any_developed', noticeUpdated: '2026-06-29', name: 'Humboldt-Toiyabe — Bridgeport RD', agency: 'USFS', lat: 38.2, lng: -119.4, radiusKm: 35,
+    id: 'usfs-htnf-bridgeport', developedSitesRule: 'any_developed', noticeUpdated: '2026-06-30', name: 'Humboldt-Toiyabe — Bridgeport RD', agency: 'USFS', lat: 38.2, lng: -119.4, radiusKm: 35,
     stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed_with_permit', smoking: 'prohibited',
     effective: '2026-06-29', expires: '2026-10-31', orderNumber: '04-17-02-26-03',
     sourceUrl: 'https://www.fs.usda.gov/r04/humboldt-toiyabe/fire/fire-restrictions',
-    notes: 'Hoover Wilderness: no dispersed fires under Stage 1.', verifiedOn: '2026-08-31',
+    notes: 'Hoover Wilderness: no dispersed fires under Stage 1.', verifiedOn: V,
   },
 
   // ───────────── BLM California ─────────────
@@ -174,14 +174,14 @@ export const JURISDICTIONS: Jurisdiction[] = [
     stage: 'stage2', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed', smoking: 'prohibited',
     effective: '2026-08-02', expires: 'until_rescinded', orderNumber: "Superintendent's Stage 2",
     sourceUrl: 'https://www.nps.gov/yose/planyourvisit/firerestrictions.htm',
-    notes: 'Stage 2 applies below 8,000 ft. Between 8,000 and 9,600 ft: existing rings only, 100 ft from water/trail. Never above 9,600 ft. Twig stoves banned; gas/alcohol/tablet stoves OK.', verifiedOn: '2026-09-03',
+    notes: 'Stage 2 applies below 8,000 ft. Between 8,000 and 9,600 ft: existing rings only, 100 ft from water/trail. Never above 9,600 ft. Twig stoves banned; gas/alcohol/tablet stoves OK.', verifiedOn: '2026-09-08',
   },
   {
     id: 'nps-lassen-volcanic', pageFireHash: 'xuetwn:8n', noticeUpdated: '2026-07-30', boundary: { source: 'nps', match: 'Lassen Volcanic National Park' }, name: 'Lassen Volcanic NP', agency: 'NPS', lat: 40.5, lng: -121.45, radiusKm: 20,
     stage: 'stage2', campfiresDeveloped: 'prohibited', campfiresDispersed: 'prohibited', stoves: 'allowed', smoking: 'prohibited',
     effective: '2026-07-31', expires: 'until_rescinded',
     sourceUrl: 'https://www.nps.gov/lavo/learn/news/llassen-volcanic-national-park-implements-stage-2-fire-restrictions.htm',
-    notes: 'No wood or charcoal fires in any campground. Self-contained propane/petroleum stoves and lanterns OK.', verifiedOn: '2026-09-03',
+    notes: 'No wood or charcoal fires in any campground. Self-contained propane/petroleum stoves and lanterns OK.', verifiedOn: '2026-09-08',
   },
   {
     id: 'nps-lava-beds', pageFireHash: '68pl15:6m', confidence: 'medium', confidenceNote: 'Lifting is stated on the conditions page only; no formal rescission notice found. Call 530-667-8113 to confirm.', noticeUpdated: '2026-09-02', boundary: { source: 'nps', match: 'Lava Beds National Monument' }, name: 'Lava Beds NM', agency: 'NPS', lat: 41.75, lng: -121.5, radiusKm: 15,
@@ -220,7 +220,7 @@ export const JURISDICTIONS: Jurisdiction[] = [
     ['btu', 'CAL FIRE Butte Unit', 39.7, -121.6, '2026-06-15', 'https://krcrtv.com/north-coast-news/eureka-local-news/cal-fire-suspends-burn-permits-across-the-northstate-starting-monday'],
     ['sku', 'CAL FIRE Siskiyou Unit', 41.7, -122.4, '2026-06-15', 'https://krcrtv.com/north-coast-news/eureka-local-news/cal-fire-suspends-burn-permits-across-the-northstate-starting-monday'],
     ['lnu', 'CAL FIRE Sonoma-Lake-Napa Unit', 38.6, -122.6, '2026-06-15', 'https://permitsonoma.org/sonomacountyannouncesburnsuspensiononjune15'],
-    ['meu', 'CAL FIRE Mendocino Unit', 39.3, -123.4, '2026-06-15', 'https://mendovoice.com/2026/06/cal-fire-suspends-burn-permits-for-mendocino-county/'],
+    ['meu', 'CAL FIRE Mendocino Unit', 39.3, -123.4, '2026-06-16', 'https://mendovoice.com/2026/06/cal-fire-suspends-burn-permits-for-mendocino-county/'],
     ['neu', 'CAL FIRE Nevada-Yuba-Placer Unit', 39.2, -121.1, '2026-06-15', 'https://yubanet.com/regional/cal-fire-suspends-burn-permits-in-nevada-yuba-placer-and-sierra-counties-on-june-15-2026/'],
     ['aeu', 'CAL FIRE Amador-El Dorado Unit', 38.6, -120.9, '2026-06-15', 'https://www.eldoradocountyfire.com/cal-fire-implements-burn-permit-suspension-in-el-dorado-county-due-to-high-fire-danger'],
     ['tcu', 'CAL FIRE Tuolumne-Calaveras Unit', 38.1, -120.5, '2026-06-15', 'https://new.thepinetree.net/?p=202470'],
@@ -231,22 +231,22 @@ export const JURISDICTIONS: Jurisdiction[] = [
     effective, expires: 'until_rescinded', noticeUpdated: effective, confidence: 'medium', confidenceNote: 'Burn-permit suspensions are announced via press release, not a durable page; county ordinances may add campfire limits.',
     sourceUrl,
     notes: 'Residential debris-burn permits suspended in State Responsibility Area. Campfires in organized campgrounds and on private land with owner permission (and a CA Campfire Permit) remain legal unless a local ordinance says otherwise. This is the trigger counties use for local bans.',
-    verifiedOn: '2026-08-31',
+    verifiedOn: V,
   })),
 
   // ───────────── State Parks ─────────────
   {
-    id: 'csp-folsom-peninsula', name: 'Folsom Lake SRA — Peninsula CG', agency: 'State Parks', lat: 38.75, lng: -121.1, radiusKm: 8,
+    id: 'csp-folsom-peninsula', pageFireHash: '18jhmao:94', name: 'Folsom Lake SRA — Peninsula CG', agency: 'State Parks', lat: 38.75, lng: -121.1, radiusKm: 8,
     stage: 'stage2', campfiresDeveloped: 'prohibited', campfiresDispersed: 'prohibited', stoves: 'allowed', smoking: 'unknown',
     effective: '2026-06-10', expires: '2026-12-31',
     sourceUrl: 'https://www.parks.ca.gov/post/113',
-    notes: 'Campfires, wood/charcoal cooking and liquid-fuel torches prohibited for the rest of the 2026 season. Other state parks: no statewide order — fires only in provided rings; check each park.', verifiedOn: '2026-08-31',
+    notes: 'Campfires, wood/charcoal cooking and liquid-fuel torches prohibited for the rest of the 2026 season. Other state parks: no statewide order — fires only in provided rings; check each park.', verifiedOn: '2026-09-08',
   },
   {
-    id: 'csp-auburn', confidence: 'low', confidenceNote: '2026 district order not located; based on the pattern of prior years.', name: 'Auburn SRA', agency: 'State Parks', lat: 38.92, lng: -121.0, radiusKm: 12,
+    id: 'csp-auburn', pageFireHash: '0:0', confidence: 'low', confidenceNote: '2026 district order not located; based on the pattern of prior years.', name: 'Auburn SRA', agency: 'State Parks', lat: 38.92, lng: -121.0, radiusKm: 12,
     stage: 'unknown', campfiresDeveloped: 'unknown', campfiresDispersed: 'prohibited', stoves: 'allowed', smoking: 'unknown',
     expires: 'until_rescinded',
     sourceUrl: 'https://www.parks.ca.gov/?page_id=502',
-    notes: 'Gold Fields District has banned all campfires here every summer (2025 order 690-058). 2026 order not located — assume banned until the district confirms.', verifiedOn: '2026-08-31',
+    notes: 'Gold Fields District has banned all campfires here every summer (2025 order 690-058). 2026 order not located — assume banned until the district confirms.', verifiedOn: '2026-09-08',
   },
 ]
