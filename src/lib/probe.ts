@@ -14,6 +14,8 @@ export interface ProbeResult {
   wildernessFocus?: boolean
   /** Surface manager at the point per BLM's SMA layer, once known; 'pending' while the lookup runs */
   surface?: string | 'pending'
+  /** false when the user cycled to an order beneath the one that actually governs this spot */
+  governing?: boolean
 }
 
 export interface BoundarySets {
@@ -29,6 +31,18 @@ function findName(fc: GeoJSON.FeatureCollection | undefined, lng: number, lat: n
   return f ? String((f.properties as Record<string, unknown>)[field]) : null
 }
 
+/** Names of every polygon actually loaded, so an entry whose polygon is missing can fall back to its radius. */
+const namesCache = new WeakMap<object, Set<string>>()
+function polygonNames(b: BoundarySets): Set<string> {
+  const key = b.usfs ?? b.blm ?? b.nps ?? {}
+  const hit = namesCache.get(key)
+  if (hit && (namesCache as WeakMap<object, Set<string>> & { last?: BoundarySets }).last === b) return hit
+  const s = new Set<string>()
+  for (const [fc, field] of [[b.usfs, 'forestname'], [b.blm, 'ADMU_NAME'], [b.nps, 'UNIT_NAME']] as const) for (const f of fc?.features ?? []) s.add(String((f.properties as Record<string, unknown>)?.[field]))
+  namesCache.set(key, s); (namesCache as WeakMap<object, Set<string>> & { last?: BoundarySets }).last = b
+  return s
+}
+
 export function matchUnit(all: Jurisdiction[], source: 'usfs' | 'blm' | 'nps', name: string | null) {
   if (!name) return null
   return all.find((j) => j.boundary?.source === source && j.boundary.match === name) ?? null
@@ -37,11 +51,16 @@ export function matchUnit(all: Jurisdiction[], source: 'usfs' | 'blm' | 'nps', n
 /** Every tracked order whose area contains the point, most specific first: park → forest → BLM field office → radius-only units. */
 export function jurisdictionsAt(lat: number, lng: number, all: Jurisdiction[], b: BoundarySets): Jurisdiction[] {
   const nps = matchUnit(all, 'nps', findName(b.nps, lng, lat, 'UNIT_NAME'))
-  const usfs = matchUnit(all, 'usfs', findName(b.usfs, lng, lat, 'forestname'))
+  const forestName = findName(b.usfs, lng, lat, 'forestname')
+  const district = findName(b.districts, lng, lat, 'districtname')
+  // Several entries can share one forest polygon (Humboldt-Toiyabe's Carson and Bridgeport districts): prefer the district's own
+  const forestEntries = all.filter((j) => j.boundary?.source === 'usfs' && j.boundary.match === forestName)
+  const usfs = (district && forestEntries.find((j) => j.name.toLowerCase().includes(district.toLowerCase().replace(/ ranger district$/, '')))) ?? forestEntries[0] ?? null
   const blm = matchUnit(all, 'blm', findName(b.blm, lng, lat, 'ADMU_NAME'))
-  const radius = all.filter((j) => !j.boundary && haversineKm(lat, lng, j.lat, j.lng) <= j.radiusKm).sort((a, c) => (a.agency === 'CAL FIRE' ? 1 : 0) - (c.agency === 'CAL FIRE' ? 1 : 0))
+  const loaded = polygonNames(b)
+  const radius = all.filter((j) => (!j.boundary || !loaded.has(j.boundary.match)) && haversineKm(lat, lng, j.lat, j.lng) <= j.radiusKm).sort((a, c) => (a.agency === 'CAL FIRE' ? 1 : 0) - (c.agency === 'CAL FIRE' ? 1 : 0))
   const out: Jurisdiction[] = []
-  for (const j of [nps, usfs, blm, ...radius]) if (j && !out.includes(j)) out.push(j)
+  for (const j of [nps, usfs, ...forestEntries, blm, ...radius]) if (j && !out.includes(j)) out.push(j)
   return out
 }
 
@@ -55,9 +74,10 @@ export function resolveProbe(lat: number, lng: number, all: Jurisdiction[], b: B
   // Most specific first: park → forest → BLM field office (covers everything incl. private land) → radius fallback
   let jurisdiction = matchUnit(all, 'nps', nps) ?? matchUnit(all, 'usfs', usfs) ?? matchUnit(all, 'blm', blm)
   if (!jurisdiction) {
+    const loaded = polygonNames(b)
     jurisdiction =
       all
-        .filter((j) => !j.boundary)
+        .filter((j) => !j.boundary || !loaded.has(j.boundary.match)) // polygon missing from the snapshot → radius fallback
         .map((j) => ({ j, d: haversineKm(lat, lng, j.lat, j.lng) }))
         .filter((x) => x.d <= x.j.radiusKm)
         .sort((a, b) => (a.j.agency === 'CAL FIRE' ? 1 : 0) - (b.j.agency === 'CAL FIRE' ? 1 : 0) || a.d - b.d)[0]?.j ?? null

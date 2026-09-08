@@ -83,7 +83,8 @@ async function sitePages(): Promise<Record<string, SitePage>> {
 /** Legacy EDW links (recarea/?recid=…) now 301 to the forest's recreation index — link there honestly instead. */
 function forestRecreationUrl(legacy: string | null): string | null {
   const m = legacy?.match(/fs\.usda\.gov\/recarea\/([a-z-]+)\//)
-  return m ? `https://www.fs.usda.gov/recarea/${m[1]}/recreation` : legacy
+  if (m) return `https://www.fs.usda.gov/recarea/${m[1]}/recreation`
+  return legacy && /^https?:\/\//i.test(legacy) ? legacy : null
 }
 
 export function useRecSites() {

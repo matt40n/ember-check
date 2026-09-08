@@ -11,11 +11,11 @@ $rows
 
 **What to do (≈ 5 min per order)** — details in [docs/runbooks/weekly.md](../blob/main/docs/runbooks/weekly.md)
 1. Open the source link and the forest's alerts page. Find the current order (new number? new dates? changed exhibit?).
-2. Edit that entry in \`src/data/restrictions.ts\`: \`stage\`, allowances, \`effective\`, \`expires\`, \`orderNumber\`, \`noticeUpdated\`, \`sourceUrl\`, and \`developedSitesListed\` if the exhibit changed. Set \`verifiedOn: V\`.
+2. Edit that entry in \`src/data/restrictions.ts\`: \`stage\`, allowances, \`effective\`, \`expires\`, \`orderNumber\`, \`noticeUpdated\`, \`sourceUrl\`, and \`developedSitesListed\` if the exhibit changed. Set \`verifiedOn: V\` (the bot will re-stamp it and refresh \`pageFireHash\` on its next pass).
 3. \`bun run build && bun run check-exhibits\`, commit, push to main. The site redeploys itself.
 4. If the order was **rescinded** (no restrictions now): set \`stage: 'none'\` and point \`sourceUrl\` at the rescission notice — don't delete the entry.
 
 Close this issue when done; the bot reopens a new one only if something regresses.
 
 _Run: ${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-}/actions/runs/${GITHUB_RUN_ID:-}_"
-bash "$(dirname "$0")/upsert-issue.sh" "Ember Check: $fails order(s) failed verification, $warns warned" "$body" bot
+bash "$(dirname "$0")/upsert-issue.sh" "Ember Check: orders need a human look" "$body" bot

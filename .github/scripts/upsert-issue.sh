@@ -5,7 +5,7 @@
 set -euo pipefail
 title="$1"; body="$2"; label="${3:-bot}"
 gh label create "$label" --color 8B4513 --description "opened by Ember Check automation" 2>/dev/null || true
-existing=$(gh issue list --state open --label "$label" --search "\"$title\" in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+existing=$(gh issue list --state open --label "$label" --limit 100 --json number,title | jq -r --arg t "$title" '.[] | select(.title == $t) | .number' | head -1)
 if [ -n "$existing" ]; then
   gh issue comment "$existing" --body "$body"
   echo "commented on #$existing"

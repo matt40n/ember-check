@@ -1,10 +1,12 @@
-import { useMemo } from 'react'
+import { useRef } from 'react'
 import L from 'leaflet'
 import { GeoJSON, Marker, Popup, TileLayer } from 'react-leaflet'
 import { format } from 'date-fns'
-import { useFireAlerts, useFireZones } from '../api/nws'
+import { useFireAlerts } from '../api/nws'
+import { useRedFlagZones } from '../hooks/useRedFlag'
 import { useFireDanger, useIncidents, usePerimeters } from '../api/nifc'
 import { BLM_TILE_URL } from '../api/usfs'
+import { esc } from '../lib/html'
 
 export interface LayerFlags { redFlag: boolean; fires: boolean; perimeters: boolean; blm: boolean; danger: boolean }
 
@@ -14,6 +16,10 @@ const fireIcon = (big: boolean) => {
   const px = big ? 26 : 18
   return L.divIcon({ className: '', html: `<div class="fire-icon${big ? ' big' : ''}">${FLAME}</div>`, iconSize: [px, px], iconAnchor: [px / 2, px] })
 }
+const ICON_BIG = fireIcon(true), ICON_SMALL = fireIcon(false)
+const DANGER_STYLE = (f?: GeoJSON.Feature) => ({ color: '#ffffff33', weight: 1, fillColor: ercColor(f?.properties?.Avg_ERC_Pct ?? null), fillOpacity: 0.28 })
+const RFW_STYLE = (f?: GeoJSON.Feature) => ({ color: '#E4572E', weight: 2, fillColor: f?.properties?.event === 'Red Flag Warning' ? '#E4572E' : '#E0A100', fillOpacity: 0.25 })
+const PERIM_STYLE = { color: '#E4572E', weight: 1.5, fillColor: '#B7360D', fillOpacity: 0.35 }
 
 function ercColor(pct: number | null) {
   if (pct == null) return 'transparent'
@@ -25,25 +31,14 @@ function ercColor(pct: number | null) {
 }
 
 export function LiveLayers({ layers, onProbe }: { layers: LayerFlags; onProbe: (lat: number, lng: number) => void }) {
-  const probeOnClick = (l: L.Layer) => l.on('click', (e) => onProbe((e as L.LeafletMouseEvent).latlng.lat, (e as L.LeafletMouseEvent).latlng.lng))
+  const onProbeRef = useRef(onProbe); onProbeRef.current = onProbe
+  const probeOnClick = (l: L.Layer) => l.on('click', (e) => onProbeRef.current((e as L.LeafletMouseEvent).latlng.lat, (e as L.LeafletMouseEvent).latlng.lng))
   const alerts = useFireAlerts()
-  const zones = useFireZones()
   const incidents = useIncidents()
   const perims = usePerimeters()
   const danger = useFireDanger(layers.danger)
 
-  const redFlagZones = useMemo(() => {
-    if (!alerts.data || !zones.data) return null
-    const byUgc = new Map<string, { event: string; headline: string; ends: string | null }>()
-    for (const a of alerts.data) for (const u of a.ugc) {
-      const prev = byUgc.get(u)
-      if (!prev || a.event === 'Red Flag Warning') byUgc.set(u, { event: a.event, headline: a.headline, ends: a.ends })
-    }
-    const features = zones.data.features
-      .filter((f) => byUgc.has(String((f.properties as { state_zone: string }).state_zone)))
-      .map((f) => ({ ...f, properties: { ...f.properties, ...byUgc.get(String((f.properties as { state_zone: string }).state_zone)) } }))
-    return { type: 'FeatureCollection', features } as GeoJSON.FeatureCollection
-  }, [alerts.data, zones.data])
+  const redFlagZones = useRedFlagZones()
 
   return (
     <>
@@ -52,11 +47,11 @@ export function LiveLayers({ layers, onProbe }: { layers: LayerFlags; onProbe: (
         <GeoJSON
           key={`danger-${danger.dataUpdatedAt}`}
           data={danger.data}
-          style={(f) => ({ color: '#ffffff33', weight: 1, fillColor: ercColor(f?.properties?.Avg_ERC_Pct ?? null), fillOpacity: 0.28 })}
+          style={DANGER_STYLE}
           onEachFeature={(f, l) => {
             probeOnClick(l)
             const p = f.properties
-            l.bindPopup(`<b>${p.PSAName}</b> (${p.PSANationalCode})<br/>ERC ${Math.round(p.Avg_ERC ?? 0)} · ${Math.round(p.Avg_ERC_Pct ?? 0)}th percentile · trend ${p.Avg_ERC_Trend ?? '–'}<br/><small>NFDRS 3.0, updated ${p.EditDate ? format(p.EditDate, 'MMM d') : ''}</small>`)
+            l.bindPopup(`<b>${esc(p.PSAName)}</b> (${esc(p.PSANationalCode)})<br/>ERC ${Math.round(p.Avg_ERC ?? 0)} · ${Math.round(p.Avg_ERC_Pct ?? 0)}th percentile · trend ${esc(p.Avg_ERC_Trend ?? '–')}<br/><small>NFDRS 3.0, updated ${p.EditDate ? format(p.EditDate, 'MMM d') : ''}</small>`)
           }}
         />
       )}
@@ -64,11 +59,11 @@ export function LiveLayers({ layers, onProbe }: { layers: LayerFlags; onProbe: (
         <GeoJSON
           key={`rfw-${alerts.dataUpdatedAt}`}
           data={redFlagZones}
-          style={(f) => ({ color: '#E4572E', weight: 2, fillColor: f?.properties?.event === 'Red Flag Warning' ? '#E4572E' : '#E0A100', fillOpacity: 0.25 })}
+          style={RFW_STYLE}
           onEachFeature={(f, l) => {
             probeOnClick(l)
             const p = f.properties
-            l.bindPopup(`<b>${p.event}</b><br/>${p.name}<br/>${p.ends ? `Ends ${format(new Date(p.ends), 'EEE MMM d, h a')}` : ''}<br/><small>${p.headline}</small>`)
+            l.bindPopup(`<b>${esc(p.event)}</b><br/>${esc(p.name)}<br/>${p.ends ? `Ends ${format(new Date(p.ends), 'EEE MMM d, h a')}` : ''}<br/><small>${esc(p.headline)}</small>`)
           }}
         />
       )}
@@ -76,16 +71,16 @@ export function LiveLayers({ layers, onProbe }: { layers: LayerFlags; onProbe: (
         <GeoJSON
           key={`perim-${perims.dataUpdatedAt}`}
           data={perims.data}
-          style={{ color: '#E4572E', weight: 1.5, fillColor: '#B7360D', fillOpacity: 0.35 }}
+          style={PERIM_STYLE}
           onEachFeature={(f, l) => {
             probeOnClick(l)
             const p = f.properties
-            l.bindPopup(`<b>${p.poly_IncidentName}</b><br/>${Math.round(p.poly_GISAcres ?? 0).toLocaleString()} acres · ${p.attr_PercentContained ?? '?'}% contained`)
+            l.bindPopup(`<b>${esc(p.poly_IncidentName)}</b><br/>${Math.round(p.poly_GISAcres ?? 0).toLocaleString()} acres · ${esc(p.attr_PercentContained ?? '?')}% contained`)
           }}
         />
       )}
       {layers.fires && incidents.data?.map((i) => (
-        <Marker key={`${i.name}-${i.lat}-${i.lng}`} position={[i.lat, i.lng]} icon={fireIcon((i.acres ?? 0) >= 1000)}>
+        <Marker key={`${i.name}-${i.lat}-${i.lng}`} position={[i.lat, i.lng]} icon={(i.acres ?? 0) >= 1000 ? ICON_BIG : ICON_SMALL}>
           <Popup>
             <b className="font-display text-base">{i.name}</b> {i.type === 'RX' && <span className="text-xs">(prescribed)</span>}
             <br />

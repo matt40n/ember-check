@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import L from 'leaflet'
 import { CircleMarker, Popup, Tooltip, useMap } from 'react-leaflet'
 import { AlertTriangle, Flag, CalendarDays, Clock, ExternalLink, Flame, Tent, Ticket } from 'lucide-react'
@@ -10,6 +10,7 @@ import { Confidence } from './Confidence'
 import { reportUrl } from '../lib/report'
 import { CAMPFIRE_PERMIT_URL } from '../lib/permit'
 import { namesMatch, siteFireVerdict, verdictRing, type FireVerdict } from '../lib/siteFire'
+import { pointInGeometry } from '../lib/geo'
 import type { BoundarySets } from '../lib/probe'
 import type { Jurisdiction } from '../types'
 
@@ -128,7 +129,7 @@ export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict
   )
 }
 
-export function CampgroundLayer({ sites: allSites, all, boundaries, coarse = false, onSelect, backcountryOnly = false }: { sites: RecSite[] | undefined; all: Jurisdiction[]; boundaries: BoundarySets; coarse?: boolean; onSelect?: (s: RecSite, v: FireVerdict) => void; backcountryOnly?: boolean }) {
+function CampgroundLayerInner({ sites: allSites, all, boundaries, coarse = false, onSelect, backcountryOnly = false, redFlagZones = null }: { sites: RecSite[] | undefined; all: Jurisdiction[]; boundaries: BoundarySets; coarse?: boolean; onSelect?: (s: RecSite, v: FireVerdict) => void; backcountryOnly?: boolean; redFlagZones?: GeoJSON.FeatureCollection | null }) {
   const sites = useMemo(() => (backcountryOnly ? allSites?.filter((s) => s.kind === 'Dispersed Camping' || s.backcountry) : allSites), [allSites, backcountryOnly])
   const zoom = useZoom()
   // One shared canvas renderer for the 'sites' pane, kept on the map so toggling the layer off and on
@@ -139,27 +140,36 @@ export function CampgroundLayer({ sites: allSites, all, boundaries, coarse = fal
     map.__sitesRenderer.options.tolerance = coarse ? 14 : 4
     return map.__sitesRenderer
   }, [map, coarse])
-  const verdicts = useMemo(() => {
+  // Everything per pin is precomputed once here, so re-renders of the app don't restyle 2,900 markers
+  const rfw = redFlagZones?.features.filter((f) => /Red Flag Warning/.test(String(f.properties?.event))) ?? []
+  const rows = useMemo(() => {
     if (!sites) return []
-    return sites.map((s) => siteFireVerdict(s, all, boundaries))
-  }, [sites, all, boundaries])
+    return sites.map((s) => {
+      const redFlag = rfw.some((f) => pointInGeometry(s.lng, s.lat, f.geometry))
+      const v = siteFireVerdict(s, all, boundaries, redFlag)
+      return {
+        s, v, fee: feeVerdict(s.fee),
+        pathOptions: { color: verdictRing(v), weight: coarse ? 3.5 : 2.5, fillColor: s.open === false ? '#8A8F8B' : KIND_COLOR[s.kind], fillOpacity: 0.95, bubblingMouseEvents: false },
+        handlers: coarse && onSelect ? { click: () => onSelect(s, v) } : undefined,
+      }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sites, all, boundaries, coarse, onSelect, redFlagZones])
   if (!sites || zoom < 8) return null
   // ring color = campfire verdict, fill = site type; fingers need roughly double the target of a cursor
   const r = coarse ? (zoom < 10 ? 8 : 11) : zoom < 10 ? 5 : 7
   return (
     <>
-      {sites.map((s, i) => {
-        const fee = feeVerdict(s.fee)
-        const v = verdicts[i]
+      {rows.map(({ s, v, fee, pathOptions, handlers }) => {
         return (
           <CircleMarker
             key={`${s.ridbId ?? s.forest}-${s.name}-${s.lat}-${s.lng}`}
             center={[s.lat, s.lng]}
             radius={r}
             pane="sites"
-            pathOptions={{ color: verdictRing(v), weight: coarse ? 3.5 : 2.5, fillColor: s.open === false ? '#8A8F8B' : KIND_COLOR[s.kind], fillOpacity: 0.95, bubblingMouseEvents: false }}
+            pathOptions={pathOptions}
             renderer={renderer}
-            eventHandlers={coarse && onSelect ? { click: () => onSelect(s, v) } : undefined}
+            eventHandlers={handlers}
           >
             {coarse ? null : (<>
             <Tooltip direction="top" offset={[0, -6]}>
@@ -177,3 +187,5 @@ export function CampgroundLayer({ sites: allSites, all, boundaries, coarse = fal
     </>
   )
 }
+
+export const CampgroundLayer = memo(CampgroundLayerInner)

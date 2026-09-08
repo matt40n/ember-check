@@ -2,7 +2,9 @@
  * Re-check every tracked fire order against its agency's web page.
  *
  *   bun run verify           # report only
- *   bun run verify --stamp   # also bump verifiedOn (today) for entries that PASS
+ *   bun run verify --stamp   # also bump verifiedOn (today) for entries that PASS (and write pageFireHash)
+ *   bun run verify --rehash  # rewrite every pageFireHash from the current pages (after a human read)
+ *   bun run verify --json out.json
  *
  * For each USFS/BLM/NPS entry it fetches the source page and the forest's alerts index, then checks:
  *   - the source page is reachable and still mentions the order number
@@ -73,7 +75,9 @@ function fireSentences(html: string): string[] {
     .filter((t) => /campfire|fire restriction|fire ban|open flame|stove|charcoal|wood fire|burn(?:ing)? (?:ban|restriction|permit)|stage [12i]/i.test(t))
 }
 function fireTextHash(html: string): string {
-  const s = fireSentences(html).join('|').toLowerCase().replace(/\d{1,2}:\d{2}\s*[ap]m/g, '').replace(/[^a-z0-9|]/g, '')
+  // Prose plus the order/PDF links: a swapped order PDF with unchanged prose still changes the hash
+  const links = [...html.matchAll(/href="([^"]*(?:\/alerts\/[^"]*|\.pdf))"/gi)].map((m) => m[1].toLowerCase()).sort().join('|')
+  const s = (fireSentences(html).join('|') + '|' + links).toLowerCase().replace(/\d{1,2}:\d{2}\s*[ap]m/g, '').replace(/[^a-z0-9|]/g, '')
   let h = 0
   for (let i = 0; i < s.length; i++) h = (Math.imul(h, 31) + s.charCodeAt(i)) | 0
   return (h >>> 0).toString(36) + ':' + s.length.toString(36)
@@ -81,6 +85,9 @@ function fireTextHash(html: string): string {
 const hashes: Record<string, string> = {}
 
 const results: { id: string; name: string; status: 'PASS' | 'WARN' | 'FAIL'; notes: string[]; sourceUrl: string }[] = []
+/** Entries a human just edited reference V for verifiedOn; their old fingerprint is expected to differ and is simply replaced. */
+const srcNow = await Bun.file(new URL('../src/data/restrictions.ts', import.meta.url)).text()
+const handEdited = (id: string) => new RegExp(`id: '${id}',[\\s\\S]{0,8000}?verifiedOn: V,`).test(srcNow.slice(srcNow.indexOf(`id: '${id}',`)))
 
 // Every entry, boundary or not: radius-only units (CAL FIRE, state parks, a ranger district) still have a page to check
 for (const j of JURISDICTIONS) {
@@ -108,7 +115,7 @@ for (const j of JURISDICTIONS) {
     const updated = pageUpdatedOn(page)
     const hash = fireTextHash(page)
     hashes[j.id] = hash
-    if (j.pageFireHash) {
+    if (j.pageFireHash && !handEdited(j.id)) {
       // We have a fingerprint of the fire-related text: only a change to *that* text is worth a human read
       if (hash !== j.pageFireHash) {
         if (status === 'PASS') status = 'WARN'
@@ -160,7 +167,9 @@ for (const j of JURISDICTIONS) {
     } else notes.push(`alerts index unreachable: ${idx}`)
   }
 
-  results.push({ id: j.id, name: j.name, status, notes, sourceUrl: j.sourceUrl })
+  // Page-derived text ends up in a GitHub issue body: strip Markdown/link/HTML syntax so a hostile page can't phish the maintainer
+  const plain = (t: string) => t.replace(/[\[\]()<>`*_]/g, ' ').replace(/https?:\/\/\S+/g, (u) => (u.startsWith(j.sourceUrl.split('/').slice(0, 3).join('/')) ? u : '[link removed]')).replace(/\s+/g, ' ')
+  results.push({ id: j.id, name: j.name, status, notes: notes.map(plain), sourceUrl: j.sourceUrl })
   console.log(`${status.padEnd(4)} ${j.name}${notes.length ? '\n     - ' + notes.join('\n     - ') : ''}`)
 }
 

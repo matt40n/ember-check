@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type L from 'leaflet'
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Flame, Info, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react'
 import { SearchBox } from './components/SearchBox'
@@ -17,7 +17,7 @@ import { CampgroundLayer, SitePopup } from './components/CampgroundLayer'
 import type { RecSite } from './api/boundaries'
 import type { FireVerdict } from './lib/siteFire'
 import { useCoarsePointer } from './hooks/useCoarsePointer'
-import { useRedFlag } from './hooks/useRedFlag'
+import { useRedFlag, useRedFlagZones } from './hooks/useRedFlag'
 import { useLiveStatus } from './hooks/useLiveStatus'
 import { useForestBoundaries } from './api/usfs'
 import { useBlmFieldOffices, useNpsUnits, useRangerDistricts, useRecSites, useWilderness } from './api/boundaries'
@@ -25,8 +25,6 @@ import { JURISDICTIONS as RAW, DATA_VERIFIED_ON } from './data/restrictions'
 import { applyFreshness } from './lib/freshness'
 import { CAMPFIRE_PERMIT_URL } from './lib/permit'
 
-/** Entries older than 14 days or past expiry are shown as Unverified rather than trusted. */
-const JURISDICTIONS = applyFreshness(RAW)
 /** Most recent verification across all tracked orders — what the header shows */
 const LATEST_VERIFIED = RAW.reduce((m, j) => (j.verifiedOn > m ? j.verifiedOn : m), DATA_VERIFIED_ON)
 import { jurisdictionsAt, resolveProbe, type ProbeResult } from './lib/probe'
@@ -40,6 +38,17 @@ const EMPTY: ProbeResult = { jurisdiction: null, unitName: null, district: null,
 type Step = { kind: 'wilderness'; name: string; j: Jurisdiction | null } | { kind: 'order'; j: Jurisdiction } | { kind: 'land'; surface: SurfaceManager; j: null }
 
 export default function App() {
+  // Freshness is re-evaluated when the tab comes back or the day changes, so a tab left open across a 14-day
+  // window or an order's expiry doesn't keep showing a confident stage
+  const [day, setDay] = useState(() => new Date().toDateString())
+  useEffect(() => {
+    const tick = () => setDay(new Date().toDateString())
+    const id = window.setInterval(tick, 60 * 60_000)
+    document.addEventListener('visibilitychange', tick)
+    return () => { window.clearInterval(id); document.removeEventListener('visibilitychange', tick) }
+  }, [])
+  /** Entries older than 14 days or past expiry are shown as Unverified rather than trusted. */
+  const JURISDICTIONS = useMemo(() => applyFreshness(RAW), [day])
   const [probe, setProbe] = useState<{ lat: number; lng: number } | null>(null)
   const [result, setResult] = useState<ProbeResult>(EMPTY)
   const [agencies, setAgencies] = useState<Set<Agency>>(new Set(AGENCIES))
@@ -93,9 +102,16 @@ export default function App() {
     () => ({ usfs: forests.data, blm: blm.data, nps: nps.data, wilderness: wilderness.data, districts: districts.data }),
     [forests.data, blm.data, nps.data, wilderness.data, districts.data],
   )
+  // Pin verdicts are expensive; hand the pin layer a boundary set that only changes once every polygon layer is in
+  const boundariesForPins = useMemo(
+    () => (forests.data && blm.data && nps.data && wilderness.data ? { usfs: forests.data, blm: blm.data, nps: nps.data, wilderness: wilderness.data } : null),
+    [forests.data, blm.data, nps.data, wilderness.data],
+  )
   const visible = useMemo(() => JURISDICTIONS.filter((j) => agencies.has(j.agency)), [agencies])
   const selected = result.jurisdiction
   const redFlag = useRedFlag(probe)
+  const redFlagZones = useRedFlagZones()
+  const latestKey = useRef('')
   const boundariesLoading = forests.isLoading || blm.isLoading || nps.isLoading || wilderness.isLoading
 
   useEffect(() => { scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }, [result, site])
@@ -128,25 +144,35 @@ export default function App() {
     setProbe({ lat, lng })
     const base = resolveProbe(lat, lng, JURISDICTIONS, boundaries)
     const key = `${lat.toFixed(4)},${lng.toFixed(4)}`
+    latestKey.current = key
     const surf = surface.key === key ? surface.value : 'pending'
-    setResult(step ? { ...base, jurisdiction: step.j, wildernessFocus: step.kind === 'wilderness', surface: surf } : { ...base, surface: surf })
+    // 'governing': the top of the stack (or the wilderness right above it) is what actually rules this spot
+    const governing = idx === 0 || (idx === 1 && list[0]?.kind === 'wilderness')
+    setResult(step ? { ...base, jurisdiction: step.j, wildernessFocus: step.kind === 'wilderness', surface: surf, governing } : { ...base, surface: surf })
     setCycle({ lat, lng, list, idx })
     setDrawer(true)
     if (surface.key !== key) {
       setSurface({ key, value: 'pending' })
       surfaceManagerAt(lat, lng).then((value) => {
+        // A response for an older click (or after Esc) must not resurrect that selection
+        if (latestKey.current !== key) return
         setSurface({ key, value })
-        // Re-derive the stack now that we know who manages the surface; keep the user's current step if it survived
-        const fresh = stepsAt(lat, lng, value)
-        const cur = list[idx]
-        const nIdx = Math.max(0, fresh.findIndex((st) => (cur?.kind === 'wilderness' && st.kind === 'wilderness') || (cur?.kind === 'order' && st.kind === 'order' && st.j === cur.j)))
-        const nStep = fresh[nIdx]
-        setResult(nStep ? { ...base, jurisdiction: nStep.j, wildernessFocus: nStep.kind === 'wilderness', surface: value } : { ...base, jurisdiction: null, surface: value })
-        setCycle({ lat, lng, list: fresh, idx: nIdx })
+        setCycle((cur) => {
+          if (!cur || `${cur.lat.toFixed(4)},${cur.lng.toFixed(4)}` !== key) return cur
+          // Re-derive the stack now that we know who manages the surface; keep the user's current step if it survived
+          const fresh = stepsAt(lat, lng, value)
+          const at = cur.list[cur.idx]
+          const nIdx = Math.max(0, fresh.findIndex((st) => (at?.kind === 'wilderness' && st.kind === 'wilderness') || (at?.kind === 'order' && st.kind === 'order' && st.j === at.j)))
+          const nStep = fresh[nIdx]
+          const gov = nIdx === 0 || (nIdx === 1 && fresh[0]?.kind === 'wilderness')
+          setResult(nStep ? { ...base, jurisdiction: nStep.j, wildernessFocus: nStep.kind === 'wilderness', surface: value, governing: gov } : { ...base, jurisdiction: null, surface: value })
+          return { lat, lng, list: fresh, idx: nIdx }
+        })
       })
     }
   }
   function clearSelection() {
+    latestKey.current = ''
     setCycle(null)
     setSite(null)
     setProbe(null)
@@ -166,12 +192,12 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showAbout])
 
-  function selectSite(s: RecSite, v: FireVerdict) {
+  const selectSite = useCallback((s: RecSite, v: FireVerdict) => {
     setSite({ s, v })
     setProbe({ lat: s.lat, lng: s.lng })
     setResult(resolveProbe(s.lat, s.lng, JURISDICTIONS, boundaries))
     setDrawer(true)
-  }
+  }, [boundaries, JURISDICTIONS])
   function probeAt(lat: number, lng: number) {
     if (sameSpot(lat, lng) && cycle) {
       const next = cycle.idx + 1
@@ -208,7 +234,7 @@ export default function App() {
         )}
         {layers.districts && <DistrictLayer fc={districts.data} />}
         {layers.wilderness && <WildernessLayer fc={wilderness.data} all={JURISDICTIONS} onClick={probeAt} selectedName={result.wildernessFocus ? result.wilderness : null} />}
-        {layers.campgrounds && <CampgroundLayer sites={sites.data} all={JURISDICTIONS} boundaries={boundaries} coarse={coarse} onSelect={selectSite} backcountryOnly={layers.backcountryOnly} />}
+        {layers.campgrounds && boundariesForPins && <CampgroundLayer sites={sites.data} all={JURISDICTIONS} boundaries={boundariesForPins} coarse={coarse} onSelect={selectSite} backcountryOnly={layers.backcountryOnly} redFlagZones={redFlagZones} />}
       </MapView>
 
       <div className="pointer-events-none absolute left-0 right-0 top-0 z-[1300] flex flex-col gap-2 p-3">
@@ -257,7 +283,7 @@ export default function App() {
         <div ref={scrollRef} className="overflow-y-auto p-3 pt-0 md:pt-3">
           {site ? (
             <div className="rounded-md border border-pine-600 bg-pine-800 p-3">
-              <SitePopup s={site.s} v={site.v} inline />
+              <SitePopup s={site.s} v={redFlag.active ? siteFireVerdict(site.s, JURISDICTIONS, boundaries, true) : site.v} inline />
               <button onClick={() => setSite(null)} className="mt-3 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-signgold">
                 <ChevronLeft size={14} /> Area rules{selected ? ` · ${selected.name}` : ''}
               </button>

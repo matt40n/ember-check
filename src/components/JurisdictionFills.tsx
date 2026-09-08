@@ -1,9 +1,10 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import { GeoJSON } from 'react-leaflet'
 import type { Jurisdiction } from '../types'
 import { STAGE_COLOR, STAGE_LABEL } from '../lib/stage'
 import { matchUnit } from '../lib/probe'
 import { countdownLabel, expiryText } from '../lib/time'
+import { esc } from '../lib/html'
 
 interface Props {
   fc: GeoJSON.FeatureCollection | undefined
@@ -41,15 +42,12 @@ export function JurisdictionFills({ fc, source, nameField, all, fillOpacity, hid
         .sort((a, b) => b.properties.area - a.properties.area),
     } as GeoJSON.FeatureCollection
   }, [fc, all, source, nameField])
-  if (!joined) return null
-  return (
-    <GeoJSON
-      key={source}
-      pane={source === 'usfs' ? 'forests' : source}
-      data={joined}
-      style={(f) => {
-        const stage = f?.properties.stage as Jurisdiction['stage'] | null
-        const sel = !!selectedId && f?.properties.jid === selectedId
+  // Latest handlers via refs: react-leaflet only reads onEachFeature at mount, so closures would otherwise go stale
+  const onPickRef = useRef(onPick); onPickRef.current = onPick
+  const onMissRef = useRef(onMiss); onMissRef.current = onMiss
+  const style = useCallback((f?: GeoJSON.Feature) => {
+        const stage = (f?.properties?.stage ?? null) as Jurisdiction['stage'] | null
+        const sel = !!selectedId && f?.properties?.jid === selectedId
         if (hiddenUnlessSelected && !sel) return { opacity: 0, fillOpacity: 0, weight: 0, interactive: false }
         // The selected unit gets a heavier, brighter outline and a denser fill so it reads at a glance
         return {
@@ -60,17 +58,24 @@ export function JurisdictionFills({ fc, source, nameField, all, fillOpacity, hid
           fillColor: stage ? STAGE_COLOR[stage] : '#8A8F8B',
           fillOpacity: sel ? Math.min(0.6, (stage ? fillOpacity : fillOpacity * 0.4) + 0.22) : stage ? fillOpacity : fillOpacity * 0.4,
         }
-      }}
+  }, [selectedId, hiddenUnlessSelected, source, fillOpacity])
+  if (!joined) return null
+  return (
+    <GeoJSON
+      key={source}
+      pane={source === 'usfs' ? 'forests' : source}
+      data={joined}
+      style={style}
       onEachFeature={(f, l) => {
         const j = all.find((x) => x.id === f.properties.jid)
         const e = j ? expiryText(j.expires) : null
         l.bindTooltip(
-          `<b>${f.properties.name}</b><br/>${j ? `${STAGE_LABEL[j.stage]} · ${countdownLabel(e!.days, e!.past)}` : 'No tracked order'}`,
+          `<b>${esc(f.properties.name)}</b><br/>${j ? `${STAGE_LABEL[j.stage]} · ${countdownLabel(e!.days, e!.past)}` : 'No tracked order'}`,
           { sticky: true, direction: 'top', opacity: 0.95 },
         )
         l.on('click', (ev) => {
           const { lat, lng } = (ev as L.LeafletMouseEvent).latlng
-          j ? onPick(j, lat, lng) : onMiss(lat, lng)
+          j ? onPickRef.current(j, lat, lng) : onMissRef.current(lat, lng)
         })
       }}
     />

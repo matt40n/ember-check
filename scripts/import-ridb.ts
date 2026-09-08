@@ -45,7 +45,7 @@ const strip = (s: string) => s.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').
 const dir = mkdtempSync(join(tmpdir(), 'ridb-'))
 const zip = join(dir, 'ridb.zip')
 console.log('downloading RIDB export…')
-const r = await fetch(ZIP, { headers: { 'User-Agent': 'ember-check/1.0 (campfire restriction map)' } })
+const r = await fetch(ZIP, { headers: { 'User-Agent': 'ember-check/1.0 (campfire restriction map)' }, signal: AbortSignal.timeout(600_000) })
 if (!r.ok) throw new Error(`RIDB download failed: ${r.status}`)
 await Bun.write(zip, await r.arrayBuffer())
 await $`unzip -o -q ${zip} Facilities_API_v1.csv FacilityAddresses_API_v1.csv RecAreas_API_v1.csv Campsites_API_v1.csv -d ${dir}`.quiet()
@@ -97,6 +97,8 @@ const out = facilities
   .sort((a, b) => a.name.localeCompare(b.name))
   // RIDB carries duplicate facility rows for some campgrounds (same name and coordinates); keep the reservable one
   .filter((s, i, arr) => arr.findIndex((o) => o.name === s.name && Math.abs(o.lat - s.lat) < 0.002 && Math.abs(o.lng - s.lng) < 0.002 && (o.reservable || !s.reservable)) === i)
+const prevCount = (await Bun.file(OUT).exists()) ? ((await Bun.file(OUT).json()) as unknown[]).length : 0
+if (prevCount && out.length < prevCount * 0.8) { console.error(`refusing to write: ${out.length} rows vs ${prevCount} previously — upstream probably changed shape`); process.exit(1) }
 await Bun.write(OUT, JSON.stringify(out))
 const by = out.reduce<Record<string, number>>((m, s) => ((m[s.agency] = (m[s.agency] ?? 0) + 1), m), {})
 console.log(`ridb-sites.json: ${out.length} California campgrounds`, JSON.stringify(by), `${(Bun.file(OUT).size / 1024).toFixed(0)} KB`)

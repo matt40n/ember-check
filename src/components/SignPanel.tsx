@@ -36,9 +36,9 @@ export function SignPanel({ result, redFlag, onClear, stack }: { result: ProbeRe
         )}
         <p className="pr-6 font-display text-xs font-semibold uppercase tracking-[0.2em] text-signgold/75">Surface ownership · BLM SMA data{result.unitName ? ` · within ${result.unitName}` : ''}</p>
         <p className="mt-1 font-display text-4xl font-extrabold uppercase leading-[0.95]">{label}</p>
-        <p className="mt-2 rounded p-2 font-display text-lg font-bold uppercase leading-tight bg-pine-950/30 text-cream">No federal fire order applies here</p>
+        <p className="mt-2 rounded p-2 font-display text-lg font-bold uppercase leading-tight bg-pine-950/30 text-cream">{['BLM', 'USFS', 'NPS', 'USFW', 'USBR', 'OtherFederal'].includes(surface) ? 'Federal land — no order tracked for this unit' : 'No federal fire order applies here'}</p>
         <p className="mt-3 text-sm leading-snug text-signgold/85">
-          {surface === 'Private' ? 'Private property — you need the landowner\'s permission to camp or have a fire at all. ' : surface === 'State' ? 'State-managed land — the managing agency (State Parks, CDFW, etc.) sets its own rules; check its page. ' : surface === 'Local' ? 'County or city land — the local parks department sets the rules. ' : 'The managing agency sets its own rules. '}
+          {surface === 'Private' ? 'Private property — you need the landowner\'s permission to camp or have a fire at all. ' : surface === 'State' ? 'State-managed land — the managing agency (State Parks, CDFW, etc.) sets its own rules; check its page. ' : surface === 'Local' ? 'County or city land — the local parks department sets the rules. ' : ['BLM', 'USFS', 'NPS', 'USFW', 'USBR', 'OtherFederal'].includes(surface) ? 'This map does not track the unit that manages this spot (its order may well restrict fires) — check that unit\'s alerts page or call it before assuming anything. ' : 'The managing agency sets its own rules. '}
           Outside a developed campground, California law still requires a free CA Campfire Permit for any campfire or stove, and CAL FIRE burn-permit suspensions and county ordinances apply during fire season. Call the local CAL FIRE unit or fire district before lighting anything.
         </p>
         <a href={CAMPFIRE_PERMIT_URL} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 rounded border border-signgold/50 bg-pine-950/30 px-2.5 py-1.5 text-xs font-semibold text-signgold underline-offset-2 hover:underline">
@@ -58,6 +58,10 @@ export function SignPanel({ result, redFlag, onClear, stack }: { result: ProbeRe
     )
   }
   const exp = expiryText(j.expires)
+  // The generic stage blurb can contradict an entry's own allowances (Lava Beds: stage none but no dispersed fires) — derive it
+  const explainer = j.stage === 'none'
+    ? `${j.campfiresDeveloped === 'prohibited' ? 'No wood fires even in campground rings.' : 'Campfires allowed in campground rings.'} ${j.campfiresDispersed === 'prohibited' ? 'No fires outside developed campgrounds.' : j.campfiresDispersed === 'allowed_with_permit' || j.campfiresDispersed === 'allowed' ? 'Backcountry fires allowed with a free California Campfire Permit.' : 'Backcountry fires: check with the unit.'}`
+    : STAGE_EXPLAINER[j.stage]
   const exempt = result.wildernessExempt
   const dispersed: Allow = exempt ? 'allowed_with_permit' : j.campfiresDispersed
   const noFires = redFlag || (!exempt && (j.stage === 'stage2' || j.stage === 'full_ban'))
@@ -76,6 +80,11 @@ export function SignPanel({ result, redFlag, onClear, stack }: { result: ProbeRe
       <p className="mt-1 font-display text-4xl font-extrabold uppercase leading-[0.95]">
         {redFlag ? 'Red flag — no fires' : result.wildernessFocus && result.wilderness ? result.wilderness.replace(/ Wilderness$/, '') : STAGE_LABEL[j.stage]}
       </p>
+      {result.governing === false && (
+        <p className="mt-2 rounded border border-ember/60 bg-ember/15 p-2 text-xs text-cream">
+          <b>Not the governing order for this exact spot.</b> You've cycled to a layer beneath the one that rules here — the rows below describe {j.name}'s order in general. See "Layers at this spot" for what applies.
+        </p>
+      )}
       {result.wildernessFocus && <p className="font-display text-base font-semibold uppercase tracking-wide text-signgold/80">Wilderness · under the {STAGE_LABEL[j.stage]} order</p>}
       <p className="mt-2 flex items-center gap-2 font-mono text-sm">
         <Flame size={14} className={noFires ? 'text-ember' : 'text-ok'} />
@@ -111,12 +120,12 @@ export function SignPanel({ result, redFlag, onClear, stack }: { result: ProbeRe
       )}
       <p className="mt-3 text-sm leading-snug text-signgold/85">
         {result.wilderness && <b className="text-signgold">{exempt ? 'Elsewhere in the forest (outside exempt wildernesses): ' : 'Forest-wide: '}</b>}
-        {STAGE_EXPLAINER[j.stage]}
+        {explainer}
         {exempt && <span className="text-signgold/70"> The exemption above overrides this where you clicked.</span>}
       </p>
       <div className="mt-3">
-        <Row label="Campground rings" value={j.campfiresDeveloped} />
-        <Row label="Dispersed / backcountry" value={dispersed} note={exempt ? `here, via ${result.wilderness?.replace(' Wilderness', '')} exemption` : undefined} />
+        <Row label="Campground rings" value={redFlag ? 'prohibited' : j.campfiresDeveloped} note={redFlag ? 'Red Flag today' : undefined} />
+        <Row label="Dispersed / backcountry" value={redFlag ? 'prohibited' : dispersed} note={redFlag ? 'Red Flag today' : exempt ? `here, via ${result.wilderness?.replace(' Wilderness', '')} exemption` : undefined} />
         <Row label="Gas stove" value={j.stoves} />
         <Row label="Smoking" value={j.smoking} />
       </div>

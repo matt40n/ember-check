@@ -86,12 +86,17 @@ async function worker() {
       if (anyKnown) known++
     }
     const season = phrase(months, firstOpen, lastOpen, stamp)
-    if (!cg && !known) { failed++; continue }
+    if (!known) { // availability blocked or empty: keep last month's season rather than blanking it
+      if (previous[s.id]) result[s.id] = { ...previous[s.id], fee: cg?.campground?.facility_use_fee_description ? strip(cg.campground.facility_use_fee_description).slice(0, 400) : previous[s.id].fee, checkedOn: stamp }
+      failed++
+      continue
+    }
     result[s.id] = { season, months, firstOpen, lastOpen, fee: cg?.campground?.facility_use_fee_description ? strip(cg.campground.facility_use_fee_description).slice(0, 400) : previous[s.id]?.fee ?? null, checkedOn: stamp }
     done++
     if (done % 50 === 0) console.log(`${done}/${sites.filter((x) => x.reservable).length}…`)
   }
 }
 await Promise.all(Array.from({ length: 2 }, worker))
+if (failed > 0.3 * (done + failed)) { console.error(`too many unreachable (${failed}/${done + failed}) — keeping previous ridb-extra.json`); process.exit(1) }
 await Bun.write(OUT, JSON.stringify(result))
 console.log(`ridb-extra.json: ${done} campgrounds updated, ${failed} unreachable, ${Object.keys(result).length} total, ${(Bun.file(OUT).size / 1024).toFixed(0)} KB`)

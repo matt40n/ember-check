@@ -11,7 +11,7 @@ bun dev
 
 ## Data
 
-- **Restriction stages** (`src/data/restrictions.ts`) are hand-verified from each agency's forest order / fire prevention order. Agencies publish these as PDFs, not APIs. Each entry carries `sourceUrl`, `orderNumber`, `expires`, and `verifiedOn`. Re-verify before each trip and bump `DATA_VERIFIED_ON`.
+- **Restriction stages** (`src/data/restrictions.ts`) are hand-verified from each agency's forest order / fire prevention order. Agencies publish these as PDFs, not APIs. Each entry carries `sourceUrl`, `orderNumber`, `expires`, and `verifiedOn`. Re-verify before each trip; the verify bot maintains `verifiedOn` and `DATA_VERIFIED_ON`.
 - **Boundaries** (`src/api/boundaries.ts`, `src/api/usfs.ts`, cached 24 h): USFS forest boundaries, ranger districts, wilderness areas and recreation sites (EDW), BLM field-office boundaries, NPS unit boundaries. Each restriction entry joins to its polygon via `boundary: { source, match }`; fills are colored by stage.
 - **Wilderness exemptions**: `wildernessExempt` on a unit lists wildernesses where that order still allows campfires (with a CA Campfire Permit). They render green; wildernesses with no exemption render dotted/dark. Clicking inside one shows the exemption on the sign.
 - **Campground pins** (zoom ≥ 8), from four sources merged and deduplicated by name + location (`src/api/boundaries.ts`): USFS EDW (campground / group / dispersed); every California campground on Recreation.gov (RIDB full export, `bun run ridb`; seasons and fees read from Recreation.gov's calendar by `bun run ridb-extra`); California State Parks campgrounds (CDPR GIS, `bun run csp`); and county / regional / private campgrounds from OpenStreetMap (`bun run osm`, © OpenStreetMap contributors, ODbL). All refresh monthly. Each USFS site links to its own fs.usda.gov page, whose open/closed status is read weekly (`bun run enrich`). Click for a free/paid verdict (`src/lib/text.ts` parses the fee text — first dollar amount is the site fee), full fee text, reservations, season, hours, description, site rules, the Forest Service page, and a Recreation.gov search link. Pins live in a dedicated `sites` map pane so polygon layers can't cover them. Each pin's **ring color is a campfire verdict** for that exact spot (`src/lib/siteFire.ts`): the site's coordinates are resolved against the order polygons and wilderness exemptions — green = OK, amber = OK with a CA Campfire Permit, red = no campfires, grey = no tracked order. Dispersed sites use the order's dispersed rule; developed sites use the campground-ring rule.
@@ -43,8 +43,8 @@ Static build, hosted on GitHub Pages, deployed by `.github/workflows/deploy.yml`
 |---|---|---|---|
 | Deploy | push to main | build + publish | never |
 | Verify fire orders | Mon & Thu 06:00 PT | re-checks every order's agency page; stamps `verifiedOn` on entries that pass; refreshes each campground's USFS page link and open/closed status (`public/data/site-pages.json`); commits and redeploys | an order fails/warns (new order, page edited after `noticeUpdated`, exhibit site missing), or the bot itself breaks |
-| Refresh boundary snapshots | 1st of month | re-downloads `public/data/*.json` from USFS/BLM/NPS; runs `check-exhibits` | a layer can't be downloaded |
-| Site health | daily | fetches live `/status.json`; checks the site is up and data is < 10 days old | site down, or data going stale |
+| Refresh boundary snapshots | 1st of month | re-downloads boundaries from USFS/BLM/NPS, then Recreation.gov (RIDB), State Parks and OpenStreetMap campgrounds, Recreation.gov seasons, USFS site pages; each step is best-effort and keeps the previous file on failure; runs `check-exhibits` (≈5 h total, throttled) | a layer can't be downloaded |
+| Site health | daily | fetches live `/status.json`; checks the site is up, the oldest `verifiedOn` is < 10 days old (computed from the date, not a build-time number) and the site was rebuilt within 6 days | site down, data going stale, or the bot has stopped publishing |
 | Season reminders | May 15, Nov 1 | opens an issue with the season-open / season-close runbook | every time |
 
 Runbooks for each of those emails: [docs/runbooks/](docs/runbooks/). Field reports from the "report a change" links on every sign and campground card arrive as issues labeled `field-report`.
@@ -53,6 +53,6 @@ Boundaries, wilderness, ranger districts and campground records are **build-time
 
 ## Updating restrictions
 
-1. Open the forest's alerts page (`https://www.fs.usda.gov/alerts/<forest>/alerts-notices`) or BLM CA fire restrictions page.
-2. Edit the matching entry in `src/data/restrictions.ts`: `stage`, per-activity allowances, `effective`, `expires`, `orderNumber`, `sourceUrl`, `verifiedOn`.
+1. Open the forest's alerts page (`https://www.fs.usda.gov/r05/<forest>/alerts`) or the BLM field office's announcement page.
+2. Edit the matching entry in `src/data/restrictions.ts`: `stage`, per-activity allowances, `effective`, `expires`, `orderNumber`, `noticeUpdated`, `sourceUrl`; set `verifiedOn: V` (the bot replaces it with a date and refreshes `pageFireHash` on its next run).
 3. `bun run build` — types will catch mistakes.

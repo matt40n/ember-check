@@ -6,7 +6,7 @@ import { differenceInCalendarDays, parseISO } from 'date-fns'
 import { JURISDICTIONS, DATA_VERIFIED_ON } from '../src/data/restrictions'
 
 const now = new Date()
-const tracked = JURISDICTIONS.filter((j) => j.boundary)
+const tracked = JURISDICTIONS
 const oldest = tracked.map((j) => j.verifiedOn).sort()[0]
 const expiring = JURISDICTIONS.filter((j) => j.expires !== 'until_rescinded' && differenceInCalendarDays(parseISO(j.expires), now) <= 14)
   .map((j) => ({ id: j.id, name: j.name, expires: j.expires }))

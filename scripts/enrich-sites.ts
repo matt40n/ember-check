@@ -31,7 +31,8 @@ const slugify = (s: string) =>
 
 const candidates = (name: string) => {
   const base = slugify(name)
-  const out = [base]
+  const paren = name.match(/\(([^)]+)\)/)?.[1]
+  const out = paren ? [slugify(`${name.replace(/\(.*?\)/, '')} ${paren.replace(/\b(NF|National Forest)\b/gi, '')}`), base] : [base]
   if (/-campground$/.test(base)) out.push(base.replace(/-campground$/, ''))
   else out.push(`${base}-campground`)
   out.push(base.replace(/-group-campground$/, '-group-camp'), base.replace(/-campgrounds?$/, '-campground'), base.replace(/-boat-in-/, '-boat-'), base.replace(/-camping-area$/, ''), base.replace(/-recreation-area$/, ''))
@@ -63,6 +64,12 @@ async function fetchPage(url: string, attempt = 0): Promise<string | null> {
     return null
   }
 }
+/** The page's H1 must share the site's first distinctive word — otherwise 'Big Flat Campground (Klamath NF)' lands on Shasta-Trinity's Big Flat. */
+function pageIsAbout(html: string, name: string): boolean {
+  const h1 = (html.match(/<h1[^>]*>([^<]*)</i)?.[1] ?? '').toLowerCase()
+  const words = name.toLowerCase().replace(/\(.*?\)/g, '').split(/[^a-z0-9]+/).filter((w) => w.length >= 4 && !/^(campground|group|camp|site|area|lake|creek|river|flat|north|south|east|west|upper|lower)$/.test(w))
+  return words.length === 0 || words.some((w) => h1.includes(w))
+}
 function parse(html: string) {
   const statusCls = html.match(/class="wfs-status ([^"]*)"/)?.[1] ?? ''
   const heading = html.match(/status__heading[^>]*>([^<]*)</)?.[1]?.trim() ?? null
@@ -93,7 +100,7 @@ async function worker() {
       const url = `https://www.fs.usda.gov/${base}/recreation/${slug}`
       await new Promise((res) => setTimeout(res, 300))
       const html = await fetchPage(url)
-      if (html && /rec-intro|wfs-status/.test(html)) { hit = { url, ...parse(html), checkedOn: today }; break }
+      if (html && /rec-intro|wfs-status/.test(html) && pageIsAbout(html, name)) { hit = { url, ...parse(html), checkedOn: today }; break }
     }
     if (hit) { result[key] = hit; resolved++ }
     else if (previous[key]) { result[key] = previous[key]; failed++ } // keep the last good answer through a transient outage

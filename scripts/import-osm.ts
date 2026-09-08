@@ -14,13 +14,18 @@ for (const m of MIRRORS) {
   try {
     const r = await fetch(m, { method: 'POST', body: 'data=' + encodeURIComponent(QUERY), headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'ember-check/1.0 (campfire restriction map)' }, signal: AbortSignal.timeout(300_000) })
     if (!r.ok) throw new Error(`${r.status}`)
-    els = ((await r.json()) as { elements: El[] }).elements
+    const body = (await r.json()) as { elements: El[]; remark?: string }
+    if (body.remark && /timed out|error/i.test(body.remark)) throw new Error(body.remark)
+    els = body.elements
     break
   } catch (e) {
     console.error(`${m}: ${(e as Error).message}`)
   }
 }
 if (!els) { console.error('Overpass unavailable — keeping previous osm-sites.json'); process.exit(1) }
+
+/** Keep only http(s) URLs — OSM tags are world-editable and sometimes hold bare hostnames or junk. */
+const httpUrl = (v: string | undefined): string | null => { if (!v) return null; try { const u = new URL(v.trim()); return u.protocol === 'http:' || u.protocol === 'https:' ? u.toString() : null } catch { try { const u = new URL('https://' + v.trim()); return /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(u.hostname) ? u.toString() : null } catch { return null } } }
 
 /** Classify who runs it from operator/owner/website tags, so the card can say "County park" vs "private". */
 function operatorKind(t: Record<string, string>): { kind: string; federal: boolean; state: boolean } {
@@ -58,7 +63,7 @@ const out = els
       seasonal: t.seasonal ?? null,
       openingHours: t.opening_hours ?? null,
       capacity: t.capacity ? Number(t.capacity) || null : null,
-      website: t.website ?? t['contact:website'] ?? null,
+      website: httpUrl(t.website ?? t['contact:website']),
       phone: t.phone ?? t['contact:phone'] ?? null,
       description: (t.description ?? t.note ?? t.designation)?.slice(0, 300) ?? null,
       drinkingWater: t.drinking_water ?? null,
@@ -69,6 +74,8 @@ const out = els
   .sort((a, b) => a.name.localeCompare(b.name))
 // Drop null/false fields to keep the payload small
 const compact = out.map((s) => Object.fromEntries(Object.entries(s).filter(([, v]) => v !== null && v !== false)))
+const prevCount = (await Bun.file(OUT).exists()) ? ((await Bun.file(OUT).json()) as unknown[]).length : 0
+if (prevCount && compact.length < prevCount * 0.8) { console.error(`refusing to write: ${compact.length} rows vs ${prevCount} previously — upstream probably changed shape`); process.exit(1) }
 await Bun.write(OUT, JSON.stringify(compact))
 const by = out.reduce<Record<string, number>>((m, s) => ((m[s.kind] = (m[s.kind] ?? 0) + 1), m), {})
 console.log(`osm-sites.json: ${out.length} named camp sites in California`, JSON.stringify(by), `${(Bun.file(OUT).size / 1024).toFixed(0)} KB`)

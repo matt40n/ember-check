@@ -9,17 +9,16 @@ on:
 permissions:
   contents: write
   issues: write
-  pages: write
-  id-token: write
 
 jobs:
   snapshot:
     runs-on: ubuntu-latest
+    timeout-minutes: 330
     outputs:
       changed: ${{ steps.commit.outputs.changed }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
       - run: bun install --frozen-lockfile
       - name: Download snapshots
         id: snap
@@ -27,17 +26,30 @@ jobs:
           set +e -o pipefail
           bun run scripts/snapshot-boundaries.ts | tee snapshot.log
           echo "code=$?" >> "$GITHUB_OUTPUT"
+      # Each import is best-effort and keeps the previous file on failure; the commit below ships whatever succeeded
       - name: Import Recreation.gov (RIDB) California campgrounds
+        continue-on-error: true
+        timeout-minutes: 15
         run: bun run scripts/import-ridb.ts
       - name: Import California State Parks campgrounds (CDPR GIS)
-        run: bun run scripts/import-csp.ts || echo "CDPR unavailable — keeping previous csp-sites.json"
+        continue-on-error: true
+        timeout-minutes: 10
+        run: bun run scripts/import-csp.ts
       - name: Import county / private campgrounds (OpenStreetMap)
-        run: bun run scripts/import-osm.ts || echo "Overpass unavailable — keeping previous osm-sites.json"
+        continue-on-error: true
+        timeout-minutes: 15
+        run: bun run scripts/import-osm.ts
       - name: Read Recreation.gov seasons and fees (slow, throttled)
+        continue-on-error: true
+        timeout-minutes: 120
         run: bun run scripts/enrich-ridb.ts
       - name: Resolve campground pages for any new sites
+        continue-on-error: true
+        timeout-minutes: 60
         run: bun run scripts/enrich-sites.ts
       - name: Exhibit names still match campground records
+        continue-on-error: true
+        timeout-minutes: 10
         run: bun run scripts/check-exhibits.ts | tee exhibits.log
       - name: Commit
         id: commit
@@ -47,6 +59,7 @@ jobs:
           if git diff --quiet public/data; then echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           git add public/data
           git commit -m "snapshot: refresh boundaries $(date -u +%F)"
+          git pull --rebase origin main || { git rebase --abort; git pull --rebase -X theirs origin main; }
           git push
           echo "changed=true" >> "$GITHUB_OUTPUT"
       - name: Issue if a layer failed
@@ -59,10 +72,14 @@ jobs:
           bash .github/scripts/upsert-issue.sh "Ember Check: boundary snapshot failed" "$(cat .github/issue-templates/snapshot-failed.md)
 
           \`\`\`
-          $(cat snapshot.log 2>/dev/null)
+          $(sed 's/```/ʼʼʼ/g' snapshot.log 2>/dev/null | head -40)
           \`\`\`
           Run: $RUN_URL" bot
   deploy:
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     needs: snapshot
     if: needs.snapshot.outputs.changed == 'true'
     uses: ./.github/workflows/deploy.yml

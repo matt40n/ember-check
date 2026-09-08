@@ -29,5 +29,7 @@ const out = camps.features
     }
   })
   .sort((a, b) => (a.park ?? '').localeCompare(b.park ?? '') || a.name.localeCompare(b.name))
+const prevCount = (await Bun.file(OUT).exists()) ? ((await Bun.file(OUT).json()) as unknown[]).length : 0
+if (prevCount && out.length < prevCount * 0.8) { console.error(`refusing to write: ${out.length} rows vs ${prevCount} previously — upstream probably changed shape`); process.exit(1) }
 await Bun.write(OUT, JSON.stringify(out))
 console.log(`csp-sites.json: ${out.length} state park campground points in ${new Set(out.map((s) => s.park)).size} parks (${out.filter((s) => !s.park).length} without a unit name), ${(Bun.file(OUT).size / 1024).toFixed(0)} KB`)
