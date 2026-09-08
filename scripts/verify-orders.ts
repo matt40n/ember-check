@@ -14,6 +14,7 @@ import { JURISDICTIONS } from '../src/data/restrictions'
 import type { Jurisdiction } from '../src/types'
 
 const stamp = process.argv.includes('--stamp')
+const rehash = process.argv.includes('--rehash')
 const jsonOut = process.argv[process.argv.indexOf('--json') + 1]
 const writeJson = process.argv.includes('--json') && !!jsonOut
 const today = new Date().toISOString().slice(0, 10)
@@ -59,8 +60,17 @@ function pageUpdatedOn(html: string): string | null {
 
 /** Sentences on the page that talk about fire rules — the part of a conditions page that matters to us. */
 function fireSentences(html: string): string[] {
-  const text = html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ')
-  return text.split(/(?<=[.!?])\s+/).map((t) => t.trim()).filter((t) => /campfire|fire restriction|fire ban|open flame|stove|charcoal|wood fire|burn(?:ing)? (?:ban|restriction|permit)|stage [12i]/i.test(t))
+  // Only the article body: site chrome (title, breadcrumb, 'current conditions' sidebar, menus) changes on its own
+  let body = html.replace(/<head[\s\S]*?<\/head>/i, ' ').replace(/<title[\s\S]*?<\/title>/gi, ' ')
+  const art = html.match(/<article[^>]*>([\s\S]*?)<\/article>/i) ?? html.match(/<main[^>]*>([\s\S]*?)<\/main>/i) ?? html.match(/<div[^>]+id="main-content"[^>]*>([\s\S]*?)<footer/i)
+  if (art) body = art[1]
+  body = body.replace(/<(nav|aside|header|footer)[^>]*>[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+class="[^"]*(breadcrumb|sidebar|related|share|social)[^"]*"[^>]*>[\s\S]*?<\/(div|ul|nav|section)>/gi, ' ')
+  const text = body.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ')
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 40 && !/skip to |breadcrumb|current condition|fire danger:|\bmenu\b|official website|\(u\.s\.$/i.test(t))
+    .filter((t) => /campfire|fire restriction|fire ban|open flame|stove|charcoal|wood fire|burn(?:ing)? (?:ban|restriction|permit)|stage [12i]/i.test(t))
 }
 function fireTextHash(html: string): string {
   const s = fireSentences(html).join('|').toLowerCase().replace(/\d{1,2}:\d{2}\s*[ap]m/g, '').replace(/[^a-z0-9|]/g, '')
@@ -175,6 +185,17 @@ if (stamp && passed.length) {
   if (passed.length === results.length) src = src.replace(/export const DATA_VERIFIED_ON = '20\d\d-\d\d-\d\d'/, `export const DATA_VERIFIED_ON = '${today}'`)
   await Bun.write(path, src)
   console.log(`stamped verifiedOn = ${today} on ${passed.length} entries${passed.length === results.length ? ' and DATA_VERIFIED_ON' : ''}`)
+}
+if (rehash) {
+  const path = new URL('../src/data/restrictions.ts', import.meta.url)
+  let src = await Bun.file(path).text()
+  let n = 0
+  for (const [id, h] of Object.entries(hashes)) {
+    const entryRe = new RegExp(`(id: '${id}',)([\\s\\S]*?)(verifiedOn: )`)
+    src = src.replace(entryRe, (_m, a: string, mid: string, c: string) => { n++; return `${a} pageFireHash: '${h}',${mid.replace(/\s*pageFireHash: '[^']*',/, '')}${c}` })
+  }
+  await Bun.write(path, src)
+  console.log(`rehashed ${n} entries (verifiedOn untouched)`)
 }
 if (writeJson) {
   await Bun.write(jsonOut, JSON.stringify({ ranOn: today, results }, null, 2))

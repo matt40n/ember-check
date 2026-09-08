@@ -16,3 +16,6 @@ The bots do the routine work. This is what's left for a human.
 ## If the verify bot itself is broken
 `bun run verify --stamp` locally, push, and read the failing workflow run. It's almost always an agency
 page redesign that broke `pageUpdatedOn()` or `fireAlerts()` in `scripts/verify-orders.ts`.
+
+## If the fingerprint check nags on a page whose fire text did not really change
+`bun run verify --rehash` rewrites every entry's `pageFireHash` from the current pages (verifiedOn untouched). Do this only after reading the flagged pages.
