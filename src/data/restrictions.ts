@@ -9,6 +9,9 @@ export const DATA_VERIFIED_ON = '2026-09-08'
 /** Exported (not just a local) so tsc's noUnusedLocals doesn't fail after `verify --stamp` pins every entry to a literal date. */
 export const V = DATA_VERIFIED_ON
 
+/** Ranger districts administered by a different forest than the polygon they sit in (Ukonom RD is Six Rivers-managed inside Klamath's boundary). */
+export const DISTRICT_OVERRIDES: Record<string, string> = { 'Ukonom Ranger District': 'usfs-six-rivers' }
+
 export const JURISDICTIONS: Jurisdiction[] = [
   // ───────────── USFS Region 5 ─────────────
   {
@@ -119,14 +122,14 @@ export const JURISDICTIONS: Jurisdiction[] = [
 
   // ───────────── BLM California ─────────────
   {
-    id: 'blm-redding', pageFireHash: '0:0', orderNumber: 'CA-360-26-01', developedSitesListed: ['Shasta Campground', 'Ohl Olsen Campground', 'Bohemotash Primitive Campground', 'Junction City Campground', 'Steel Bridge Campground', 'Douglas City Campground', 'Reading Island Campground'], developedSitesComplete: true, noticeUpdated: '2026-06-28', boundary: { source: 'blm', match: 'Redding Field Office' }, name: 'BLM Redding Field Office', agency: 'BLM', lat: 40.6, lng: -122.4, radiusKm: 40,
+    id: 'blm-redding', checkUrl: 'https://www.blm.gov/announcement/blm-announces-seasonal-fire-restrictions-northwest-california-public-lands-0', pageFireHash: '0:0', orderNumber: 'CA-360-26-01', developedSitesListed: ['Shasta Campground', 'Ohl Olsen Campground', 'Bohemotash Primitive Campground', 'Junction City Campground', 'Steel Bridge Campground', 'Douglas City Campground', 'Reading Island Campground'], developedSitesComplete: true, noticeUpdated: '2026-06-28', boundary: { source: 'blm', match: 'Redding Field Office' }, name: 'BLM Redding Field Office', agency: 'BLM', lat: 40.6, lng: -122.4, radiusKm: 40,
     stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed_with_permit', smoking: 'prohibited',
     effective: '2026-06-28', expires: 'until_rescinded',
     sourceUrl: 'https://www.blm.gov/sites/default/files/docs/2026-06/BLM-CA-2026-Fire-Restrictions-Order_Redding.pdf',
     notes: 'Campfires only at Shasta, Bohemotash, Ohl Olsen, Junction City, Steel Bridge, Douglas City and Reading Island sites; none in Butte County. Chainsaws until 1 pm; target shooting until noon.', verifiedOn: '2026-09-08',
   },
   {
-    id: 'blm-arcata', pageFireHash: '0:0', orderNumber: 'CA-330-26-01', developedSitesRule: 'any_developed', noticeUpdated: '2026-06-28', boundary: { source: 'blm', match: 'Arcata Field Office' }, name: 'BLM Arcata Field Office (King Range / Lost Coast)', agency: 'BLM', lat: 40.2, lng: -124.0, radiusKm: 45,
+    id: 'blm-arcata', checkUrl: 'https://www.blm.gov/announcement/blm-announces-seasonal-fire-restrictions-north-coast-public-lands-0', pageFireHash: '0:0', orderNumber: 'CA-330-26-01', developedSitesRule: 'any_developed', noticeUpdated: '2026-06-28', boundary: { source: 'blm', match: 'Arcata Field Office' }, name: 'BLM Arcata Field Office (King Range / Lost Coast)', agency: 'BLM', lat: 40.2, lng: -124.0, radiusKm: 45,
     stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed_with_permit', smoking: 'prohibited',
     effective: '2026-06-28', expires: 'until_rescinded',
     sourceUrl: 'https://www.blm.gov/sites/default/files/docs/2026-06/BLM-CA-ArcataFO-Fire-Restrictions-2026_508.pdf',
@@ -140,28 +143,28 @@ export const JURISDICTIONS: Jurisdiction[] = [
     notes: 'No campfires or open flame even in established campgrounds. Target shooting banned. Covers BLM portions of Berryessa Snow Mountain NM.', verifiedOn: '2026-09-08',
   },
   {
-    id: 'blm-eagle-lake', pageFireHash: '0:0', developedSitesListed: ['North Eagle Lake Campground', 'Hobo Camp Day Use Area', 'Fort Sage Off-Highway Vehicle Area', 'Dodge Reservoir Campground', 'Ramhorn Springs Campground', 'Rice Canyon Off-Highway Vehicle Area'], developedSitesComplete: true, noticeUpdated: '2026-07-14', boundary: { source: 'blm', match: 'Eagle Lake Field Office' }, name: 'BLM Eagle Lake Field Office', agency: 'BLM', lat: 40.6, lng: -120.5, radiusKm: 45,
+    id: 'blm-eagle-lake', checkUrl: 'https://www.blm.gov/programs/public-safety-and-fire/fire-and-aviation/regional-info/california/fire-restrictions', pageFireHash: '0:0', developedSitesListed: ['North Eagle Lake Campground', 'Hobo Camp Day Use Area', 'Fort Sage Off-Highway Vehicle Area', 'Dodge Reservoir Campground', 'Ramhorn Springs Campground', 'Rice Canyon Off-Highway Vehicle Area'], developedSitesComplete: true, noticeUpdated: '2026-07-14', boundary: { source: 'blm', match: 'Eagle Lake Field Office' }, name: 'BLM Eagle Lake Field Office', agency: 'BLM', lat: 40.6, lng: -120.5, radiusKm: 45,
     stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed_with_permit', smoking: 'prohibited',
     effective: '2026-07-15', expires: 'until_rescinded', orderNumber: 'CAN-050-26-01',
     sourceUrl: 'https://www.blm.gov/sites/default/files/docs/2026-07/2026%20ELFO%20Fire%20Prevention%20Order_signed.pdf',
     notes: 'Campfires only at N. Eagle Lake CG, Hobo Camp, Fort Sage OHV, Dodge Reservoir CG, Ramhorn Springs CG and Rice Canyon OHV.', verifiedOn: '2026-09-08',
   },
   {
-    id: 'blm-applegate', pageFireHash: '0:0', developedSitesListed: ['Pit River', 'Boulder Reservoir'], developedSitesComplete: true, noticeUpdated: '2026-07-14', boundary: { source: 'blm', match: 'Applegate Field Office' }, name: 'BLM Applegate Field Office (Alturas)', agency: 'BLM', lat: 41.5, lng: -120.5, radiusKm: 45,
+    id: 'blm-applegate', checkUrl: 'https://www.blm.gov/programs/public-safety-and-fire/fire-and-aviation/regional-info/california/fire-restrictions', pageFireHash: '0:0', developedSitesListed: ['Pit River', 'Boulder Reservoir'], developedSitesComplete: true, noticeUpdated: '2026-07-14', boundary: { source: 'blm', match: 'Applegate Field Office' }, name: 'BLM Applegate Field Office (Alturas)', agency: 'BLM', lat: 41.5, lng: -120.5, radiusKm: 45,
     stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed_with_permit', smoking: 'prohibited',
     effective: '2026-07-15', expires: 'until_rescinded', orderNumber: 'CA-320-26-01',
     sourceUrl: 'https://www.blm.gov/sites/default/files/docs/2026-07/2026%20AGFO%20Fire%20Prevention%20Order_signed.pdf',
     notes: 'Campfires only at Pit River and Boulder Reservoir recreation sites. No vehicles off established roads.', verifiedOn: '2026-09-08',
   },
   {
-    id: 'blm-mother-lode', pageFireHash: '0:0', noticeUpdated: '2026-05-15', boundary: { source: 'blm', match: 'Mother Lode Field Office' }, name: 'BLM Mother Lode Field Office', agency: 'BLM', lat: 38.5, lng: -120.6, radiusKm: 55,
+    id: 'blm-mother-lode', checkUrl: 'https://www.blm.gov/programs/public-safety-and-fire/fire-and-aviation/regional-info/california/fire-restrictions', pageFireHash: '0:0', noticeUpdated: '2026-05-15', boundary: { source: 'blm', match: 'Mother Lode Field Office' }, name: 'BLM Mother Lode Field Office', agency: 'BLM', lat: 38.5, lng: -120.6, radiusKm: 55,
     stage: 'stage2', campfiresDeveloped: 'prohibited', campfiresDispersed: 'prohibited', stoves: 'allowed_with_permit', smoking: 'prohibited',
     effective: '2026-05-15', expires: 'until_rescinded', orderNumber: 'CAC08000-26-05',
     sourceUrl: 'https://www.blm.gov/sites/default/files/docs/2026-05/MLFO_Fire_Restriction_Order_2026_508.pdf',
     notes: 'No campfire or open flame of any kind. Target shooting banned. Sierra foothills from Yuba/Nevada to Mariposa incl. Merced River, Cosumnes, South Yuba.', verifiedOn: '2026-09-08',
   },
   {
-    id: 'blm-bishop', pageFireHash: '0:0', noticeUpdated: '2026-06-22', boundary: { source: 'blm', match: 'Bishop Field Office' }, name: 'BLM Bishop Field Office', agency: 'BLM', lat: 37.6, lng: -118.4, radiusKm: 50,
+    id: 'blm-bishop', checkUrl: 'https://www.blm.gov/announcement/blm-announces-seasonal-fire-restrictions-eastern-sierra-0', pageFireHash: '0:0', noticeUpdated: '2026-06-22', boundary: { source: 'blm', match: 'Bishop Field Office' }, name: 'BLM Bishop Field Office', agency: 'BLM', lat: 37.6, lng: -118.4, radiusKm: 50,
     stage: 'stage2', campfiresDeveloped: 'prohibited', campfiresDispersed: 'prohibited', stoves: 'allowed_with_permit', smoking: 'prohibited',
     effective: '2026-06-22', expires: 'until_rescinded', orderNumber: 'CAC09000-26-06',
     sourceUrl: 'https://www.blm.gov/sites/default/files/docs/2026-06/BIFO_Fire_Restriction_Order_June_2026_508_signed.pdf',

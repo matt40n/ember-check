@@ -25,7 +25,7 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
       - run: bun install --frozen-lockfile
       - name: Build
-        run: bun run scripts/write-status.ts && bunx tsc && bunx vite build --base=/${{ github.event.repository.name }}/
+        run: bun run scripts/write-status.ts && bun run scripts/build-sites.ts && bunx tsc && bunx vite build --base=/${{ github.event.repository.name }}/
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with: { path: dist }

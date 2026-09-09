@@ -6,7 +6,7 @@ name: Verify fire orders
 
 on:
   schedule:
-    - cron: '0 13 * * 1,4'
+    - cron: '0 13 * * 1,4,6'
   workflow_dispatch:
 
 permissions:

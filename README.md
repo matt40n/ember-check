@@ -42,14 +42,14 @@ Static build, hosted on GitHub Pages, deployed by `.github/workflows/deploy.yml`
 | Workflow | When | What it does | Emails you when |
 |---|---|---|---|
 | Deploy | push to main | build + publish | never |
-| Verify fire orders | Mon & Thu 06:00 PT | re-checks every order's agency page; stamps `verifiedOn` on entries that pass; refreshes each campground's USFS page link and open/closed status (`public/data/site-pages.json`); commits and redeploys | an order fails/warns (new order, page edited after `noticeUpdated`, exhibit site missing), or the bot itself breaks |
+| Verify fire orders | Mon, Thu & Sat ~06:00 PT (GitHub may start it hours late) | re-checks every order's agency page; stamps `verifiedOn` on entries that pass; refreshes each campground's USFS page link and open/closed status (`public/data/site-pages.json`); commits and redeploys | an order fails/warns (new order, page edited after `noticeUpdated`, exhibit site missing), or the bot itself breaks |
 | Refresh boundary snapshots | 1st of month | re-downloads boundaries from USFS/BLM/NPS, then Recreation.gov (RIDB), State Parks and OpenStreetMap campgrounds, Recreation.gov seasons, USFS site pages; each step is best-effort and keeps the previous file on failure; runs `check-exhibits` (≈5 h total, throttled) | a layer can't be downloaded |
 | Site health | daily | fetches live `/status.json`; checks the site is up, the oldest `verifiedOn` is < 10 days old (computed from the date, not a build-time number) and the site was rebuilt within 6 days | site down, data going stale, or the bot has stopped publishing |
 | Season reminders | May 15, Nov 1 | opens an issue with the season-open / season-close runbook | every time |
 
 Runbooks for each of those emails: [docs/runbooks/](docs/runbooks/). Field reports from the "report a change" links on every sign and campground card arrive as issues labeled `field-report`.
 
-Boundaries, wilderness, ranger districts and campground records are **build-time snapshots** (`src/api/snapshot.ts`, `bun run snapshot`), so the app stays up when USFS's map servers don't; the live ArcGIS query is only a fallback. Red Flag Warnings, fires and perimeters are always live, and the header says so when they aren't.
+At build time `scripts/build-sites.ts` merges every campground source into a lean `sites-index.json` (~100 KB gzipped) plus 24 detail chunks fetched when a card opens, and the query cache persists in IndexedDB for a day so repeat visits paint with no network. Boundaries, wilderness, ranger districts and campground records are **build-time snapshots** (`src/api/snapshot.ts`, `bun run snapshot`), so the app stays up when USFS's map servers don't; the live ArcGIS query is only a fallback. Red Flag Warnings, fires and perimeters are always live, and the header says so when they aren't.
 
 ## Updating restrictions
 

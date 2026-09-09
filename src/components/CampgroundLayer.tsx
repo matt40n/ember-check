@@ -4,7 +4,7 @@ import { CircleMarker, Popup, Tooltip, useMap } from 'react-leaflet'
 import { AlertTriangle, Flag, CalendarDays, Clock, ExternalLink, Flame, Tent, Ticket } from 'lucide-react'
 import type { RecSite } from '../api/boundaries'
 import { useZoom } from '../hooks/useZoom'
-import { feeVerdict } from '../lib/text'
+import { useSiteDetail } from '../api/siteDetail'
 import { siteFreshness } from '../lib/freshness'
 import { Confidence } from './Confidence'
 import { reportUrl } from '../lib/report'
@@ -32,8 +32,11 @@ const FEE_STYLE = {
   unknown: 'bg-pine-700 text-cream-dim border-pine-600',
 }
 
-export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict; inline?: boolean }) {
-  const fee = feeVerdict(s.fee)
+export function SitePopup({ s: site, v, inline = false }: { s: RecSite; v: FireVerdict; inline?: boolean }) {
+  // Descriptions/fees/seasons arrive from a detail chunk after the card opens; the index carries everything the pin needs
+  const { detail, loading } = useSiteDetail(site)
+  const s: RecSite = { ...site, ...(detail ?? {}) }
+  const fee = { kind: s.feeKind, headline: s.feeHeadline }
   const fresh = siteFreshness(s)
   const showOpen = s.open !== null && (s.openSource?.kind === 'usfs-page' || fresh.status !== 'outdated')
   const rg = s.ridbId ? `https://www.recreation.gov/camping/campgrounds/${s.ridbId}` : `https://www.recreation.gov/search?q=${encodeURIComponent(s.name)}`
@@ -75,6 +78,7 @@ export function SitePopup({ s, v, inline = false }: { s: RecSite; v: FireVerdict
         {v.jurisdiction && <div className="mt-1.5 border-t border-cream/15 pt-1.5"><Confidence j={v.jurisdiction} compact /></div>}
       </div>
 
+      {loading && <p className="mt-2 text-[11px] text-cream-dim/80">Loading details…</p>}
       <div className={`mt-2 inline-flex items-center gap-1.5 rounded border px-2 py-1 font-mono text-sm ${FEE_STYLE[fee.kind]}`}>
         <Ticket size={13} /> {fee.headline}
       </div>
@@ -148,14 +152,18 @@ function CampgroundLayerInner({ sites: allSites, all, boundaries, coarse = false
       const redFlag = rfw.some((f) => pointInGeometry(s.lng, s.lat, f.geometry))
       const v = siteFireVerdict(s, all, boundaries, redFlag)
       return {
-        s, v, fee: feeVerdict(s.fee),
+        s, v, fee: { kind: s.feeKind, headline: s.feeHeadline },
         pathOptions: { color: verdictRing(v), weight: coarse ? 3.5 : 2.5, fillColor: s.open === false ? '#8A8F8B' : KIND_COLOR[s.kind], fillOpacity: 0.95, bubblingMouseEvents: false },
         handlers: coarse && onSelect ? { click: () => onSelect(s, v) } : undefined,
       }
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sites, all, boundaries, coarse, onSelect, redFlagZones])
-  if (!sites || zoom < 8) return null
+  // Below zoom 8 the pins are hidden, not unmounted — mounting 2,900 markers at once is a visible stall on phones
+  const hidden = zoom < 8
+  const el = (renderer as unknown as { _container?: HTMLElement })._container
+  if (el) el.style.display = hidden ? 'none' : ''
+  if (!sites) return null
   // ring color = campfire verdict, fill = site type; fingers need roughly double the target of a cursor
   const r = coarse ? (zoom < 10 ? 8 : 11) : zoom < 10 ? 5 : 7
   return (

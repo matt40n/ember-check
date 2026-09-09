@@ -42,6 +42,8 @@ export interface Jurisdiction {
   developedSitesRule?: 'exhibit' | 'any_developed'
   /** Site-specific caveats keyed by site name (matched with namesMatch); shown only on that site's card */
   siteNotes?: Record<string, string>
+  /** An HTML page to fingerprint/date-check when sourceUrl is a PDF (BLM announcements) */
+  checkUrl?: string
   /** Fingerprint of the fire-related sentences on the source page, written by `verify --stamp`; a later page edit that
    *  leaves these sentences unchanged (weather, road notes) is not worth a human read */
   pageFireHash?: string

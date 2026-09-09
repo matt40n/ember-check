@@ -86,7 +86,7 @@ export function siteFireVerdict(site: RecSite, all: Jurisdiction[], b: BoundaryS
       }
     }
     if (!listed) {
-      const freeHint = /^no fee\b|^free\b/i.test(site.fee ?? '') ? ' This is a no-fee site, which usually means it is not a listed developed site.' : ''
+      const freeHint = site.feeKind === 'free' ? ' This is a no-fee site, which usually means it is not a listed developed site.' : ''
       return {
         ...base,
         kind: 'check',

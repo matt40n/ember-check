@@ -6,3 +6,6 @@ dist
 # generated at build
 public/status.json
 verify.json
+# generated at build by scripts/build-sites.ts
+public/data/sites-index.json
+public/data/sites-detail-*.json

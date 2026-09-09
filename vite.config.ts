@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // The deploy workflow passes `--base=/<repo>/` when publishing to a GitHub Pages project URL.
 export default defineConfig({
+  define: { __BUILD_ID__: JSON.stringify(new Date().toISOString()) },
   plugins: [react(), tailwindcss()],
   build: {
     rollupOptions: {

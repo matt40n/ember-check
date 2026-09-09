@@ -1,6 +1,7 @@
 import type { Jurisdiction } from '../types'
 import type { BoundaryFC } from '../api/boundaries'
 import { haversineKm, pointInGeometry } from './geo'
+import { DISTRICT_OVERRIDES } from '../data/restrictions'
 
 export interface ProbeResult {
   jurisdiction: Jurisdiction | null
@@ -55,7 +56,8 @@ export function jurisdictionsAt(lat: number, lng: number, all: Jurisdiction[], b
   const district = findName(b.districts, lng, lat, 'districtname')
   // Several entries can share one forest polygon (Humboldt-Toiyabe's Carson and Bridgeport districts): prefer the district's own
   const forestEntries = all.filter((j) => j.boundary?.source === 'usfs' && j.boundary.match === forestName)
-  const usfs = (district && forestEntries.find((j) => j.name.toLowerCase().includes(district.toLowerCase().replace(/ ranger district$/, '')))) ?? forestEntries[0] ?? null
+  const override = district && DISTRICT_OVERRIDES[district] ? all.find((j) => j.id === DISTRICT_OVERRIDES[district]) : null
+  const usfs = override ?? (district && forestEntries.find((j) => j.name.toLowerCase().includes(district.toLowerCase().replace(/ ranger district$/, '')))) ?? forestEntries[0] ?? null
   const blm = matchUnit(all, 'blm', findName(b.blm, lng, lat, 'ADMU_NAME'))
   const loaded = polygonNames(b)
   const radius = all.filter((j) => (!j.boundary || !loaded.has(j.boundary.match)) && haversineKm(lat, lng, j.lat, j.lng) <= j.radiusKm).sort((a, c) => (a.agency === 'CAL FIRE' ? 1 : 0) - (c.agency === 'CAL FIRE' ? 1 : 0))
@@ -70,18 +72,7 @@ export function resolveProbe(lat: number, lng: number, all: Jurisdiction[], b: B
   const blm = findName(b.blm, lng, lat, 'ADMU_NAME')
   const district = findName(b.districts, lng, lat, 'districtname')
   const wilderness = findName(b.wilderness, lng, lat, 'wildernessname')
-
-  // Most specific first: park → forest → BLM field office (covers everything incl. private land) → radius fallback
-  let jurisdiction = matchUnit(all, 'nps', nps) ?? matchUnit(all, 'usfs', usfs) ?? matchUnit(all, 'blm', blm)
-  if (!jurisdiction) {
-    const loaded = polygonNames(b)
-    jurisdiction =
-      all
-        .filter((j) => !j.boundary || !loaded.has(j.boundary.match)) // polygon missing from the snapshot → radius fallback
-        .map((j) => ({ j, d: haversineKm(lat, lng, j.lat, j.lng) }))
-        .filter((x) => x.d <= x.j.radiusKm)
-        .sort((a, b) => (a.j.agency === 'CAL FIRE' ? 1 : 0) - (b.j.agency === 'CAL FIRE' ? 1 : 0) || a.d - b.d)[0]?.j ?? null
-  }
+  const jurisdiction = jurisdictionsAt(lat, lng, all, b)[0] ?? null
   return {
     jurisdiction,
     unitName: nps ?? usfs ?? blm,

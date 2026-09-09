@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "bun run scripts/write-status.ts && tsc && vite build",
+    "build": "bun run scripts/write-status.ts && bun run scripts/build-sites.ts && tsc && vite build",
     "preview": "vite preview",
     "verify": "bun run scripts/verify-orders.ts",
     "snapshot": "bun run scripts/snapshot-boundaries.ts",
@@ -14,7 +14,8 @@
     "ridb": "bun run scripts/import-ridb.ts",
     "osm": "bun run scripts/import-osm.ts",
     "ridb-extra": "bun run scripts/enrich-ridb.ts",
-    "csp": "bun run scripts/import-csp.ts"
+    "csp": "bun run scripts/import-csp.ts",
+    "build-sites": "bun run scripts/build-sites.ts"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -28,8 +29,11 @@
     "vite": "^8.2.2"
   },
   "dependencies": {
+    "@tanstack/query-async-storage-persister": "^5.102.8",
     "@tanstack/react-query": "^5.102.8",
+    "@tanstack/react-query-persist-client": "^5.102.8",
     "date-fns": "^4.4.0",
+    "idb-keyval": "^6.3.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.35.0",
     "react": "^19.2.8",

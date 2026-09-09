@@ -25,7 +25,7 @@ function ClickCatcher({ onClick }: { onClick: (lat: number, lng: number) => void
 
 export function MapView({ children, onClick, probe, mapRef }: { children: ReactNode; onClick: (lat: number, lng: number) => void; probe: { lat: number; lng: number } | null; mapRef?: MutableRefObject<L.Map | null> }) {
   return (
-    <MapContainer center={NORCAL_CENTER} zoom={7} minZoom={4} className="h-full w-full" zoomControl={false} preferCanvas>
+    <MapContainer center={NORCAL_CENTER} zoom={7} minZoom={4} className="h-full w-full" zoomControl={false}>
       <LayersControl position="bottomright">
         <LayersControl.BaseLayer checked name="Topo">
           <TileLayer

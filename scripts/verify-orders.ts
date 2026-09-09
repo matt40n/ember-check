@@ -109,7 +109,12 @@ for (const j of JURISDICTIONS) {
     notes.push('source is a PDF — reachable, but contents not checked; open it to confirm')
   }
 
-  if (page) {
+  // PDF sources get their fingerprint/date checks from a companion HTML page when the entry names one
+  const checkPage = j.checkUrl ? await text(j.checkUrl) : null
+  if (j.checkUrl && !checkPage) notes.push(`check page unreachable: ${j.checkUrl}`)
+  const fpPage = checkPage ?? page
+  if (fpPage) {
+    const page = fpPage
     // The agency page was edited after the notice date we recorded — Six Rivers revised its exhibit this way
     // on 2026-08-20 without changing the order number.
     const updated = pageUpdatedOn(page)
