@@ -194,7 +194,7 @@ export const JURISDICTIONS: Jurisdiction[] = [
     notes: 'Closure Order 26-001 (Jul 31, 2026) banned all wood/charcoal fires; the park conditions page now says: "Effective Sept. 2, 2026 - No fire restrictions are in place in the campground." Fires in Indian Well Campground rings only — no fires elsewhere in the monument; gas stoves OK.', verifiedOn: '2026-09-10',
   },
   {
-    id: 'nps-redwood', pageFireHash: 'v3:kdh5mk:3f', noticeUpdated: '2026-09-02', confidence: 'low', confidenceNote: 'No 2026 fire order found on nps.gov (conditions page edited Aug 31 and Sep 2, still no order; no fire alerts posted). Status is inferred, not confirmed.', boundary: { source: 'nps', match: 'Redwood National Park' }, name: 'Redwood National & State Parks', agency: 'NPS', lat: 41.3, lng: -124.0, radiusKm: 30,
+    id: 'nps-redwood', pageFireHash: 'v3:kdh5mk:3f', noticeUpdated: '2026-09-10', confidence: 'low', confidenceNote: 'No 2026 fire order found on nps.gov (conditions page edited Aug 31 and Sep 2, still no order; no fire alerts posted). Status is inferred, not confirmed.', boundary: { source: 'nps', match: 'Redwood National Park' }, name: 'Redwood National & State Parks', agency: 'NPS', lat: 41.3, lng: -124.0, radiusKm: 30,
     stage: 'unknown', campfiresDeveloped: 'allowed', campfiresDispersed: 'unknown', stoves: 'allowed', smoking: 'unknown',
     expires: 'until_rescinded',
     sourceUrl: 'https://www.nps.gov/redw/planyourvisit/conditions.htm',
