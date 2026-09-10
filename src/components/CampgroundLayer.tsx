@@ -16,7 +16,7 @@ import type { Jurisdiction } from '../types'
 
 const KIND_COLOR: Record<RecSite['kind'], string> = {
   'Campground Camping': '#F2C94C',
-  'Group Camping': '#C9B458',
+  'Group Camping': '#E08A3C', // distinct from the 'only if listed' ring (#C9B458), which this used to share
   'Dispersed Camping': '#8FB8DE',
 }
 const VERDICT_STYLE: Record<FireVerdict['kind'], string> = {
