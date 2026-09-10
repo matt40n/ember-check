@@ -33,7 +33,7 @@ export function Legend({ ownership = false }: { ownership?: boolean }) {
         <span className="inline-flex items-center gap-1.5"><Dot className="bg-signgold" />Campground</span>
         <span className="inline-flex items-center gap-1.5"><Dot className="bg-[#E08A3C]" />Group camp</span>
         <span className="inline-flex items-center gap-1.5"><Dot className="bg-[#8FB8DE]" />Dispersed site</span>
-        <span className="inline-flex items-center gap-1.5"><Dot className="bg-[#8A8F8B]" />Closed (agency page)</span>
+        <span className="inline-flex items-center gap-1.5"><Dot className="bg-[#8A8F8B]" />Closed (hidden unless toggled)</span>
         <span className="inline-flex items-center gap-1.5"><Dot className="border-2 border-ok bg-pine-700" />ring = fire OK</span>
         <span className="inline-flex items-center gap-1.5"><Dot className="border-2 border-amber bg-pine-700" />permit</span>
         <span className="inline-flex items-center gap-1.5"><Dot className="border-2 border-[#C9B458] bg-pine-700" />only if listed</span>

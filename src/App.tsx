@@ -53,7 +53,7 @@ export default function App() {
   const [result, setResult] = useState<ProbeResult>(EMPTY)
   const [agencies, setAgencies] = useState<Set<Agency>>(new Set(AGENCIES))
   const [layers, setLayers] = useState({
-    fills: true, wilderness: true, districts: true, campgrounds: true, backcountryOnly: false,
+    fills: true, wilderness: true, districts: true, campgrounds: true, backcountryOnly: false, showClosed: false,
     redFlag: true, fires: true, perimeters: true, danger: false, blm: false,
   })
   const [drawer, setDrawer] = useState(false)
@@ -234,7 +234,7 @@ export default function App() {
         )}
         {layers.districts && <DistrictLayer fc={districts.data} />}
         {layers.wilderness && <WildernessLayer fc={wilderness.data} all={JURISDICTIONS} onClick={probeAt} selectedName={result.wildernessFocus ? result.wilderness : null} />}
-        {layers.campgrounds && boundariesForPins && <CampgroundLayer sites={sites.data} all={JURISDICTIONS} boundaries={boundariesForPins} coarse={coarse} onSelect={selectSite} backcountryOnly={layers.backcountryOnly} redFlagZones={redFlagZones} />}
+        {layers.campgrounds && boundariesForPins && <CampgroundLayer sites={sites.data} all={JURISDICTIONS} boundaries={boundariesForPins} coarse={coarse} onSelect={selectSite} backcountryOnly={layers.backcountryOnly} showClosed={layers.showClosed} redFlagZones={redFlagZones} />}
       </MapView>
 
       <div className="pointer-events-none absolute left-0 right-0 top-0 z-[1300] flex flex-col gap-2 p-3">
@@ -308,6 +308,7 @@ export default function App() {
             <Toggle label="Ranger districts" hint="USFS" on={layers.districts} onChange={(v) => setLayers({ ...layers, districts: v })} />
             <Toggle label="Campgrounds & dispersed sites" hint="zoom in" on={layers.campgrounds} onChange={(v) => setLayers({ ...layers, campgrounds: v })} />
             <Toggle label="Backcountry sites only" hint="wilderness camps · OSM" on={layers.backcountryOnly} onChange={(v) => setLayers({ ...layers, backcountryOnly: v })} />
+            <Toggle label="Show closed sites" hint="closed per agency page" on={layers.showClosed} onChange={(v) => setLayers({ ...layers, showClosed: v })} />
             <Toggle label="BLM land ownership" hint="tiles" on={layers.blm} onChange={(v) => setLayers({ ...layers, blm: v })} />
           </section>
 

@@ -133,8 +133,9 @@ export function SitePopup({ s: site, v, inline = false }: { s: RecSite; v: FireV
   )
 }
 
-function CampgroundLayerInner({ sites: allSites, all, boundaries, coarse = false, onSelect, backcountryOnly = false, redFlagZones = null }: { sites: RecSite[] | undefined; all: Jurisdiction[]; boundaries: BoundarySets; coarse?: boolean; onSelect?: (s: RecSite, v: FireVerdict) => void; backcountryOnly?: boolean; redFlagZones?: GeoJSON.FeatureCollection | null }) {
-  const sites = useMemo(() => (backcountryOnly ? allSites?.filter((s) => s.kind === 'Dispersed Camping' || s.backcountry) : allSites), [allSites, backcountryOnly])
+function CampgroundLayerInner({ sites: allSites, all, boundaries, coarse = false, onSelect, backcountryOnly = false, showClosed = false, redFlagZones = null }: { sites: RecSite[] | undefined; all: Jurisdiction[]; boundaries: BoundarySets; coarse?: boolean; onSelect?: (s: RecSite, v: FireVerdict) => void; backcountryOnly?: boolean; showClosed?: boolean; redFlagZones?: GeoJSON.FeatureCollection | null }) {
+  // Sites the agency page lists as closed are hidden by default; a toggle brings them back
+  const sites = useMemo(() => allSites?.filter((s) => (showClosed || s.open !== false) && (!backcountryOnly || s.kind === 'Dispersed Camping' || s.backcountry)), [allSites, backcountryOnly, showClosed])
   const zoom = useZoom()
   // One shared canvas renderer for the 'sites' pane, kept on the map so toggling the layer off and on
   // doesn't leak a fresh canvas each time. Tolerance is the extra hit-test slack in px around each pin.
