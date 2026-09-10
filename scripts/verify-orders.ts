@@ -74,13 +74,15 @@ function fireSentences(html: string): string[] {
     .filter((t) => t.length >= 40 && !/skip to |breadcrumb|current condition|fire danger:|\bmenu\b|official website|\(u\.s\.$/i.test(t))
     .filter((t) => /campfire|fire restriction|fire ban|open flame|stove|charcoal|wood fire|burn(?:ing)? (?:ban|restriction|permit)|stage [12i]/i.test(t))
 }
+/** Bump when the fingerprint recipe changes: a stored hash from an older recipe is replaced silently instead of paging a human. */
+const FINGERPRINT_VERSION = 'v3'
 function fireTextHash(html: string): string {
   // Prose plus the order/PDF links: a swapped order PDF with unchanged prose still changes the hash
   const links = [...html.matchAll(/href="([^"]*(?:\/alerts\/[^"]*|\.pdf))"/gi)].map((m) => m[1].toLowerCase()).sort().join('|')
   const s = (fireSentences(html).join('|') + '|' + links).toLowerCase().replace(/\d{1,2}:\d{2}\s*[ap]m/g, '').replace(/[^a-z0-9|]/g, '')
   let h = 0
   for (let i = 0; i < s.length; i++) h = (Math.imul(h, 31) + s.charCodeAt(i)) | 0
-  return (h >>> 0).toString(36) + ':' + s.length.toString(36)
+  return FINGERPRINT_VERSION + ':' + (h >>> 0).toString(36) + ':' + s.length.toString(36)
 }
 const hashes: Record<string, string> = {}
 
@@ -120,7 +122,9 @@ for (const j of JURISDICTIONS) {
     const updated = pageUpdatedOn(page)
     const hash = fireTextHash(page)
     hashes[j.id] = hash
-    if (j.pageFireHash && !handEdited(j.id)) {
+    const staleRecipe = !!j.pageFireHash && !j.pageFireHash.startsWith(FINGERPRINT_VERSION + ':')
+    if (staleRecipe) notes.push(`fingerprint recipe changed (${j.pageFireHash.split(':')[0] === j.pageFireHash ? 'v1' : j.pageFireHash.split(':')[0]} → ${FINGERPRINT_VERSION}); re-seeded, not a page change`)
+    if (j.pageFireHash && !handEdited(j.id) && !staleRecipe) {
       // We have a fingerprint of the fire-related text: only a change to *that* text is worth a human read
       if (hash !== j.pageFireHash) {
         if (status === 'PASS') status = 'WARN'

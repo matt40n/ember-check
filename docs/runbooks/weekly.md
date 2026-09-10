@@ -19,3 +19,5 @@ page redesign that broke `pageUpdatedOn()` or `fireAlerts()` in `scripts/verify-
 
 ## If the fingerprint check nags on a page whose fire text did not really change
 `bun run verify --rehash` rewrites every entry's `pageFireHash` from the current pages (verifiedOn untouched). Do this only after reading the flagged pages.
+
+**Changing the fingerprint recipe** (what `fireSentences`/`fireTextHash` in `scripts/verify-orders.ts` look at): bump `FINGERPRINT_VERSION` in the same commit. Stored hashes from an older version are re-seeded silently; without the bump every entry warns on the next run (issue #6 was exactly that).
