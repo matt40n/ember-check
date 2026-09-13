@@ -75,10 +75,11 @@ function fireSentences(html: string): string[] {
     .filter((t) => /campfire|fire restriction|fire ban|open flame|stove|charcoal|wood fire|burn(?:ing)? (?:ban|restriction|permit)|stage [12i]/i.test(t))
 }
 /** Bump when the fingerprint recipe changes: a stored hash from an older recipe is replaced silently instead of paging a human. */
-const FINGERPRINT_VERSION = 'v3'
+const FINGERPRINT_VERSION = 'v4'
 function fireTextHash(html: string): string {
   // Prose plus the order/PDF links: a swapped order PDF with unchanged prose still changes the hash
-  const links = [...html.matchAll(/href="([^"]*(?:\/alerts\/[^"]*|\.pdf))"/gi)].map((m) => m[1].toLowerCase()).sort().join('|')
+  // Same link may appear relative and absolute, encoded and not — the CMS alternates; treat those as one link
+  const links = [...new Set([...html.matchAll(/href="([^"]*(?:\/alerts\/[^"]*|\.pdf))"/gi)].map((m) => decodeURIComponent(m[1]).toLowerCase().replace(/^https?:\/\/[^/]+/, '').replace(/[?#].*$/, '')))].sort().join('|')
   const s = (fireSentences(html).join('|') + '|' + links).toLowerCase().replace(/\d{1,2}:\d{2}\s*[ap]m/g, '').replace(/[^a-z0-9|]/g, '')
   let h = 0
   for (let i = 0; i < s.length; i++) h = (Math.imul(h, 31) + s.charCodeAt(i)) | 0
