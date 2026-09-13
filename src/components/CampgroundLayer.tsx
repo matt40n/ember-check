@@ -126,6 +126,11 @@ export function SitePopup({ s: site, v, inline = false }: { s: RecSite; v: FireV
             <ExternalLink size={12} /> {s.ridbId ? (s.reservable ? 'Reserve on Recreation.gov' : 'Recreation.gov listing') : 'Search Recreation.gov for availability'}
           </a>
         )}
+        {s.ridbId && (
+          <a href={`https://www.recreation.gov/camping/campgrounds/${s.ridbId}?tab=seasons`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-signgold underline underline-offset-2">
+            <ExternalLink size={12} /> Seasons &amp; rates on Recreation.gov{s.feeMin ? ` (${s.feeHeadline})` : ''}
+          </a>
+        )}
         <a href={reportUrl('site', { name: s.name, jurisdictionId: v.jurisdiction?.id, orderNumber: v.jurisdiction?.orderNumber, extra: v.label })} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-cream-dim underline underline-offset-2">
           <Flag size={12} /> Report a sign or rule that disagrees
         </a>

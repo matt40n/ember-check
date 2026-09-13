@@ -68,19 +68,20 @@ const median = (xs: number[]) => xs.sort((a, b) => a - b)[Math.floor(xs.length /
  */
 function bestCoords(fid: string, lat: number, lng: number): [number, number] {
   const pts = sitePts.get(fid) ?? []
-  if (pts.length < 3) return [lat, lng]
+  const missing = !lat || !lng // RIDB ships some facilities (Douglas City, Steel Bridge) at 0,0
+  if (pts.length < (missing ? 1 : 3)) return [lat, lng]
   const mla = median(pts.map((p) => p[0])), mlo = median(pts.map((p) => p[1]))
   const km = Math.hypot((mla - lat) * 111, (mlo - lng) * 85)
-  return km > 0.5 ? [mla, mlo] : [lat, lng]
+  return missing || km > 0.5 ? [mla, mlo] : [lat, lng]
 }
 
 const out = facilities
-  .filter((f) => f.FacilityTypeDescription === 'Campground' && f.Enabled === 'true' && f.FacilityLatitude && f.FacilityLongitude)
-  .map((f) => ({ f, lat: Number(f.FacilityLatitude), lng: Number(f.FacilityLongitude) }))
+  .filter((f) => f.FacilityTypeDescription === 'Campground' && f.Enabled === 'true')
+  .map((f) => { const [lat, lng] = bestCoords(f.FacilityID, Number(f.FacilityLatitude) || 0, Number(f.FacilityLongitude) || 0); return { f, lat, lng } })
+  .filter(({ lat, lng }) => lat && lng)
   .filter(({ f, lat, lng }) => states.get(f.FacilityID) === 'CA' || (!states.has(f.FacilityID) && inCA(lng, lat)))
   .filter(({ lat, lng }) => inCA(lng, lat))
-  .map(({ f, lat, lng }) => ({ f, pt: bestCoords(f.FacilityID, lat, lng) }))
-  .map(({ f, pt: [lat, lng] }) => ({
+  .map(({ f, lat, lng }) => ({
     id: f.FacilityID,
     name: strip(f.FacilityName),
     agency: AGENCY[f.OrgFacilityID] ?? 'Federal',
@@ -97,6 +98,15 @@ const out = facilities
   .sort((a, b) => a.name.localeCompare(b.name))
   // RIDB carries duplicate facility rows for some campgrounds (same name and coordinates); keep the reservable one
   .filter((s, i, arr) => arr.findIndex((o) => o.name === s.name && Math.abs(o.lat - s.lat) < 0.002 && Math.abs(o.lng - s.lng) < 0.002 && (o.reservable || !s.reservable)) === i)
+// Campgrounds Recreation.gov ships with no coordinates at all (Douglas City, Steel Bridge…): can't be pinned from
+// this feed, but at build time they're attached by exact name to a pin from another source so the reserve link
+// and rates still show. Only ones that could plausibly be in California (CA address, or no address) are kept.
+const unlocated = facilities
+  .filter((f) => f.FacilityTypeDescription === 'Campground' && f.Enabled === 'true' && !(Number(f.FacilityLatitude) || 0) && (sitePts.get(f.FacilityID) ?? []).length === 0)
+  .filter((f) => states.get(f.FacilityID) === 'CA' || !states.has(f.FacilityID))
+  .map((f) => ({ id: f.FacilityID, name: strip(f.FacilityName).replace(/\s*\([A-Z]{2}\)$/, ''), agency: AGENCY[f.OrgFacilityID] ?? 'Federal', reservable: f.Reservable === 'true', fee: strip(f.FacilityUseFeeDescription).slice(0, 300) || null, description: strip(f.FacilityDescription).slice(0, 500) || null, hasCaAddress: states.get(f.FacilityID) === 'CA' }))
+await Bun.write(new URL('../public/data/ridb-unlocated.json', import.meta.url), JSON.stringify(unlocated))
+console.log(`ridb-unlocated.json: ${unlocated.length} campgrounds without coordinates (${unlocated.filter((u) => u.hasCaAddress).length} with a CA address)`)
 const prevCount = (await Bun.file(OUT).exists()) ? ((await Bun.file(OUT).json()) as unknown[]).length : 0
 if (prevCount && out.length < prevCount * 0.8) { console.error(`refusing to write: ${out.length} rows vs ${prevCount} previously — upstream probably changed shape`); process.exit(1) }
 await Bun.write(OUT, JSON.stringify(out))

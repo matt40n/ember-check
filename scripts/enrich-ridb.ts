@@ -8,8 +8,9 @@ const IN = new URL('../public/data/ridb-sites.json', import.meta.url)
 const OUT = new URL('../public/data/ridb-extra.json', import.meta.url)
 type Site = { id: string; reservable: boolean; name: string }
 type MonthStatus = 'open' | 'closed' | 'unknown'
-type Extra = { season: string | null; months: Record<string, MonthStatus>; firstOpen: string | null; lastOpen: string | null; fee: string | null; checkedOn: string }
-const sites = (await Bun.file(IN).json()) as Site[]
+type Extra = { season: string | null; months: Record<string, MonthStatus>; firstOpen: string | null; lastOpen: string | null; fee: string | null; feeMin?: number | null; feeMax?: number | null; checkedOn: string }
+const UNLOC = new URL('../public/data/ridb-unlocated.json', import.meta.url)
+const sites = [...((await Bun.file(IN).json()) as Site[]), ...(((await Bun.file(UNLOC).exists()) ? await Bun.file(UNLOC).json() : []) as Site[])]
 const previous: Record<string, Extra> = (await Bun.file(OUT).exists()) ? await Bun.file(OUT).json() : {}
 const today = new Date()
 const stamp = today.toISOString().slice(0, 10)
@@ -68,6 +69,11 @@ async function worker() {
     if (!s) return
     const cg = (await get(`https://www.recreation.gov/api/camps/campgrounds/${s.id}`)) as { campground?: { facility_use_fee_description?: string } } | null
     await sleep(300)
+    // Nightly rates by season and site type (what the Seasons tab shows) → a min–max range
+    const rates = (await get(`https://www.recreation.gov/api/camps/campgrounds/${s.id}/rates`)) as { rates_list?: { rate_map?: Record<string, { per_night?: number; per_person?: number }> }[] } | null
+    await sleep(300)
+    const nightly = (rates?.rates_list ?? []).flatMap((r) => Object.values(r.rate_map ?? {}).map((x) => x.per_night ?? 0)).filter((n) => n > 0)
+    const feeMin = nightly.length ? Math.min(...nightly) : null, feeMax = nightly.length ? Math.max(...nightly) : null
     const months: Record<string, MonthStatus> = {}
     let firstOpen: string | null = null, lastOpen: string | null = null, known = 0
     for (let i = 0; i < 12; i++) {
@@ -91,7 +97,7 @@ async function worker() {
       failed++
       continue
     }
-    result[s.id] = { season, months, firstOpen, lastOpen, fee: cg?.campground?.facility_use_fee_description ? strip(cg.campground.facility_use_fee_description).slice(0, 400) : previous[s.id]?.fee ?? null, checkedOn: stamp }
+    result[s.id] = { season, months, firstOpen, lastOpen, fee: cg?.campground?.facility_use_fee_description ? strip(cg.campground.facility_use_fee_description).slice(0, 400) : previous[s.id]?.fee ?? null, feeMin: feeMin ?? previous[s.id]?.feeMin ?? null, feeMax: feeMax ?? previous[s.id]?.feeMax ?? null, checkedOn: stamp }
     done++
     if (done % 50 === 0) console.log(`${done}/${sites.filter((x) => x.reservable).length}…`)
   }

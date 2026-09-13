@@ -29,6 +29,9 @@ export interface RecSite {
   urlIsSitePage: boolean
   feeKind: FeeVerdict['kind']
   feeHeadline: string
+  /** Nightly rate range from Recreation.gov's Seasons tab, when the site is reservable there */
+  feeMin?: number | null
+  feeMax?: number | null
   /** Newest year mentioned in the site's free text (for the outdated-page warning); null if none */
   textYear: number | null
   lat: number
@@ -51,8 +54,9 @@ export const chunkOf = (idx: number) => idx % DETAIL_CHUNKS
 
 export type SitePage = { url: string; status: 'open' | 'closed' | null; statusText: string | null; updated: string | null; checkedOn: string }
 export type RidbSite = { id: string; name: string; agency: string; area: string | null; lat: number; lng: number; reservable: boolean; sites: number | null; fee: string | null; description: string | null; stayLimit: string | null; phone: string | null; updated: string | null }
-export type RidbExtra = { season: string | null; months: Record<string, string>; firstOpen: string | null; lastOpen: string | null; fee: string | null; checkedOn: string }
+export type RidbExtra = { season: string | null; months: Record<string, string>; firstOpen: string | null; lastOpen: string | null; fee: string | null; feeMin?: number | null; feeMax?: number | null; checkedOn: string }
 export type BlmSite = { id: string; name: string; kind: 'Campground Camping' | 'Dispersed Camping'; subtype: string | null; description: string | null; website: string | null; fee: string | null; reservable: boolean | null; lat: number; lng: number }
+export type RidbUnlocated = { id: string; name: string; agency: string; reservable: boolean; fee: string | null; description: string | null; hasCaAddress: boolean }
 export type CspSite = { id: string; name: string; park: string | null; type: string | null; subtype: string | null; detail: string | null; lat: number; lng: number }
 export type OsmSite = { id: string; name: string; operator?: string; kind: string; federalOrState?: boolean; lat: number; lng: number; backcountry?: boolean; groupOnly?: boolean; fee?: string; reservation?: string; seasonal?: string; openingHours?: string; capacity?: number; website?: string; phone?: string; description?: string; drinkingWater?: string; toilets?: string; fireplace?: string }
 
@@ -69,8 +73,9 @@ const sameName = (a: string, b: string) => { const x = norm(a), y = norm(b); ret
 const exactName = (a: string, b: string) => { const x = norm(a); return x.length > 2 && x === norm(b) }
 
 type Draft = Omit<RecSite, 'idx' | 'feeKind' | 'feeHeadline' | 'textYear'>
+const feeRange = (min?: number | null, max?: number | null) => (min ? (max && max !== min ? `$${min}–$${max}/night` : `$${min}/night`) : null)
 
-export function buildSites(fc: GeoJSON.FeatureCollection<GeoJSON.Point>, pages: Record<string, SitePage>, ridb: RidbSite[], extra: Record<string, RidbExtra>, csp: CspSite[], osm: OsmSite[], blm: BlmSite[] = []): RecSite[] {
+export function buildSites(fc: GeoJSON.FeatureCollection<GeoJSON.Point>, pages: Record<string, SitePage>, ridb: RidbSite[], extra: Record<string, RidbExtra>, csp: CspSite[], osm: OsmSite[], blm: BlmSite[] = [], unlocated: RidbUnlocated[] = []): RecSite[] {
   const edw: Draft[] = fc.features
     .filter((f) => f.geometry)
     .map((f) => {
@@ -107,12 +112,13 @@ export function buildSites(fc: GeoJSON.FeatureCollection<GeoJSON.Point>, pages: 
     if (dup) {
       if (r.reservable && !dup.ridbId) { dup.ridbId = r.id; dup.reservable = true }
       if (x?.season && !dup.season) dup.season = x.season
+      if (x?.feeMin && !dup.feeMin) { dup.feeMin = x.feeMin; dup.feeMax = x.feeMax ?? x.feeMin }
       continue
     }
     all.push({
       name: r.name, forest: [r.agency, r.area].filter(Boolean).join(' · '), source: 'ridb', operator: r.agency, ridbId: r.id, reservable: r.reservable, siteCount: r.sites, stayLimit: r.stayLimit, phone: r.phone,
       kind: 'Campground Camping', open: null, openSource: null, url: null, urlIsSitePage: false, restrictions: null,
-      season: x?.season ?? null, fee: x?.fee ?? r.fee, description: r.description,
+      season: x?.season ?? null, fee: x?.fee ?? r.fee, feeMin: x?.feeMin ?? null, feeMax: x?.feeMax ?? null, description: r.description,
       reservations: r.reservable ? 'Reservable on Recreation.gov' : 'First-come, first-served (per Recreation.gov)', hours: null, lat: r.lat, lng: r.lng,
     })
   }
@@ -151,9 +157,23 @@ export function buildSites(fc: GeoJSON.FeatureCollection<GeoJSON.Point>, pages: 
       reservations: o.reservation ? `Reservation: ${o.reservation}` : null, hours: null, lat: o.lat, lng: o.lng,
     })
   }
+  // Recreation.gov campgrounds that ship without coordinates: attach to a same-agency pin with the exact same name
+  const agencyOf = (d: Draft) => (d.source === 'edw' ? 'USFS' : d.source === 'blm' ? 'BLM' : d.source === 'csp' ? 'State Parks' : d.operator ?? '')
+  for (const u of unlocated) {
+    if (!u.reservable) continue
+    const hit = all.find((d) => !d.ridbId && exactName(d.name, u.name) && (u.agency === 'Federal' || agencyOf(d) === u.agency))
+    if (!hit) continue
+    const x = extra[u.id]
+    hit.ridbId = u.id; hit.reservable = true
+    if (x?.season && !hit.season) hit.season = x.season
+    if (x?.feeMin && !hit.feeMin) { hit.feeMin = x.feeMin; hit.feeMax = x.feeMax ?? x.feeMin }
+    if (!hit.fee && (x?.fee || u.fee)) hit.fee = x?.fee ?? u.fee
+    if (!hit.description && u.description) hit.description = u.description
+  }
   return all.map((d, idx) => {
     const fee = feeVerdict(d.fee ?? null)
-    return { ...d, idx, feeKind: fee.kind, feeHeadline: fee.headline, textYear: latestYearIn(d.season, d.description, d.fee, d.restrictions, d.reservations, d.hours) }
+    const range = feeRange(d.feeMin, d.feeMax)
+    return { ...d, idx, feeKind: range ? 'paid' : fee.kind, feeHeadline: range ?? fee.headline, textYear: latestYearIn(d.season, d.description, d.fee, d.restrictions, d.reservations, d.hours) }
   })
 }
 
