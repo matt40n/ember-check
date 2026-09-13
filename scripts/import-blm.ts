@@ -15,7 +15,11 @@ for (const [layer, kind] of LAYERS) {
   if (!d.features) throw new Error(`layer ${layer}: ${JSON.stringify(d.error ?? d).slice(0, 200)}`)
   for (const { attributes: a } of d.features) {
     if (!a.FET_NAME || !a.LAT || !a.LONG || a.WEB_DISPLAY === 'NO') continue
+    // BLM's own typos, corrected so exhibit names match ('Junction City' is in the Redding order)
+    const FIX: Record<string, string> = { 'Juntion City': 'Junction City', 'Dune Buggy Contact Statio': 'Dune Buggy Contact Station' }
     let name = a.FET_NAME.trim().replace(/\s+CG$/i, ' Campground')
+    for (const [bad, good] of Object.entries(FIX)) name = name.replace(bad, good)
+    if (/^(campground|campsite|camp)$/i.test(name.trim())) continue // nameless point
     if (kind === 'Campground Camping' && !/campground|camp\b|site/i.test(name)) name += ' Campground'
     const sub = a.FET_SUBTYPE ?? ''
     rows.push({

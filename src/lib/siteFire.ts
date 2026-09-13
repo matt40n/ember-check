@@ -18,7 +18,7 @@ const norm = (s: string) =>
   s.toLowerCase()
     .replace(/\(.*?\)/g, ' ')
     .replace(/\bmount\b/g, 'mt').replace(/\bmt\./g, 'mt').replace(/^the\s+/, '')
-    .replace(/\b(campground|campgrounds|group|camp|cg|site|sites|recreation|area|day use|picnic|boat-in|boat in|equestrian|horse|no)\b/g, '')
+    .replace(/\b(campground|campgrounds|group|camp|cg|site|sites|recreation|area|day use|picnic|boat-in|boat in|equestrian|horse|primitive|developed|no)\b/g, '')
     .replace(/\b([a-z]{4,})s\b/g, '$1') // meadows/springs/lakes → singular on both sides
     .replace(/[^a-z]/g, '')
 /** Exhibit names are terse ("Castle Lake"), EDW names verbose ("Castle Lake Campground"); match on the normalized core. */
