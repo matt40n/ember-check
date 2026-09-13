@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { snapshotOrLive } from './snapshot'
-import { buildSites, type CspSite, type OsmSite, type RecSite, type RidbExtra, type RidbSite, type SitePage } from '../lib/mergeSites'
+import { buildSites, type BlmSite, type CspSite, type OsmSite, type RecSite, type RidbExtra, type RidbSite, type SitePage } from '../lib/mergeSites'
 export type { RecSite } from '../lib/mergeSites'
 
 const DAY = 24 * 60 * 60_000
@@ -58,8 +58,8 @@ export function useRecSites() {
       const index = await local<RecSite[] | null>('sites-index.json', null)
       if (index && index.length) return index
       // Fallback (dev without a build, or a broken deploy): merge in the browser from the raw files
-      const [fc, pages, ridb, extra, csp, osm] = await Promise.all([snapshotOrLive<GeoJSON.FeatureCollection<GeoJSON.Point>>('sites'), local<Record<string, SitePage>>('site-pages.json', {}), local<RidbSite[]>('ridb-sites.json', []), local<Record<string, RidbExtra>>('ridb-extra.json', {}), local<CspSite[]>('csp-sites.json', []), local<OsmSite[]>('osm-sites.json', [])])
-      return buildSites(fc, pages, ridb, extra, csp, osm)
+      const [fc, pages, ridb, extra, csp, osm, blm] = await Promise.all([snapshotOrLive<GeoJSON.FeatureCollection<GeoJSON.Point>>('sites'), local<Record<string, SitePage>>('site-pages.json', {}), local<RidbSite[]>('ridb-sites.json', []), local<Record<string, RidbExtra>>('ridb-extra.json', {}), local<CspSite[]>('csp-sites.json', []), local<OsmSite[]>('osm-sites.json', []), local<BlmSite[]>('blm-sites.json', [])])
+      return buildSites(fc, pages, ridb, extra, csp, osm, blm)
     },
   })
 }

@@ -31,6 +31,10 @@ jobs:
         continue-on-error: true
         timeout-minutes: 15
         run: bun run scripts/import-ridb.ts
+      - name: Import BLM campgrounds (BLM recreation points)
+        continue-on-error: true
+        timeout-minutes: 10
+        run: bun run scripts/import-blm.ts
       - name: Import California State Parks campgrounds (CDPR GIS)
         continue-on-error: true
         timeout-minutes: 10

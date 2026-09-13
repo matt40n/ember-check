@@ -12,7 +12,7 @@ export interface RecSite {
   name: string
   /** Managing unit label: forest name for USFS EDW sites; agency + rec area for Recreation.gov sites */
   forest: string
-  source: 'edw' | 'ridb' | 'csp' | 'osm'
+  source: 'edw' | 'ridb' | 'blm' | 'csp' | 'osm'
   /** Who runs it (RIDB/CSP/OSM sites): 'NPS', 'State Parks', 'County / regional', 'Private'… */
   operator?: string | null
   backcountry?: boolean
@@ -52,6 +52,7 @@ export const chunkOf = (idx: number) => idx % DETAIL_CHUNKS
 export type SitePage = { url: string; status: 'open' | 'closed' | null; statusText: string | null; updated: string | null; checkedOn: string }
 export type RidbSite = { id: string; name: string; agency: string; area: string | null; lat: number; lng: number; reservable: boolean; sites: number | null; fee: string | null; description: string | null; stayLimit: string | null; phone: string | null; updated: string | null }
 export type RidbExtra = { season: string | null; months: Record<string, string>; firstOpen: string | null; lastOpen: string | null; fee: string | null; checkedOn: string }
+export type BlmSite = { id: string; name: string; kind: 'Campground Camping' | 'Dispersed Camping'; subtype: string | null; description: string | null; website: string | null; fee: string | null; reservable: boolean | null; lat: number; lng: number }
 export type CspSite = { id: string; name: string; park: string | null; type: string | null; subtype: string | null; detail: string | null; lat: number; lng: number }
 export type OsmSite = { id: string; name: string; operator?: string; kind: string; federalOrState?: boolean; lat: number; lng: number; backcountry?: boolean; groupOnly?: boolean; fee?: string; reservation?: string; seasonal?: string; openingHours?: string; capacity?: number; website?: string; phone?: string; description?: string; drinkingWater?: string; toilets?: string; fireplace?: string }
 
@@ -69,7 +70,7 @@ const exactName = (a: string, b: string) => { const x = norm(a); return x.length
 
 type Draft = Omit<RecSite, 'idx' | 'feeKind' | 'feeHeadline' | 'textYear'>
 
-export function buildSites(fc: GeoJSON.FeatureCollection<GeoJSON.Point>, pages: Record<string, SitePage>, ridb: RidbSite[], extra: Record<string, RidbExtra>, csp: CspSite[], osm: OsmSite[]): RecSite[] {
+export function buildSites(fc: GeoJSON.FeatureCollection<GeoJSON.Point>, pages: Record<string, SitePage>, ridb: RidbSite[], extra: Record<string, RidbExtra>, csp: CspSite[], osm: OsmSite[], blm: BlmSite[] = []): RecSite[] {
   const edw: Draft[] = fc.features
     .filter((f) => f.geometry)
     .map((f) => {
@@ -113,6 +114,17 @@ export function buildSites(fc: GeoJSON.FeatureCollection<GeoJSON.Point>, pages: 
       kind: 'Campground Camping', open: null, openSource: null, url: null, urlIsSitePage: false, restrictions: null,
       season: x?.season ?? null, fee: x?.fee ?? r.fee, description: r.description,
       reservations: r.reservable ? 'Reservable on Recreation.gov' : 'First-come, first-served (per Recreation.gov)', hours: null, lat: r.lat, lng: r.lng,
+    })
+  }
+  // BLM's own recreation points: the campgrounds BLM fire orders list are in no other feed
+  for (const b of blm) {
+    const dup = findDup(b.name, b)
+    if (dup) { if (!dup.url && b.website) { dup.url = b.website; dup.website = b.website }; continue }
+    all.push({
+      name: b.name, forest: 'BLM', source: 'blm', operator: 'BLM', website: b.website, reservable: b.reservable ?? undefined,
+      kind: b.kind, open: null, openSource: null, url: b.website, urlIsSitePage: false, restrictions: null, season: null,
+      fee: b.fee, description: [b.subtype, b.description].filter(Boolean).join(' · ') || null,
+      reservations: b.reservable === true ? 'Reservable' : b.reservable === false ? 'First-come, first-served' : null, hours: null, lat: b.lat, lng: b.lng,
     })
   }
   for (const c of csp) {

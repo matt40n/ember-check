@@ -103,6 +103,7 @@ export function SitePopup({ s: site, v, inline = false }: { s: RecSite; v: FireV
 
       <div className="mt-3 flex flex-col gap-1 border-t border-pine-600 pt-2">
         {s.source === 'ridb' && <p className="text-[11px] text-cream-dim/80">Listing from Recreation.gov (RIDB); no live open/closed status for this site.</p>}
+        {s.source === 'blm' && <p className="text-[11px] text-cream-dim/80">Listing from BLM's recreation-site data; no live open/closed status. Check the field office page for fees and season.</p>}
         {s.source === 'csp' && <p className="text-[11px] text-cream-dim/80">Listing from California State Parks GIS data; check the park page for status, fees and season.</p>}
         {s.source === 'osm' && <p className="text-[11px] text-cream-dim/80">Listing from OpenStreetMap (© OpenStreetMap contributors, ODbL) — community-maintained; details may be incomplete.</p>}
         {s.source === 'csp' && (

@@ -15,7 +15,8 @@
     "osm": "bun run scripts/import-osm.ts",
     "ridb-extra": "bun run scripts/enrich-ridb.ts",
     "csp": "bun run scripts/import-csp.ts",
-    "build-sites": "bun run scripts/build-sites.ts"
+    "build-sites": "bun run scripts/build-sites.ts",
+    "blm": "bun run scripts/import-blm.ts"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
