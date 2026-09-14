@@ -22,12 +22,14 @@ const writeJson = process.argv.includes('--json') && !!jsonOut
 const today = new Date().toISOString().slice(0, 10)
 const UA = 'ember-check/1.0 (campfire restriction map; personal use)'
 
-async function text(url: string): Promise<string | null> {
+async function text(url: string, attempt = 0): Promise<string | null> {
   try {
     const r = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'text/html' }, redirect: 'follow', signal: AbortSignal.timeout(30_000) })
-    if (!r.ok) return null
+    if (!r.ok) throw new Error(String(r.status))
     return (await r.text()).replace(/\s+/g, ' ')
   } catch {
+    // County and small-agency sites blip; three tries over ~45 s before we call it unreachable
+    if (attempt < 2) { await new Promise((res) => setTimeout(res, 15_000 * (attempt + 1))); return text(url, attempt + 1) }
     return null
   }
 }
@@ -75,11 +77,16 @@ function fireSentences(html: string): string[] {
     .filter((t) => /campfire|fire restriction|fire ban|open flame|stove|charcoal|wood fire|burn(?:ing)? (?:ban|restriction|permit)|stage [12i]/i.test(t))
 }
 /** Bump when the fingerprint recipe changes: a stored hash from an older recipe is replaced silently instead of paging a human. */
-const FINGERPRINT_VERSION = 'v4'
+const FINGERPRINT_VERSION = 'v5'
+function articleBody(html: string): string {
+  const art = html.match(/<article[^>]*>([\s\S]*?)<\/article>/i) ?? html.match(/<main[^>]*>([\s\S]*?)<\/main>/i)
+  return (art ? art[1] : html).replace(/<(nav|aside|header|footer)[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+}
 function fireTextHash(html: string): string {
-  // Prose plus the order/PDF links: a swapped order PDF with unchanged prose still changes the hash
+  // Prose plus the order/PDF links *in the article*: a swapped order PDF with unchanged prose still changes the
+  // hash, but the sidebar's list of other alerts (a new closure elsewhere on the forest) does not.
   // Same link may appear relative and absolute, encoded and not — the CMS alternates; treat those as one link
-  const links = [...new Set([...html.matchAll(/href="([^"]*(?:\/alerts\/[^"]*|\.pdf))"/gi)].map((m) => decodeURIComponent(m[1]).toLowerCase().replace(/^https?:\/\/[^/]+/, '').replace(/[?#].*$/, '')))].sort().join('|')
+  const links = [...new Set([...articleBody(html).matchAll(/href="([^"]*(?:\/alerts\/[^"]*|\.pdf))"/gi)].map((m) => decodeURIComponent(m[1]).toLowerCase().replace(/^https?:\/\/[^/]+/, '').replace(/[?#].*$/, '')))].sort().join('|')
   const s = (fireSentences(html).join('|') + '|' + links).toLowerCase().replace(/\d{1,2}:\d{2}\s*[ap]m/g, '').replace(/[^a-z0-9|]/g, '')
   let h = 0
   for (let i = 0; i < s.length; i++) h = (Math.imul(h, 31) + s.charCodeAt(i)) | 0
