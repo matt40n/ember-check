@@ -17,7 +17,22 @@ The bots do the routine work. This is what's left for a human.
 `bun run verify --stamp` locally, push, and read the failing workflow run. It's almost always an agency
 page redesign that broke `pageUpdatedOn()` or `fireAlerts()` in `scripts/verify-orders.ts`.
 
+## "The park removed its fire alert" / "posted a fire alert" / "BLM California's status page changed"
+These come from each entry's **live status channel**, not its source page. Agencies rarely announce a lift: the
+July news release stays posted, and the restriction just disappears from the park's alert banner (Lassen
+Volcanic, Sep 3, 2026) or from the field office's section of BLM California's
+[fire-restrictions page](https://www.blm.gov/programs/public-safety-and-fire/fire-and-aviation/regional-info/california/fire-restrictions).
+- **Alert removed:** check the park's Alerts & Conditions page. If nothing replaced it, set `stage: 'none'` with
+  the park's standing rules (usually fires only in campground rings), `confidence: 'medium'`, and a note saying
+  there was no rescission notice. Lassen Volcanic and Lava Beds are the model entries.
+- **Alert posted or changed:** the alert text is in the issue. Transcribe it. Park alerts are often the only
+  place a restriction appears (Whiskeytown's 2026 burn ban never had a news release).
+- **BLM section changed:** re-read that office's section. A lifted order usually shows up as a new "BLM lifts…"
+  link or a shorter "Current Restrictions in Place" list.
+
+Use `verifiedOn: V` on the entries you edit; the next verify run accepts their new fingerprints.
+
 ## If the fingerprint check nags on a page whose fire text did not really change
-`bun run verify --rehash` rewrites every entry's `pageFireHash` from the current pages (verifiedOn untouched). Do this only after reading the flagged pages.
+`bun run verify --rehash` rewrites every entry's `pageFireHash` and `statusHash` from the current pages (verifiedOn untouched). Do this only after reading the flagged pages.
 
 **Changing the fingerprint recipe** (what `fireSentences`/`fireTextHash` in `scripts/verify-orders.ts` look at): bump `FINGERPRINT_VERSION` in the same commit. Stored hashes from an older version are re-seeded silently; without the bump every entry warns on the next run (issue #6 was exactly that).

@@ -47,6 +47,9 @@ export interface Jurisdiction {
   /** Fingerprint of the fire-related sentences on the source page, written by `verify --stamp`; a later page edit that
    *  leaves these sentences unchanged (weather, road notes) is not worth a human read */
   pageFireHash?: string
+  /** Fingerprint of the agency's live status channel (NPS park alert feed, BLM CA field-office section), written by
+   *  `verify --stamp`. News releases and announcements never change when a restriction is lifted; this does */
+  statusHash?: string
   /** Set by applyFreshness() when the entry is too old or expired to trust */
   stale?: { reason: string; original: Jurisdiction }
 }

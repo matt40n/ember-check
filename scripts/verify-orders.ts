@@ -9,6 +9,8 @@
  * For each USFS/BLM/NPS entry it fetches the source page and the forest's alerts index, then checks:
  *   - the source page is reachable and still mentions the order number
  *   - the alerts index doesn't list a newer fire-related alert than the order's effective date
+ *   - the agency's live status channel (NPS park alerts, BLM CA field-office section) hasn't changed since the last
+ *     human read — the one place a lifted restriction shows up when the original news release stays posted
  * Anything that fails stays at its old verifiedOn, so the app drops it to "Unverified" after 14 days.
  * This is a smell test, not a parser: read the flagged pages yourself before updating the data.
  */
@@ -93,6 +95,63 @@ function fireTextHash(html: string): string {
   return FINGERPRINT_VERSION + ':' + (h >>> 0).toString(36) + ':' + s.length.toString(36)
 }
 const hashes: Record<string, string> = {}
+
+/**
+ * Where an agency says what's in force *today*. A news release or announcement is written once and stays up after
+ * the restriction ends — Lassen Volcanic dropped its Stage 2 alert on 2026-09-03 while its July release still read
+ * "implements Stage 2" — so each NPS/BLM entry also watches a channel the agency edits when it lifts an order:
+ *   - NPS: the park's alert feed (rendered client-side on every park page; parks post and remove restrictions there)
+ *   - BLM: the field office's "Current Restrictions in Place" section of BLM California's statewide page
+ */
+const STATUS_VERSION = 's1'
+const BLM_CA_STATUS = 'https://www.blm.gov/programs/public-safety-and-fire/fire-and-aviation/regional-info/california/fire-restrictions'
+const FIRE_ALERT = /fire (?:restriction|ban|order)|burn ban|campfire|open (?:flame|fire)|charcoal|wood fire|\bstage (?:1|2|i|ii)\b/i
+type NpsAlert = { title: string; description: string; start_date: string; end_date: string; is_active: number }
+type Live = { url: string; recipe: string; hash: string; summary: string } | { url: string; error: string }
+const squash = (t: string) => t.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+/** NPS feed dates look like "July, 24 2026 00:00:00"; 1900 means unset */
+function npsDate(s: string): Date | null {
+  const m = !s || s.includes('1900') ? null : s.match(/([A-Za-z]+),? (\d{1,2}),? (\d{4})/)
+  const d = m ? new Date(`${m[1]} ${m[2]}, ${m[3]}`) : null
+  return d && !isNaN(d.getTime()) ? d : null
+}
+/** Same window the park page uses to decide which alerts to show */
+function inForce(a: NpsAlert, now: Date): boolean {
+  const start = npsDate(a.start_date), end = npsDate(a.end_date)
+  return a.is_active !== 0 && (!start || start <= now) && (!end || end.getTime() + 86_399_000 >= now.getTime())
+}
+let blmStatusPage: Promise<string | null> | null = null
+async function liveStatus(j: Jurisdiction): Promise<Live | null> {
+  const park = j.sourceUrl.match(/^https?:\/\/(?:www\.)?nps\.gov\/([a-z]{4})\//)?.[1]
+  if (park) {
+    const url = `https://www.nps.gov/${park}/park-alerts-${park}.json`
+    const body = await text(url)
+    let alerts: NpsAlert[]
+    try { alerts = JSON.parse(body ?? '') } catch { return { url, error: body ? 'alert feed is not JSON' : 'alert feed unreachable' } }
+    const now = new Date()
+    const fire = alerts.filter((a) => inForce(a, now) && FIRE_ALERT.test(`${a.title} ${a.description}`))
+    const titles = [...new Set(fire.map((a) => squash(a.title)))].sort()
+    return { url, recipe: `${STATUS_VERSION}:nps`, hash: `${STATUS_VERSION}:nps:${titles.join('|') || 'none'}`, summary: fire.length ? fire.map((a) => `"${a.title}": ${a.description.trim()}`).join(' | ') : 'no fire-restriction alert posted' }
+  }
+  const office = j.agency === 'BLM' ? j.name.match(/^BLM (.+?) Field Office/)?.[1] : undefined
+  if (office) {
+    const url = `${BLM_CA_STATUS}#${office.replace(/ /g, '%20')}`
+    const page = await (blmStatusPage ??= text(BLM_CA_STATUS))
+    if (!page) return { url, error: 'BLM California fire-restrictions page unreachable' }
+    // <dt>…Redding Field Office…</dt><dd>…the office's current restrictions and announcement links…</dd>
+    const sec = page.match(new RegExp(`<dt[^>]*>(?:(?!</dt>).)*?${office} Field Office(?:(?!</dt>).)*</dt>\\s*<dd[^>]*>([\\s\\S]*?)</dd>`))
+    if (!sec) return { url, error: `no "${office} Field Office" section on the page` }
+    const recipe = `${STATUS_VERSION}:blm:${FINGERPRINT_VERSION}`
+    const said = sec[1].replace(/<[^>]+>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim()
+    return { url, recipe, hash: `${STATUS_VERSION}:blm:${fireTextHash(`<article>${sec[1]}</article>`)}`, summary: `"${said.slice(0, 400)}${said.length > 400 ? '…' : ''}"` }
+  }
+  return null
+}
+const statuses: Record<string, string> = {}
+/** Put `field: 'value',` right after the entry's id (replacing any old one) */
+function setField(src: string, id: string, field: string, value: string): string {
+  return src.replace(new RegExp(`(id: '${id}',)([\\s\\S]*?)(verifiedOn: )`), (_m, a: string, mid: string, c: string) => `${a} ${field}: '${value}',${mid.replace(new RegExp(`\\s*${field}: '[^']*',`), '')}${c}`)
+}
 
 const results: { id: string; name: string; status: 'PASS' | 'WARN' | 'FAIL'; notes: string[]; sourceUrl: string }[] = []
 /** Entries a human just edited reference V for verifiedOn; their old fingerprint is expected to differ and is simply replaced. */
@@ -184,6 +243,28 @@ for (const j of JURISDICTIONS) {
     } else notes.push(`alerts index unreachable: ${idx}`)
   }
 
+  const live = await liveStatus(j)
+  if (live && 'error' in live) {
+    // Without the live channel a lifted order goes unnoticed, so don't stamp this entry as verified
+    if (status === 'PASS') status = 'WARN'
+    notes.push(`live status not checked (${live.error}): ${live.url}`)
+  } else if (live) {
+    statuses[j.id] = live.hash
+    const was = j.statusHash
+    if (!was || !was.startsWith(live.recipe + ':')) notes.push(`live status now watched (${live.summary}): ${live.url}`)
+    else if (was !== live.hash && !handEdited(j.id)) {
+      if (status === 'PASS') status = 'WARN'
+      if (live.recipe.endsWith(':nps')) {
+        const before = was.slice(live.recipe.length + 1)
+        notes.push(before === 'none'
+          ? `the park posted a fire alert — a restriction may have started or changed: ${live.summary} — ${live.url}`
+          : live.hash.endsWith(':none')
+            ? `the park removed its fire alert (was: "${before}") — the restriction was probably lifted; parks post current restrictions as alerts and leave the original news release up. Confirm, then set stage 'none': ${live.url}`
+            : `the park's fire alerts changed (was: "${before}") — now ${live.summary} — ${live.url}`)
+      } else notes.push(`BLM California's status page changed this field office's section — re-read it (lifted or new restrictions show up here, not in the original announcement): ${live.summary} — ${live.url}`)
+    }
+  }
+
   // Page-derived text ends up in a GitHub issue body: strip Markdown/link/HTML syntax so a hostile page can't phish the maintainer
   const plain = (t: string) => t.replace(/[\[\]()<>`*_]/g, ' ').replace(/https?:\/\/\S+/g, (u) => (u.startsWith(j.sourceUrl.split('/').slice(0, 3).join('/')) ? u : '[link removed]')).replace(/\s+/g, ' ')
   results.push({ id: j.id, name: j.name, status, notes: notes.map(plain), sourceUrl: j.sourceUrl })
@@ -197,14 +278,9 @@ if (stamp && passed.length) {
   const path = new URL('../src/data/restrictions.ts', import.meta.url)
   let src = await Bun.file(path).text()
   for (const id of passed) {
-    // record the fire-text fingerprint so later cosmetic page edits don't page a human
-    if (hashes[id]) {
-      const entryRe = new RegExp(`(id: '${id}',)([\\s\\S]*?)(verifiedOn: )`)
-      src = src.replace(entryRe, (_m, a: string, mid: string, c: string) => {
-        const cleaned = mid.replace(/\s*pageFireHash: '[^']*',/, '')
-        return `${a} pageFireHash: '${hashes[id]}',${cleaned}${c}`
-      })
-    }
+    // record the fire-text and live-status fingerprints so later cosmetic page edits don't page a human
+    if (hashes[id]) src = setField(src, id, 'pageFireHash', hashes[id])
+    if (statuses[id]) src = setField(src, id, 'statusHash', statuses[id])
     // bump only this entry's verifiedOn (entries use `verifiedOn: V`; switch passing ones to a literal date)
     src = src.replace(new RegExp(`(id: '${id}',[\\s\\S]*?verifiedOn: )V(,)`), `$1'${today}'$2`)
     src = src.replace(new RegExp(`(id: '${id}',[\\s\\S]*?verifiedOn: )'20\\d\\d-\\d\\d-\\d\\d'(,)`), `$1'${today}'$2`)
@@ -219,13 +295,10 @@ if (stamp && passed.length) {
 if (rehash) {
   const path = new URL('../src/data/restrictions.ts', import.meta.url)
   let src = await Bun.file(path).text()
-  let n = 0
-  for (const [id, h] of Object.entries(hashes)) {
-    const entryRe = new RegExp(`(id: '${id}',)([\\s\\S]*?)(verifiedOn: )`)
-    src = src.replace(entryRe, (_m, a: string, mid: string, c: string) => { n++; return `${a} pageFireHash: '${h}',${mid.replace(/\s*pageFireHash: '[^']*',/, '')}${c}` })
-  }
+  for (const [id, h] of Object.entries(hashes)) src = setField(src, id, 'pageFireHash', h)
+  for (const [id, h] of Object.entries(statuses)) src = setField(src, id, 'statusHash', h)
   await Bun.write(path, src)
-  console.log(`rehashed ${n} entries (verifiedOn untouched)`)
+  console.log(`rehashed ${Object.keys(hashes).length} page and ${Object.keys(statuses).length} live-status fingerprints (verifiedOn untouched)`)
 }
 if (writeJson) {
   await Bun.write(jsonOut, JSON.stringify({ ranOn: today, results }, null, 2))
