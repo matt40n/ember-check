@@ -148,15 +148,25 @@ async function liveStatus(j: Jurisdiction): Promise<Live | null> {
   return null
 }
 const statuses: Record<string, string> = {}
+/**
+ * Everything below rewrites `restrictions.ts` as text, anchored on the entry's literal `id: '<id>',`. Two rules
+ * keep that honest:
+ *   - stay inside the entry: `[\s\S]*?` from one id will happily run past that entry's own fields into a later
+ *     one (a passing entry's `verifiedOn: V` pattern would find the *next* entry's V and stamp that instead), so
+ *     every pattern stops at the following `id: '`.
+ *   - an id that isn't literally in the file matches nothing, and silence here reads as success — see the
+ *     post-stamp check below.
+ */
+const IN_ENTRY = "(?:(?!id: ')[\\s\\S])*?"
 /** Put `field: 'value',` right after the entry's id (replacing any old one) */
 function setField(src: string, id: string, field: string, value: string): string {
-  return src.replace(new RegExp(`(id: '${id}',)([\\s\\S]*?)(verifiedOn: )`), (_m, a: string, mid: string, c: string) => `${a} ${field}: '${value}',${mid.replace(new RegExp(`\\s*${field}: '[^']*',`), '')}${c}`)
+  return src.replace(new RegExp(`(id: '${id}',)(${IN_ENTRY})(verifiedOn: )`), (_m, a: string, mid: string, c: string) => `${a} ${field}: '${value}',${mid.replace(new RegExp(`\\s*${field}: '[^']*',`), '')}${c}`)
 }
 
 const results: { id: string; name: string; status: 'PASS' | 'WARN' | 'FAIL'; notes: string[]; sourceUrl: string }[] = []
 /** Entries a human just edited reference V for verifiedOn; their old fingerprint is expected to differ and is simply replaced. */
 const srcNow = await Bun.file(new URL('../src/data/restrictions.ts', import.meta.url)).text()
-const handEdited = (id: string) => new RegExp(`id: '${id}',[\\s\\S]{0,8000}?verifiedOn: V,`).test(srcNow.slice(srcNow.indexOf(`id: '${id}',`)))
+const handEdited = (id: string) => new RegExp(`id: '${id}',${IN_ENTRY}verifiedOn: V,`).test(srcNow)
 
 // Every entry, boundary or not: radius-only units (CAL FIRE, state parks, a ranger district) still have a page to check
 for (const j of JURISDICTIONS) {
@@ -282,15 +292,25 @@ if (stamp && passed.length) {
     if (hashes[id]) src = setField(src, id, 'pageFireHash', hashes[id])
     if (statuses[id]) src = setField(src, id, 'statusHash', statuses[id])
     // bump only this entry's verifiedOn (entries use `verifiedOn: V`; switch passing ones to a literal date)
-    src = src.replace(new RegExp(`(id: '${id}',[\\s\\S]*?verifiedOn: )V(,)`), `$1'${today}'$2`)
-    src = src.replace(new RegExp(`(id: '${id}',[\\s\\S]*?verifiedOn: )'20\\d\\d-\\d\\d-\\d\\d'(,)`), `$1'${today}'$2`)
+    src = src.replace(new RegExp(`(id: '${id}',${IN_ENTRY}verifiedOn: )V(,)`), `$1'${today}'$2`)
+    src = src.replace(new RegExp(`(id: '${id}',${IN_ENTRY}verifiedOn: )'20\\d\\d-\\d\\d-\\d\\d'(,)`), `$1'${today}'$2`)
   }
+  // Every entry we just reported as passing must now carry today's date. If one doesn't, its `id: '<id>',` isn't
+  // in the file the way we expect (generated at runtime, renamed, reformatted) and the rewrite quietly did
+  // nothing — the entry keeps its old date and the app greys it out at 14 days with no other warning. The 11
+  // CAL FIRE units sat 11 days stale exactly this way while every run logged them as stamped (issue #9).
+  const unstamped = passed.filter((id) => src.match(new RegExp(`id: '${id}',${IN_ENTRY}verifiedOn: ('20\\d\\d-\\d\\d-\\d\\d'|V),`))?.[1] !== `'${today}'`)
   // DATA_VERIFIED_ON (= V) is today's bulk-verification date. It's safe to bump whenever no *failing* entry still
   // references V — a failing entry pinned to a literal date keeps that date regardless.
-  const failingUsesV = results.filter((r) => r.status !== 'PASS').some((r) => new RegExp(`id: '${r.id}',[\\s\\S]*?verifiedOn: V,`).test(src.slice(src.indexOf(`id: '${r.id}',`), src.indexOf(`id: '${r.id}',`) + 6000)))
+  const failingUsesV = results.filter((r) => r.status !== 'PASS').some((r) => new RegExp(`id: '${r.id}',${IN_ENTRY}verifiedOn: V,`).test(src))
   if (!failingUsesV) src = src.replace(/export const DATA_VERIFIED_ON = '20\d\d-\d\d-\d\d'/, `export const DATA_VERIFIED_ON = '${today}'`)
   await Bun.write(path, src)
-  console.log(`stamped verifiedOn = ${today} on ${passed.length} entries${!failingUsesV ? ' and DATA_VERIFIED_ON' : ' (DATA_VERIFIED_ON held: a failing entry still references V)'}`)
+  console.log(`stamped verifiedOn = ${today} on ${passed.length - unstamped.length} of ${passed.length} passing entries${!failingUsesV ? ' and DATA_VERIFIED_ON' : ' (DATA_VERIFIED_ON held: a failing entry still references V)'}`)
+  if (unstamped.length) {
+    console.log(`\nNOT STAMPED — no \`id: '<id>',\` match in src/data/restrictions.ts for ${unstamped.length} passing entr${unstamped.length === 1 ? 'y' : 'ies'}:`)
+    for (const id of unstamped) console.log(`     - ${id} (still ${JURISDICTIONS.find((j) => j.id === id)?.verifiedOn}) — spell this entry out with a literal id instead of generating it`)
+    for (const id of unstamped) results.find((r) => r.id === id)!.status = 'FAIL'
+  }
 }
 if (rehash) {
   const path = new URL('../src/data/restrictions.ts', import.meta.url)

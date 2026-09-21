@@ -17,6 +17,14 @@ The bots do the routine work. This is what's left for a human.
 `bun run verify --stamp` locally, push, and read the failing workflow run. It's almost always an agency
 page redesign that broke `pageUpdatedOn()` or `fireAlerts()` in `scripts/verify-orders.ts`.
 
+## Write every entry out in full — never generate one from a loop
+`verify --stamp` bumps `verifiedOn` by rewriting `src/data/restrictions.ts` as *text*, anchored on the literal
+`id: '<id>',`. An entry whose id is built at runtime (``id: `calfire-${code}` `` in a `.map()`) has no such text,
+so the rewrite matches nothing and the entry keeps its old date forever while the run still reports it as passing.
+That is how the 11 CAL FIRE units went stale for 11 days (issue #9) — the workflow was green the whole time.
+Share prose between similar entries with a `const`, not by generating the entries. The bot now fails the run and
+names any passing entry it could not stamp, so this can't rot silently again.
+
 ## "The park removed its fire alert" / "posted a fire alert" / "BLM California's status page changed"
 These come from each entry's **live status channel**, not its source page. Agencies rarely announce a lift: the
 July news release stays posted, and the restriction just disappears from the park's alert banner (Lassen
