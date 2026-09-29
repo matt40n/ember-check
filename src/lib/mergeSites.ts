@@ -54,7 +54,8 @@ export const chunkOf = (idx: number) => idx % DETAIL_CHUNKS
 
 export type SitePage = { url: string; status: 'open' | 'closed' | null; statusText: string | null; updated: string | null; checkedOn: string }
 export type RidbSite = { id: string; name: string; agency: string; area: string | null; lat: number; lng: number; reservable: boolean; sites: number | null; fee: string | null; description: string | null; stayLimit: string | null; phone: string | null; updated: string | null }
-export type RidbExtra = { season: string | null; months: Record<string, string>; firstOpen: string | null; lastOpen: string | null; fee: string | null; feeMin?: number | null; feeMax?: number | null; checkedOn: string }
+/** Season window from Recreation.gov's calendar (scripts/enrich-ridb.ts via src/lib/season.ts); `season` is the sentence the card shows */
+export type RidbExtra = { season: string | null; firstOpen: string | null; seasonEnd: string | null; seasonEndKnown: boolean; nextOpen: string | null; prevEnd: string | null; windowEnd: string; fee: string | null; feeMin?: number | null; feeMax?: number | null; checkedOn: string }
 export type BlmSite = { id: string; name: string; kind: 'Campground Camping' | 'Dispersed Camping'; subtype: string | null; description: string | null; website: string | null; fee: string | null; reservable: boolean | null; lat: number; lng: number }
 export type RidbUnlocated = { id: string; name: string; agency: string; reservable: boolean; fee: string | null; description: string | null; hasCaAddress: boolean }
 export type CspSite = { id: string; name: string; park: string | null; type: string | null; subtype: string | null; detail: string | null; lat: number; lng: number }
@@ -111,7 +112,8 @@ export function buildSites(fc: GeoJSON.FeatureCollection<GeoJSON.Point>, pages: 
     const dup = findDup(r.name, r) ?? all.find((e) => e.source === 'edw' && r.area === e.forest && exactName(e.name, r.name) && near(e, r, 25))
     if (dup) {
       if (r.reservable && !dup.ridbId) { dup.ridbId = r.id; dup.reservable = true }
-      if (x?.season && !dup.season) dup.season = x.season
+      // The calendar's last bookable night is an exact closing date; the EDW month range ("April – October") is not
+      if (x?.season) dup.season = x.season
       if (x?.feeMin && !dup.feeMin) { dup.feeMin = x.feeMin; dup.feeMax = x.feeMax ?? x.feeMin }
       continue
     }

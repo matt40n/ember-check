@@ -7,6 +7,10 @@ The bots do the routine work. This is what's left for a human.
    `src/data/restrictions.ts` → `bun run build && bun run check-exhibits` → push to main. Close the issue.
 2. **Open issues labeled `field-report`.** Someone saw a sign or was told something that disagrees with the map.
    Trust signs over the map; if it's a site-specific quirk, add it to that jurisdiction's `siteNotes`.
+   **Season closing dates:** a campground with a Recreation.gov calendar (even for part of its sites) gets its
+   closing date from that calendar — `enrich-ridb` reads the last bookable night, and a few days early beats a
+   wasted trip. Write a sign's date into `siteNotes` only for first-come, first-served campgrounds that have no
+   calendar (Lassen's Big Pine and Cave, Oct 2026), and drop the note once something online carries a date.
 3. **Glance at `public/status.json` on the live site** (`/status.json`): `expiringWithin14Days` is what will
    change next. Most orders are rescinded early after the first sustained rain — from late October, expect
    rescission notices rather than replacements.
@@ -43,4 +47,4 @@ Use `verifiedOn: V` on the entries you edit; the next verify run accepts their n
 ## If the fingerprint check nags on a page whose fire text did not really change
 `bun run verify --rehash` rewrites every entry's `pageFireHash` and `statusHash` from the current pages (verifiedOn untouched). Do this only after reading the flagged pages.
 
-**Changing the fingerprint recipe** (what `fireSentences`/`fireTextHash` in `scripts/verify-orders.ts` look at): bump `FINGERPRINT_VERSION` in the same commit. Stored hashes from an older version are re-seeded silently; without the bump every entry warns on the next run (issue #6 was exactly that).
+**Changing the fingerprint recipe** (what `fireSentences`/`fireTextHash` in `src/lib/fingerprint.ts` look at — `bun test` covers it): bump `FINGERPRINT_VERSION` in the same commit. Stored hashes from an older version are re-seeded silently; without the bump every entry warns on the next run (issue #6 was exactly that).
