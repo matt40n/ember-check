@@ -4,11 +4,15 @@
  */
 import { differenceInCalendarDays, parseISO } from 'date-fns'
 import { JURISDICTIONS, DATA_VERIFIED_ON } from '../src/data/restrictions'
+import { applyScheduled, pacificToday } from '../src/lib/scheduled'
 
 const now = new Date()
 const tracked = JURISDICTIONS
 const oldest = tracked.map((j) => j.verifiedOn).sort()[0]
-const expiring = JURISDICTIONS.filter((j) => j.expires !== 'until_rescinded' && differenceInCalendarDays(parseISO(j.expires), now) <= 14)
+const today = pacificToday(now)
+// A scheduled change that has taken effect is still in the file until the next weekly pass folds it in
+const scheduledChanges = JURISDICTIONS.filter((j) => j.scheduled).map((j) => ({ id: j.id, name: j.name, on: j.scheduled!.on, summary: j.scheduled!.summary, inEffect: today >= j.scheduled!.on }))
+const expiring = applyScheduled(JURISDICTIONS, today).filter((j) => j.expires !== 'until_rescinded' && differenceInCalendarDays(parseISO(j.expires), now) <= 14)
   .map((j) => ({ id: j.id, name: j.name, expires: j.expires }))
 const status = {
   generatedAt: now.toISOString(),
@@ -17,6 +21,7 @@ const status = {
   oldestVerifiedAgeDays: differenceInCalendarDays(now, parseISO(oldest)),
   trackedOrders: tracked.length,
   expiringWithin14Days: expiring,
+  scheduledChanges,
 }
 await Bun.write(new URL('../public/status.json', import.meta.url), JSON.stringify(status, null, 2) + '\n')
-console.log(`status.json: oldest verifiedOn ${oldest} (${status.oldestVerifiedAgeDays}d), ${expiring.length} expiring soon`)
+console.log(`status.json: oldest verifiedOn ${oldest} (${status.oldestVerifiedAgeDays}d), ${expiring.length} expiring soon, ${scheduledChanges.length} scheduled change(s)`)

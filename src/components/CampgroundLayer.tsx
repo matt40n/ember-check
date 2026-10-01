@@ -7,6 +7,9 @@ import { useZoom } from '../hooks/useZoom'
 import { useSiteDetail } from '../api/siteDetail'
 import { siteFreshness } from '../lib/freshness'
 import { Confidence } from './Confidence'
+import { Upcoming } from './Upcoming'
+import { upcomingForJurisdiction, upcomingForSite } from '../lib/upcoming'
+import { pacificToday } from '../lib/scheduled'
 import { reportUrl } from '../lib/report'
 import { CAMPFIRE_PERMIT_URL } from '../lib/permit'
 import { namesMatch, siteFireVerdict, verdictRing, type FireVerdict } from '../lib/siteFire'
@@ -41,6 +44,9 @@ export function SitePopup({ s: site, v, inline = false }: { s: RecSite; v: FireV
   const showOpen = s.open !== null && (s.openSource?.kind === 'usfs-page' || fresh.status !== 'outdated')
   const rg = s.ridbId ? `https://www.recreation.gov/camping/campgrounds/${s.ridbId}` : `https://www.recreation.gov/search?q=${encodeURIComponent(s.name)}`
   const siteNote = Object.entries(v.jurisdiction?.siteNotes ?? {}).find(([n]) => namesMatch(n, s.name))?.[1]
+  const today = pacificToday()
+  // 'unknown' means the tracked order does not govern this site (a state park inside a forest), so its dates don't belong here
+  const upcoming = [...(v.jurisdiction && v.kind !== 'unknown' ? upcomingForJurisdiction(v.jurisdiction, today) : []), ...upcomingForSite(s, today)].sort((a, b) => a.date.localeCompare(b.date))
   return (
     <div className={inline ? 'text-sm leading-snug' : 'max-h-[60vh] w-[280px] overflow-y-auto text-xs leading-snug'}>
       <div className="flex items-start gap-2">
@@ -77,6 +83,7 @@ export function SitePopup({ s: site, v, inline = false }: { s: RecSite; v: FireV
         {siteNote && <p className="mt-1 flex items-start gap-1.5 text-cream"><AlertTriangle size={13} className="mt-0.5 shrink-0" /> <span>{siteNote}</span></p>}
         {v.jurisdiction && <div className="mt-1.5 border-t border-cream/15 pt-1.5"><Confidence j={v.jurisdiction} compact /></div>}
       </div>
+      <Upcoming items={upcoming} today={today} />
 
       {loading && <p className="mt-2 text-[11px] text-cream-dim/80">Loading details…</p>}
       <div className={`mt-2 inline-flex items-center gap-1.5 rounded border px-2 py-1 font-mono text-sm ${FEE_STYLE[fee.kind]}`}>

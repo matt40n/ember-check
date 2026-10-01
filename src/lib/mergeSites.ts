@@ -39,6 +39,11 @@ export interface RecSite {
   // ---- detail (only in detail chunks; present on the in-browser fallback path) ----
   restrictions?: string | null
   season?: string | null
+  /** Dated season window from Recreation.gov's calendar, for the Upcoming list (src/lib/upcoming.ts) */
+  firstOpen?: string | null
+  seasonEnd?: string | null
+  seasonEndKnown?: boolean
+  nextOpen?: string | null
   fee?: string | null
   description?: string | null
   reservations?: string | null
@@ -47,8 +52,8 @@ export interface RecSite {
   phone?: string | null
   website?: string | null
 }
-export type SiteDetail = Pick<RecSite, 'restrictions' | 'season' | 'fee' | 'description' | 'reservations' | 'hours' | 'stayLimit' | 'phone' | 'website'>
-export const DETAIL_FIELDS = ['restrictions', 'season', 'fee', 'description', 'reservations', 'hours', 'stayLimit', 'phone', 'website'] as const
+export type SiteDetail = Pick<RecSite, 'restrictions' | 'season' | 'firstOpen' | 'seasonEnd' | 'seasonEndKnown' | 'nextOpen' | 'fee' | 'description' | 'reservations' | 'hours' | 'stayLimit' | 'phone' | 'website'>
+export const DETAIL_FIELDS = ['restrictions', 'season', 'firstOpen', 'seasonEnd', 'seasonEndKnown', 'nextOpen', 'fee', 'description', 'reservations', 'hours', 'stayLimit', 'phone', 'website'] as const
 export const DETAIL_CHUNKS = 24
 export const chunkOf = (idx: number) => idx % DETAIL_CHUNKS
 
@@ -74,6 +79,8 @@ const sameName = (a: string, b: string) => { const x = norm(a), y = norm(b); ret
 const exactName = (a: string, b: string) => { const x = norm(a); return x.length > 2 && x === norm(b) }
 
 type Draft = Omit<RecSite, 'idx' | 'feeKind' | 'feeHeadline' | 'textYear'>
+/** The calendar's dated window, when this campground was read with the current recipe (older records carry only the phrase) */
+const seasonDates = (x?: RidbExtra) => (x?.windowEnd ? { firstOpen: x.firstOpen, seasonEnd: x.seasonEnd, seasonEndKnown: x.seasonEndKnown, nextOpen: x.nextOpen } : {})
 const feeRange = (min?: number | null, max?: number | null) => (min ? (max && max !== min ? `$${min}–$${max}/night` : `$${min}/night`) : null)
 
 export function buildSites(fc: GeoJSON.FeatureCollection<GeoJSON.Point>, pages: Record<string, SitePage>, ridb: RidbSite[], extra: Record<string, RidbExtra>, csp: CspSite[], osm: OsmSite[], blm: BlmSite[] = [], unlocated: RidbUnlocated[] = []): RecSite[] {
@@ -114,13 +121,14 @@ export function buildSites(fc: GeoJSON.FeatureCollection<GeoJSON.Point>, pages: 
       if (r.reservable && !dup.ridbId) { dup.ridbId = r.id; dup.reservable = true }
       // The calendar's last bookable night is an exact closing date; the EDW month range ("April – October") is not
       if (x?.season) dup.season = x.season
+      Object.assign(dup, seasonDates(x))
       if (x?.feeMin && !dup.feeMin) { dup.feeMin = x.feeMin; dup.feeMax = x.feeMax ?? x.feeMin }
       continue
     }
     all.push({
       name: r.name, forest: [r.agency, r.area].filter(Boolean).join(' · '), source: 'ridb', operator: r.agency, ridbId: r.id, reservable: r.reservable, siteCount: r.sites, stayLimit: r.stayLimit, phone: r.phone,
       kind: 'Campground Camping', open: null, openSource: null, url: null, urlIsSitePage: false, restrictions: null,
-      season: x?.season ?? null, fee: x?.fee ?? r.fee, feeMin: x?.feeMin ?? null, feeMax: x?.feeMax ?? null, description: r.description,
+      season: x?.season ?? null, ...seasonDates(x), fee: x?.fee ?? r.fee, feeMin: x?.feeMin ?? null, feeMax: x?.feeMax ?? null, description: r.description,
       reservations: r.reservable ? 'Reservable on Recreation.gov' : 'First-come, first-served (per Recreation.gov)', hours: null, lat: r.lat, lng: r.lng,
     })
   }
@@ -167,7 +175,8 @@ export function buildSites(fc: GeoJSON.FeatureCollection<GeoJSON.Point>, pages: 
     if (!hit) continue
     const x = extra[u.id]
     hit.ridbId = u.id; hit.reservable = true
-    if (x?.season && !hit.season) hit.season = x.season
+    if (x?.season) hit.season = x.season
+    Object.assign(hit, seasonDates(x))
     if (x?.feeMin && !hit.feeMin) { hit.feeMin = x.feeMin; hit.feeMax = x.feeMax ?? x.feeMin }
     if (!hit.fee && (x?.fee || u.fee)) hit.fee = x?.fee ?? u.fee
     if (!hit.description && u.description) hit.description = u.description
@@ -183,8 +192,8 @@ export function buildSites(fc: GeoJSON.FeatureCollection<GeoJSON.Point>, pages: 
 export function splitSites(sites: RecSite[]): { index: RecSite[]; chunks: Record<number, SiteDetail>[] } {
   const chunks: Record<number, SiteDetail>[] = Array.from({ length: DETAIL_CHUNKS }, () => ({}))
   const index = sites.map((s) => {
-    const { restrictions, season, fee, description, reservations, hours, stayLimit, phone, website, ...lean } = s
-    const detail: SiteDetail = { restrictions, season, fee, description, reservations, hours, stayLimit, phone, website }
+    const { restrictions, season, firstOpen, seasonEnd, seasonEndKnown, nextOpen, fee, description, reservations, hours, stayLimit, phone, website, ...lean } = s
+    const detail: SiteDetail = { restrictions, season, firstOpen, seasonEnd, seasonEndKnown, nextOpen, fee, description, reservations, hours, stayLimit, phone, website }
     chunks[chunkOf(s.idx)][s.idx] = Object.fromEntries(Object.entries(detail).filter(([, v]) => v != null)) as SiteDetail
     return lean as RecSite
   })

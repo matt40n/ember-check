@@ -6,6 +6,9 @@ import { ALLOW_COLOR, ALLOW_LABEL, STAGE_EXPLAINER, STAGE_LABEL } from '../lib/s
 import { countdownLabel, expiryText } from '../lib/time'
 import type { ProbeResult } from '../lib/probe'
 import { Confidence } from './Confidence'
+import { Upcoming } from './Upcoming'
+import { upcomingForJurisdiction } from '../lib/upcoming'
+import { pacificToday } from '../lib/scheduled'
 
 function Row({ label, value, note }: { label: string; value: Allow; note?: string }) {
   return (
@@ -58,6 +61,9 @@ export function SignPanel({ result, redFlag, onClear, stack }: { result: ProbeRe
     )
   }
   const exp = expiryText(j.expires)
+  const today = pacificToday()
+  // The countdown below already shows the order's end date; an announced change overrides it
+  const upcoming = upcomingForJurisdiction(j, today, { includeExpiry: false })
   // The generic stage blurb can contradict an entry's own allowances (Lava Beds: stage none but no dispersed fires) — derive it
   const explainer = j.stage === 'none'
     ? `${j.campfiresDeveloped === 'prohibited' ? 'No wood fires even in campground rings.' : 'Campfires allowed in campground rings.'} ${j.campfiresDispersed === 'prohibited' ? 'No fires outside developed campgrounds.' : j.campfiresDispersed === 'allowed_with_permit' || j.campfiresDispersed === 'allowed' ? 'Backcountry fires allowed with a free California Campfire Permit.' : 'Backcountry fires: check with the unit.'}`
@@ -86,11 +92,14 @@ export function SignPanel({ result, redFlag, onClear, stack }: { result: ProbeRe
         </p>
       )}
       {result.wildernessFocus && <p className="font-display text-base font-semibold uppercase tracking-wide text-signgold/80">Wilderness · under the {STAGE_LABEL[j.stage]} order</p>}
-      <p className="mt-2 flex items-center gap-2 font-mono text-sm">
-        <Flame size={14} className={noFires ? 'text-ember' : 'text-ok'} />
-        {countdownLabel(exp.days, exp.past)}
-        {exp.days !== null && <span className="text-signgold/60">· {exp.label}</span>}
-      </p>
+      {upcoming.length === 0 && (
+        <p className="mt-2 flex items-center gap-2 font-mono text-sm">
+          <Flame size={14} className={noFires ? 'text-ember' : 'text-ok'} />
+          {countdownLabel(exp.days, exp.past)}
+          {exp.days !== null && <span className="text-signgold/60">· {exp.label}</span>}
+        </p>
+      )}
+      <Upcoming items={upcoming} today={today} variant="sign" />
       {(redFlag || result.wilderness) && (
         <p className={`mt-2 rounded p-2 font-display text-lg font-bold uppercase leading-tight ${redFlag || !exempt ? 'bg-ember/20 text-cream' : 'bg-ok/20 text-cream'}`}>
           {redFlag ? 'At this spot today: no fires of any kind' : exempt ? 'At this spot: campfire OK with a CA Campfire Permit' : 'At this spot: no campfires'}

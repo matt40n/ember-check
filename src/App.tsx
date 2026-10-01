@@ -23,6 +23,7 @@ import { useForestBoundaries } from './api/usfs'
 import { useBlmFieldOffices, useNpsUnits, useRangerDistricts, useRecSites, useWilderness } from './api/boundaries'
 import { JURISDICTIONS as RAW, DATA_VERIFIED_ON } from './data/restrictions'
 import { applyFreshness } from './lib/freshness'
+import { applyScheduled, pacificToday } from './lib/scheduled'
 import { CAMPFIRE_PERMIT_URL } from './lib/permit'
 
 /** Most recent verification across all tracked orders — what the header shows */
@@ -40,15 +41,17 @@ type Step = { kind: 'wilderness'; name: string; j: Jurisdiction | null } | { kin
 export default function App() {
   // Freshness is re-evaluated when the tab comes back or the day changes, so a tab left open across a 14-day
   // window or an order's expiry doesn't keep showing a confident stage
-  const [day, setDay] = useState(() => new Date().toDateString())
+  // Local day drives staleness; the Pacific day is when a scheduled change takes effect (a visitor in New York crosses both)
+  const dayKey = () => `${new Date().toDateString()}|${pacificToday()}`
+  const [day, setDay] = useState(dayKey)
   useEffect(() => {
-    const tick = () => setDay(new Date().toDateString())
+    const tick = () => setDay(dayKey())
     const id = window.setInterval(tick, 60 * 60_000)
     document.addEventListener('visibilitychange', tick)
     return () => { window.clearInterval(id); document.removeEventListener('visibilitychange', tick) }
   }, [])
   /** Entries older than 14 days or past expiry are shown as Unverified rather than trusted. */
-  const JURISDICTIONS = useMemo(() => applyFreshness(RAW), [day])
+  const JURISDICTIONS = useMemo(() => applyFreshness(applyScheduled(RAW, pacificToday())), [day])
   const [probe, setProbe] = useState<{ lat: number; lng: number } | null>(null)
   const [result, setResult] = useState<ProbeResult>(EMPTY)
   const [agencies, setAgencies] = useState<Set<Agency>>(new Set(AGENCIES))

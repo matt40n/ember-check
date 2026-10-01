@@ -18,6 +18,17 @@ describe('season precedence when a USFS site is also on Recreation.gov', () => {
     const [site] = buildSites(edwHatCreek, {}, [ridbHatCreek], { '232248': extra }, [], [])
     expect(site.season).toBe(CALENDAR)
   })
+  test('the calendar\'s dated season window reaches the site, so the card can list closing and reopening dates', () => {
+    const [site] = buildSites(edwHatCreek, {}, [ridbHatCreek], { '232248': extra }, [], [])
+    expect({ firstOpen: site.firstOpen, seasonEnd: site.seasonEnd, seasonEndKnown: site.seasonEndKnown, nextOpen: site.nextOpen }).toEqual({ firstOpen: '2026-09-03', seasonEnd: '2026-10-10', seasonEndKnown: true, nextOpen: '2027-04-24' })
+  })
+  test('a Recreation.gov listing that ships without coordinates gets the same treatment once it is matched by name', () => {
+    const unlocated = [{ id: '232248', name: 'Hat Creek Campground', agency: 'USFS', reservable: true, fee: null, description: null, hasCaAddress: true }]
+    const [site] = buildSites(edwHatCreek, {}, [], { '232248': extra }, [], [], [], unlocated)
+    expect(site.season).toBe(CALENDAR)
+    expect(site.seasonEnd).toBe('2026-10-10')
+    expect(site.nextOpen).toBe('2027-04-24')
+  })
   test('without a calendar phrase the month range stays', () => {
     const [site] = buildSites(edwHatCreek, {}, [ridbHatCreek], { '232248': { ...extra, season: null } }, [], [])
     expect(site.season).toBe('April – October')

@@ -2,6 +2,16 @@ export type Stage = 'none' | 'stage1' | 'stage2' | 'full_ban' | 'unknown'
 export type Allow = 'allowed' | 'allowed_with_permit' | 'prohibited' | 'unknown'
 export type Agency = 'USFS' | 'BLM' | 'NPS' | 'CAL FIRE' | 'State Parks'
 
+/** A change the agency has announced for a future date: an order terminated effective Friday, Stage 2 starting Monday. */
+export interface ScheduledChange {
+  /** ISO date; the change applies from 12:00 a.m. Pacific that day */
+  on: string
+  /** One line shown to visitors before the date, e.g. "Fire restrictions lift" */
+  summary: string
+  /** Fields that replace the entry's from that date. Set a field to undefined to drop it (an exhibit that no longer applies). */
+  change: Partial<Omit<Jurisdiction, 'id' | 'name' | 'agency' | 'lat' | 'lng' | 'radiusKm' | 'boundary' | 'scheduled' | 'stale' | 'verifiedOn' | 'pageFireHash' | 'statusHash'>>
+}
+
 export interface Jurisdiction {
   id: string
   name: string
@@ -50,6 +60,9 @@ export interface Jurisdiction {
   /** Fingerprint of the agency's live status channel (NPS park alert feed, BLM CA field-office section), written by
    *  `verify --stamp`. News releases and announcements never change when a restriction is lifted; this does */
   statusHash?: string
+  /** An announced change that has not taken effect yet. The fields above stay as today's rules; `sourceUrl` should
+   *  already point at the notice announcing the change. applyScheduled() swaps it in on the day (src/lib/scheduled.ts). */
+  scheduled?: ScheduledChange
   /** Set by applyFreshness() when the entry is too old or expired to trust */
   stale?: { reason: string; original: Jurisdiction }
 }

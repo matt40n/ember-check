@@ -17,6 +17,24 @@ The bots do the routine work. This is what's left for a human.
 4. **Nothing to do?** Then there's nothing to do. Don't bump `DATA_VERIFIED_ON` by hand — the verify bot does
    it when every order passes.
 
+## The notice says the change happens on a future date
+Agencies usually announce a lift or a new stage a day or two ahead ("lifted effective Friday"). Don't flip the
+entry early and don't leave it for later — schedule it:
+- Keep the entry's own fields as **today's** rules.
+- Point `sourceUrl` (and `noticeUpdated`) at the notice that announces the change; the old page is usually
+  already gone, and this keeps the bot passing.
+- Add `scheduled: { on: 'YYYY-MM-DD', summary: 'Fire restrictions lift', change: { … } }` with the fields that
+  change. Set a field to `undefined` to drop it (`developedSitesListed`, `orderNumber`, `wildernessExempt` when an
+  order is lifted). Shasta-Trinity on Oct 1, 2026 is the model entry.
+- The app applies it at midnight Pacific on that date, in the visitor's browser (`src/lib/scheduled.ts`). Until
+  then every panel, list row and campground card shows it under **Upcoming**.
+- `status.json` lists `scheduledChanges`. Once one is `inEffect`, fold `change` into the entry and delete the
+  `scheduled` block at the next weekly pass. Nothing breaks if it waits.
+
+**Upcoming dates go everywhere.** Any opening, closing or rule change we know about must show on every place it
+affects, because people plan trips around it. Dated facts flow through `src/lib/upcoming.ts` (scheduled changes,
+order end dates, Recreation.gov closing and reopening nights); add a new kind there rather than burying it in notes.
+
 ## If the verify bot itself is broken
 `bun run verify --stamp` locally, push, and read the failing workflow run. It's almost always an agency
 page redesign that broke `pageUpdatedOn()` or `fireAlerts()` in `scripts/verify-orders.ts`.

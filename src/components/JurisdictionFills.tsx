@@ -1,3 +1,5 @@
+import { pacificToday } from '../lib/scheduled'
+import { formatUpcomingDate } from '../lib/upcoming'
 import { useCallback, useMemo, useRef } from 'react'
 import { GeoJSON } from 'react-leaflet'
 import type { Jurisdiction } from '../types'
@@ -69,8 +71,10 @@ export function JurisdictionFills({ fc, source, nameField, all, fillOpacity, hid
       onEachFeature={(f, l) => {
         const j = all.find((x) => x.id === f.properties.jid)
         const e = j ? expiryText(j.expires) : null
+        const today = pacificToday()
+        const pending = j?.scheduled && j.scheduled.on > today ? j.scheduled : null
         l.bindTooltip(
-          `<b>${esc(f.properties.name)}</b><br/>${j ? `${STAGE_LABEL[j.stage]} · ${countdownLabel(e!.days, e!.past)}` : 'No tracked order'}`,
+          `<b>${esc(f.properties.name)}</b><br/>${j ? `${STAGE_LABEL[j.stage]} · ${pending ? `changes ${formatUpcomingDate(pending.on, today)}: ${esc(pending.summary)}` : countdownLabel(e!.days, e!.past)}` : 'No tracked order'}`,
           { sticky: true, direction: 'top', opacity: 0.95 },
         )
         l.on('click', (ev) => {
