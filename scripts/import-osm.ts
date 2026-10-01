@@ -4,6 +4,7 @@
  * public/data/osm-sites.json; the app drops any that duplicate a federal/state record.
  * Data © OpenStreetMap contributors, ODbL — the card and map attribution say so. Monthly via CI (`bun run osm`).
  */
+import { collapseIdentical } from '../src/lib/osm'
 const OUT = new URL('../public/data/osm-sites.json', import.meta.url)
 const QUERY = `[out:json][timeout:240];area["ISO3166-2"="US-CA"]->.ca;(node["tourism"="camp_site"]["name"](area.ca);way["tourism"="camp_site"]["name"](area.ca);relation["tourism"="camp_site"]["name"](area.ca););out center tags;`
 const MIRRORS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']
@@ -43,7 +44,7 @@ function operatorKind(t: Record<string, string>): { kind: string; federal: boole
   return { kind: 'Unknown operator', federal: false, state: false }
 }
 
-const out = els
+const out = collapseIdentical(els
   .map((e) => ({ e, lat: e.lat ?? e.center?.lat, lng: e.lon ?? e.center?.lon }))
   .filter((x): x is { e: El; lat: number; lng: number } => typeof x.lat === 'number' && typeof x.lng === 'number')
   .map(({ e, lat, lng }) => {
@@ -71,7 +72,7 @@ const out = els
       fireplace: t.fireplace ?? t.openfire ?? null,
     }
   })
-  .sort((a, b) => a.name.localeCompare(b.name))
+  .sort((a, b) => a.name.localeCompare(b.name)))
 // Drop null/false fields to keep the payload small
 const compact = out.map((s) => Object.fromEntries(Object.entries(s).filter(([, v]) => v !== null && v !== false)))
 const prevCount = (await Bun.file(OUT).exists()) ? ((await Bun.file(OUT).json()) as unknown[]).length : 0
