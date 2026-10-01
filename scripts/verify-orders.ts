@@ -8,7 +8,8 @@
  *
  * For each USFS/BLM/NPS entry it fetches the source page and the forest's alerts index, then checks:
  *   - the source page is reachable and still mentions the order number
- *   - the alerts index doesn't list a newer fire-related alert than the order's effective date
+ *   - the forest's alerts index (derived from any fs.usda.gov/r0X/<forest>/ source, newsroom releases included)
+ *     doesn't list a fire-restriction alert that starts after the order's effective date
  *   - the agency's live status channel (NPS park alerts, BLM CA field-office section) hasn't changed since the last
  *     human read — the one place a lifted restriction shows up when the original news release stays posted
  * Anything that fails stays at its old verifiedOn, so the app drops it to "Unverified" after 14 days.
@@ -18,6 +19,7 @@ import { JURISDICTIONS } from '../src/data/restrictions'
 import type { Jurisdiction } from '../src/types'
 
 import { fireSentences, fireTextHash, articleBody, FINGERPRINT_VERSION } from '../src/lib/fingerprint'
+import { alertCards, alertsIndexFor, fireAlerts, newerFireAlerts } from '../src/lib/alerts'
 const stamp = process.argv.includes('--stamp')
 const rehash = process.argv.includes('--rehash')
 const jsonOut = process.argv[process.argv.indexOf('--json') + 1]
@@ -35,22 +37,6 @@ async function text(url: string, attempt = 0): Promise<string | null> {
     if (attempt < 2) { await new Promise((res) => setTimeout(res, 15_000 * (attempt + 1))); return text(url, attempt + 1) }
     return null
   }
-}
-
-function alertsIndexFor(j: Jurisdiction): string | null {
-  const m = j.sourceUrl.match(/^(https?:\/\/(?:www\.)?fs\.usda\.gov\/r0\d\/[a-z-]+)\/alerts/)
-  return m ? `${m[1]}/alerts` : null
-}
-
-/** Pull "Title ... Month D, YYYY" pairs that look like fire alerts out of a USFS alerts index. */
-function fireAlerts(html: string): { title: string; date: string }[] {
-  const out: { title: string; date: string }[] = []
-  const re = /<a[^>]*href="[^"]*\/alerts\/[^"]*"[^>]*>([^<]{5,140})<\/a>[\s\S]{0,400}?((?:January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, 20\d\d)/g
-  for (const m of html.matchAll(re)) {
-    const title = m[1].trim()
-    if (/fire|campfire|restriction|closure|order/i.test(title)) out.push({ title, date: m[2] })
-  }
-  return out
 }
 
 /** ISO date the page says it was last updated (og:updated_time, article:modified_time, or "Last updated: Month D, YYYY"). */
@@ -212,17 +198,22 @@ for (const j of JURISDICTIONS) {
     }
   }
 
-  const idx = alertsIndexFor(j)
+  const idx = alertsIndexFor(j.sourceUrl)
   if (idx) {
     const html = await text(idx)
-    if (html) {
-      const alerts = fireAlerts(html)
-      const newer = alerts.filter((a) => j.effective && new Date(a.date) > new Date(j.effective))
+    if (!html) notes.push(`alerts index unreachable: ${idx}`)
+    else if (!alertCards(html).length) {
+      // Every forest's index carries at least its region's standing alerts. None parsed means the markup changed
+      // and this watch is blind — which is how it sat dead after the site redesign, with every run green.
+      if (status === 'PASS') status = 'WARN'
+      notes.push(`alerts index not checked (no alerts could be read from it — the page markup probably changed; fix alertCards in src/lib/alerts.ts): ${idx}`)
+    } else {
+      const newer = newerFireAlerts(fireAlerts(html), j)
       if (newer.length) {
         if (status === 'PASS') status = 'WARN'
-        notes.push(`newer fire alerts since ${j.effective}: ${newer.map((a) => `"${a.title}" (${a.date})`).join('; ')}`)
+        notes.push(`newer fire alerts since ${j.effective}: ${newer.map((a) => `"${a.title}" (${a.date})`).join('; ')} — ${idx}`)
       }
-    } else notes.push(`alerts index unreachable: ${idx}`)
+    }
   }
 
   const live = await liveStatus(j)

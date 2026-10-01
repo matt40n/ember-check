@@ -19,7 +19,21 @@ The bots do the routine work. This is what's left for a human.
 
 ## If the verify bot itself is broken
 `bun run verify --stamp` locally, push, and read the failing workflow run. It's almost always an agency
-page redesign that broke `pageUpdatedOn()` or `fireAlerts()` in `scripts/verify-orders.ts`.
+page redesign that broke `pageUpdatedOn()` in `scripts/verify-orders.ts` or `alertCards()` in `src/lib/alerts.ts`.
+
+## "Newer fire alerts since …" / "alerts index not checked"
+Both come from the forest's **alerts index** (`fs.usda.gov/r05/<forest>/alerts`), which every USFS entry is
+checked against — including the ones whose source is a rescission news release, since that is where a
+restriction that comes back after a dry spell will be posted.
+- **Newer fire alerts:** the index lists a fire-restriction alert (campfire, fire restriction, Stage 1/2, fire
+  ban, restrictions lifted or rescinded) that starts after the entry's `effective` date and isn't the entry's own
+  `sourceUrl`. Road, trail and fire-area closures are ignored. Open the alert; if it changes the rules, update
+  the entry and point `sourceUrl` at it. A district entry (Humboldt-Toiyabe's Carson and Bridgeport) skips alerts
+  that name only other ranger districts.
+- **Alerts index not checked:** the page loaded but no alerts could be read from it, so the forest redesigned the
+  page and nothing is watching for new restrictions. Every USFS entry warns at once. Save the page over
+  `src/lib/__fixtures__/usfs-alerts-index-shasta-trinity.html`, get `bun test` passing again, and fix
+  `alertCards()` in `src/lib/alerts.ts`. (The old check failed silently this way from the 2026 redesign until Oct 1.)
 
 ## Write every entry out in full — never generate one from a loop
 `verify --stamp` bumps `verifiedOn` by rewriting `src/data/restrictions.ts` as *text*, anchored on the literal
