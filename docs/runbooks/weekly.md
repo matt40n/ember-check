@@ -59,6 +59,11 @@ Volcanic, Sep 3, 2026) or from the field office's section of BLM California's
   place a restriction appears (Whiskeytown's 2026 burn ban never had a news release).
 - **BLM section changed:** re-read that office's section. A lifted order usually shows up as a new "BLM lifts…"
   link or a shorter "Current Restrictions in Place" list.
+- **Some parks announce a lift only on social media.** Whiskeytown ended its 2026 ban in a Facebook post on
+  Sep 24, 2026 ("ends Friday, September 25") and left the "Wood & Charcoal Burn Ban" alert in its feed for weeks
+  afterwards, so the bot saw nothing. The bot cannot read Facebook. During the weekly pass, glance at the Facebook
+  page of each NPS unit the map shows at Stage 1 or higher (Whiskeytown: facebook.com/WhiskeytownNationalRecreationArea;
+  Lassen Volcanic, Lava Beds and Point Reyes have pages too) and record what you find with the post date.
 
 Use `verifiedOn: V` on the entries you edit; the next verify run accepts their new fingerprints.
 

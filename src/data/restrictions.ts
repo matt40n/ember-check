@@ -205,11 +205,11 @@ export const JURISDICTIONS: Jurisdiction[] = [
     notes: 'No 2026 park-wide order posted as of Aug 28. Campground rings normally OK; backcountry fires often banned late summer. Call 707-464-6101.', verifiedOn: '2026-10-05',
   },
   {
-    id: 'nps-whiskeytown', statusHash: 's1:nps:wood charcoal burn ban', pageFireHash: 'v6:3g:1', boundary: { source: 'nps', match: 'Whiskeytown-Shasta-Trinity National Recreation Area' }, noticeUpdated: '2026-06-30', confidence: 'medium', confidenceNote: 'Posted as a park alert (in the NPS feed since about Jun 30, 2026), not as a numbered order or news release. Call 530-242-3400 to confirm.', name: 'Whiskeytown NRA', agency: 'NPS', lat: 40.63, lng: -122.6, radiusKm: 15,
-    stage: 'stage2', campfiresDeveloped: 'prohibited', campfiresDispersed: 'prohibited', stoves: 'allowed', smoking: 'unknown',
-    effective: '2026-06-30', expires: 'until_rescinded',
+    id: 'nps-whiskeytown', statusHash: 's1:nps:wood charcoal burn ban', pageFireHash: 'v6:3g:1', boundary: { source: 'nps', match: 'Whiskeytown-Shasta-Trinity National Recreation Area' }, noticeUpdated: '2026-09-24', confidence: 'medium', confidenceNote: 'The park announced the end of the ban only on its Facebook page (Sep 24, 2026 post: the seasonal ban ends Friday, Sep 25). As of Oct 7 the "Wood & Charcoal Burn Ban" alert still shows in the park\'s alert feed on every nps.gov/whis page. This entry follows the announcement; call 530-242-3400 to confirm.', name: 'Whiskeytown NRA', agency: 'NPS', lat: 40.63, lng: -122.6, radiusKm: 15,
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed', smoking: 'unknown',
+    effective: '2026-09-25', expires: 'until_rescinded',
     sourceUrl: 'https://www.nps.gov/whis/planyourvisit/conditions.htm',
-    notes: 'Park alert "Wood & Charcoal Burn Ban": wood and charcoal/briquette burning is temporarily banned during the hot, dry season — campground rings and grills included. Propane grills and gas stoves OK. The alert shows at the top of every park page.', verifiedOn: '2026-10-05',
+    notes: 'Seasonal wood and charcoal ban ended Fri, Sep 25, 2026, per the park\'s Facebook post of Sep 24 (facebook.com/WhiskeytownNationalRecreationArea): "the seasonal temporary ban on campfires and charcoal barbequing ends Friday, September 25." Campfires are permitted only in designated fire rings; charcoal grills and gas stoves OK. The park never posted a news release, and its stale "Wood & Charcoal Burn Ban" alert was still in the alert feed on Oct 7.', verifiedOn: V,
   },
   {
     id: 'nps-point-reyes', statusHash: 's1:nps:none', pageFireHash: 'v6:10b5c7y:1uj', noticeUpdated: '2026-08-28', confidence: 'medium', confidenceNote: 'Beach-fire permits are suspended day-by-day on high fire-danger days — call 415-464-5100 the morning of.', boundary: { source: 'nps', match: 'Point Reyes National Seashore' }, name: 'Point Reyes NS', agency: 'NPS', lat: 38.07, lng: -122.88, radiusKm: 20,
