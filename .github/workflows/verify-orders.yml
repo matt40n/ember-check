@@ -52,6 +52,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ASSIGNEE: ${{ github.repository_owner }}
         run: bash .github/scripts/verify-issue.sh
+      - name: Saturday reminder for checks the bot cannot do
+        if: steps.verify.outputs.code == '0' && github.event.schedule == '0 13 * * 1,4,6'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ASSIGNEE: ${{ github.repository_owner }}
+        run: |
+          [ "$(date -u +%u)" = "6" ] || { echo "not Saturday"; exit 0; }
+          bash .github/scripts/manual-checks-issue.sh
       - name: Report bot failure itself
         if: failure()
         env:

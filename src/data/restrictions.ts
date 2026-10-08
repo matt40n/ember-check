@@ -177,42 +177,42 @@ export const JURISDICTIONS: Jurisdiction[] = [
 
   // ───────────── National Park Service ─────────────
   {
-    id: 'nps-yosemite', statusHash: 's1:nps:none', pageFireHash: 'v6:ac8ozh:2ai', developedSitesRule: 'any_developed', noticeUpdated: '2026-08-02', boundary: { source: 'nps', match: 'Yosemite National Park' }, name: 'Yosemite NP', agency: 'NPS', lat: 37.85, lng: -119.55, radiusKm: 45,
+    id: 'nps-yosemite', alsoCheck: ['https://www.facebook.com/YosemiteNPS'], statusHash: 's1:nps:none', pageFireHash: 'v6:ac8ozh:2ai', developedSitesRule: 'any_developed', noticeUpdated: '2026-08-02', boundary: { source: 'nps', match: 'Yosemite National Park' }, name: 'Yosemite NP', agency: 'NPS', lat: 37.85, lng: -119.55, radiusKm: 45,
     stage: 'stage2', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed', smoking: 'prohibited',
     effective: '2026-08-02', expires: 'until_rescinded', orderNumber: "Superintendent's Stage 2",
     sourceUrl: 'https://www.nps.gov/yose/planyourvisit/firerestrictions.htm',
     notes: 'Stage 2 applies below 8,000 ft. Between 8,000 and 9,600 ft: existing rings only, 100 ft from water/trail. Never above 9,600 ft. Twig stoves banned; gas/alcohol/tablet stoves OK.', verifiedOn: '2026-10-05',
   },
   {
-    id: 'nps-lassen-volcanic', statusHash: 's1:nps:none', pageFireHash: 'v6:1e2wwai:nz', noticeUpdated: '2026-09-03', confidence: 'medium', confidenceNote: 'No rescission notice was published. The park says any current restriction is posted as an alert, and its alert feed has listed none since Sep 3, 2026. The visitor phone line is intermittent — email lavo_information@nps.gov to confirm.', boundary: { source: 'nps', match: 'Lassen Volcanic National Park' }, name: 'Lassen Volcanic NP', agency: 'NPS', lat: 40.5, lng: -121.45, radiusKm: 20,
+    id: 'nps-lassen-volcanic', alsoCheck: ['https://www.facebook.com/LassenNPS'], statusHash: 's1:nps:none', pageFireHash: 'v6:1e2wwai:nz', noticeUpdated: '2026-09-03', confidence: 'medium', confidenceNote: 'No rescission notice was published. The park says any current restriction is posted as an alert, and its alert feed has listed none since Sep 3, 2026. The visitor phone line is intermittent — email lavo_information@nps.gov to confirm.', boundary: { source: 'nps', match: 'Lassen Volcanic National Park' }, name: 'Lassen Volcanic NP', agency: 'NPS', lat: 40.5, lng: -121.45, radiusKm: 20,
     stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed', smoking: 'unknown',
     effective: '2026-09-03', expires: 'until_rescinded',
     sourceUrl: 'https://www.nps.gov/lavo/learn/management/fire-regulations-and-restrictions.htm',
     notes: 'Stage 2 (Jul 31, 2026: no wood or charcoal fires in any campground) appears lifted as of Sep 3. Standing park rules: fires only in park-provided grills and rings at established frontcountry campgrounds and day-use areas — never in the backcountry or wilderness, where only small gas or liquid-fuel stoves are allowed. Juniper Lake Campground is closed.', verifiedOn: '2026-10-05',
   },
   {
-    id: 'nps-lava-beds', statusHash: 's1:nps:none', pageFireHash: 'v6:1fft04j:6n', confidence: 'medium', confidenceNote: 'Lifting is stated on the conditions page only; no formal rescission notice found. Call 530-667-8113 to confirm.', noticeUpdated: '2026-09-02', boundary: { source: 'nps', match: 'Lava Beds National Monument' }, name: 'Lava Beds NM', agency: 'NPS', lat: 41.75, lng: -121.5, radiusKm: 15,
+    id: 'nps-lava-beds', alsoCheck: ['https://www.facebook.com/LavaBedsNPS'], statusHash: 's1:nps:none', pageFireHash: 'v6:1fft04j:6n', confidence: 'medium', confidenceNote: 'Lifting is stated on the conditions page only; no formal rescission notice found. Call 530-667-8113 to confirm.', noticeUpdated: '2026-09-02', boundary: { source: 'nps', match: 'Lava Beds National Monument' }, name: 'Lava Beds NM', agency: 'NPS', lat: 41.75, lng: -121.5, radiusKm: 15,
     stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed', smoking: 'unknown',
     effective: '2026-09-02', expires: 'until_rescinded',
     sourceUrl: 'https://www.nps.gov/labe/planyourvisit/conditions.htm',
     notes: 'Closure Order 26-001 (Jul 31, 2026) banned all wood/charcoal fires; the park conditions page now says: "Effective Sept. 2, 2026 - No fire restrictions are in place in the campground." Fires in Indian Well Campground rings only — no fires elsewhere in the monument; gas stoves OK.', verifiedOn: '2026-10-05',
   },
   {
-    id: 'nps-redwood', statusHash: 's1:nps:none', pageFireHash: 'v6:kdh5mk:3f', noticeUpdated: '2026-09-10', confidence: 'low', confidenceNote: 'No 2026 fire order found on nps.gov (conditions page edited Aug 31 and Sep 2, still no order; no fire alerts posted). Status is inferred, not confirmed.', boundary: { source: 'nps', match: 'Redwood National Park' }, name: 'Redwood National & State Parks', agency: 'NPS', lat: 41.3, lng: -124.0, radiusKm: 30,
+    id: 'nps-redwood', alsoCheck: ['https://www.facebook.com/RedwoodNPS'], statusHash: 's1:nps:none', pageFireHash: 'v6:kdh5mk:3f', noticeUpdated: '2026-09-10', confidence: 'low', confidenceNote: 'No 2026 fire order found on nps.gov (conditions page edited Aug 31 and Sep 2, still no order; no fire alerts posted). Status is inferred, not confirmed.', boundary: { source: 'nps', match: 'Redwood National Park' }, name: 'Redwood National & State Parks', agency: 'NPS', lat: 41.3, lng: -124.0, radiusKm: 30,
     stage: 'unknown', campfiresDeveloped: 'allowed', campfiresDispersed: 'unknown', stoves: 'allowed', smoking: 'unknown',
     expires: 'until_rescinded',
     sourceUrl: 'https://www.nps.gov/redw/planyourvisit/conditions.htm',
     notes: 'No 2026 park-wide order posted as of Aug 28. Campground rings normally OK; backcountry fires often banned late summer. Call 707-464-6101.', verifiedOn: '2026-10-05',
   },
   {
-    id: 'nps-whiskeytown', statusHash: 's1:nps:wood charcoal burn ban', pageFireHash: 'v6:3g:1', boundary: { source: 'nps', match: 'Whiskeytown-Shasta-Trinity National Recreation Area' }, noticeUpdated: '2026-09-24', confidence: 'medium', confidenceNote: 'The park announced the end of the ban only on its Facebook page (Sep 24, 2026 post: the seasonal ban ends Friday, Sep 25). As of Oct 7 the "Wood & Charcoal Burn Ban" alert still shows in the park\'s alert feed on every nps.gov/whis page. This entry follows the announcement; call 530-242-3400 to confirm.', name: 'Whiskeytown NRA', agency: 'NPS', lat: 40.63, lng: -122.6, radiusKm: 15,
+    id: 'nps-whiskeytown', alsoCheck: ['https://www.facebook.com/WhiskeytownNationalRecreationArea'], statusHash: 's1:nps:wood charcoal burn ban', pageFireHash: 'v6:3g:1', boundary: { source: 'nps', match: 'Whiskeytown-Shasta-Trinity National Recreation Area' }, noticeUpdated: '2026-09-24', confidence: 'medium', confidenceNote: 'The park announced the end of the ban only on its Facebook page (Sep 24, 2026 post: the seasonal ban ends Friday, Sep 25). As of Oct 7 the "Wood & Charcoal Burn Ban" alert still shows in the park\'s alert feed on every nps.gov/whis page. This entry follows the announcement; call 530-242-3400 to confirm.', name: 'Whiskeytown NRA', agency: 'NPS', lat: 40.63, lng: -122.6, radiusKm: 15,
     stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed', smoking: 'unknown',
     effective: '2026-09-25', expires: 'until_rescinded',
     sourceUrl: 'https://www.nps.gov/whis/planyourvisit/conditions.htm',
     notes: 'Seasonal wood and charcoal ban ended Fri, Sep 25, 2026, per the park\'s Facebook post of Sep 24 (facebook.com/WhiskeytownNationalRecreationArea): "the seasonal temporary ban on campfires and charcoal barbequing ends Friday, September 25." Campfires are permitted only in designated fire rings; charcoal grills and gas stoves OK. The park never posted a news release, and its stale "Wood & Charcoal Burn Ban" alert was still in the alert feed on Oct 7.', verifiedOn: V,
   },
   {
-    id: 'nps-point-reyes', statusHash: 's1:nps:none', pageFireHash: 'v6:10b5c7y:1uj', noticeUpdated: '2026-08-28', confidence: 'medium', confidenceNote: 'Beach-fire permits are suspended day-by-day on high fire-danger days — call 415-464-5100 the morning of.', boundary: { source: 'nps', match: 'Point Reyes National Seashore' }, name: 'Point Reyes NS', agency: 'NPS', lat: 38.07, lng: -122.88, radiusKm: 20,
+    id: 'nps-point-reyes', alsoCheck: ['https://www.facebook.com/PointReyesNPS'], statusHash: 's1:nps:none', pageFireHash: 'v6:10b5c7y:1uj', noticeUpdated: '2026-08-28', confidence: 'medium', confidenceNote: 'Beach-fire permits are suspended day-by-day on high fire-danger days — call 415-464-5100 the morning of.', boundary: { source: 'nps', match: 'Point Reyes National Seashore' }, name: 'Point Reyes NS', agency: 'NPS', lat: 38.07, lng: -122.88, radiusKm: 20,
     stage: 'none', campfiresDeveloped: 'prohibited', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed', smoking: 'allowed',
     expires: 'until_rescinded', orderNumber: "Superintendent's Compendium",
     sourceUrl: 'https://www.nps.gov/pore/planyourvisit/beachfires.htm',

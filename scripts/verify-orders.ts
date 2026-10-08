@@ -18,6 +18,7 @@ import { JURISDICTIONS } from '../src/data/restrictions'
 import type { Jurisdiction } from '../src/types'
 
 import { fireSentences, fireTextHash, articleBody, FINGERPRINT_VERSION } from '../src/lib/fingerprint'
+import { parseRss, fireReleasesSince, npsNewsFeedUrl } from '../src/lib/newsFeed'
 const stamp = process.argv.includes('--stamp')
 const rehash = process.argv.includes('--rehash')
 const jsonOut = process.argv[process.argv.indexOf('--json') + 1]
@@ -247,6 +248,22 @@ for (const j of JURISDICTIONS) {
     }
   }
 
+  // NPS news releases: a park sometimes announces a start or lift here and nowhere the other checks look
+  const park = j.sourceUrl.match(/^https?:\/\/(?:www\.)?nps\.gov\/([a-z]{4})\//)?.[1]
+  if (park) {
+    const feedUrl = npsNewsFeedUrl(park)
+    const xml = await text(feedUrl)
+    if (!xml) notes.push(`news feed unreachable: ${feedUrl}`)
+    else {
+      const since = j.noticeUpdated ?? j.effective ?? '2000-01-01'
+      const fresh = fireReleasesSince(parseRss(xml), since)
+      if (fresh.length) {
+        if (status === 'PASS') status = 'WARN'
+        notes.push(`park news release since ${since} mentions fire rules — read it: ${fresh.map((f) => `"${f.title}" (${f.date}) ${f.link}`).join(' | ')}`)
+      }
+    }
+  }
+
   // Page-derived text ends up in a GitHub issue body: strip Markdown/link/HTML syntax so a hostile page can't phish the maintainer
   const plain = (t: string) => t.replace(/[\[\]()<>`*_]/g, ' ').replace(/https?:\/\/\S+/g, (u) => (u.startsWith(j.sourceUrl.split('/').slice(0, 3).join('/')) ? u : '[link removed]')).replace(/\s+/g, ' ')
   results.push({ id: j.id, name: j.name, status, notes: notes.map(plain), sourceUrl: j.sourceUrl })
@@ -293,7 +310,10 @@ if (rehash) {
   console.log(`rehashed ${Object.keys(hashes).length} page and ${Object.keys(statuses).length} live-status fingerprints (verifiedOn untouched)`)
 }
 if (writeJson) {
-  await Bun.write(jsonOut, JSON.stringify({ ranOn: today, results }, null, 2))
+  const manualChecks = JURISDICTIONS
+    .filter((j) => j.alsoCheck?.length && j.stage !== 'none' && j.stage !== 'unknown')
+    .map((j) => ({ id: j.id, name: j.name, stage: j.stage, links: j.alsoCheck! }))
+  await Bun.write(jsonOut, JSON.stringify({ ranOn: today, results, manualChecks }, null, 2))
   console.log(`wrote ${jsonOut}`)
 }
 process.exit(results.some((r) => r.status === 'FAIL') ? 2 : results.some((r) => r.status === 'WARN') ? 1 : 0)

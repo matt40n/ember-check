@@ -63,7 +63,7 @@ Volcanic, Sep 3, 2026) or from the field office's section of BLM California's
   Sep 24, 2026 ("ends Friday, September 25") and left the "Wood & Charcoal Burn Ban" alert in its feed for weeks
   afterwards, so the bot saw nothing. The bot cannot read Facebook. During the weekly pass, glance at the Facebook
   page of each NPS unit the map shows at Stage 1 or higher (Whiskeytown: facebook.com/WhiskeytownNationalRecreationArea;
-  Lassen Volcanic, Lava Beds and Point Reyes have pages too) and record what you find with the post date.
+  Lassen Volcanic, Lava Beds and Point Reyes have pages too) and record what you find with the post date. The bot prints these links under **Check by hand** in every issue it opens, and on Saturdays with nothing else to report it comments on `Ember Check: weekly manual checks` while any NPS unit is restricted. Add a park's page with `alsoCheck` on its entry.
 
 Use `verifiedOn: V` on the entries you edit; the next verify run accepts their new fingerprints.
 
