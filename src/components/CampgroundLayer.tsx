@@ -8,8 +8,9 @@ import { useSiteDetail } from '../api/siteDetail'
 import { siteFreshness } from '../lib/freshness'
 import { Confidence } from './Confidence'
 import { Upcoming } from './Upcoming'
-import { upcomingForJurisdiction, upcomingForSite } from '../lib/upcoming'
-import { pacificToday } from '../lib/scheduled'
+import { groupUpcoming, signDatesFor, upcomingForPlan, upcomingForSignDates, upcomingForSite } from '../lib/upcoming'
+import { lastNight, siteStatusForPlan, type SiteSeason } from '../lib/plan'
+import { usePlanWindow } from '../hooks/usePlanWindow'
 import { reportUrl } from '../lib/report'
 import { CAMPFIRE_PERMIT_URL } from '../lib/permit'
 import { namesMatch, siteFireVerdict, verdictRing, type FireVerdict } from '../lib/siteFire'
@@ -44,9 +45,17 @@ export function SitePopup({ s: site, v, inline = false }: { s: RecSite; v: FireV
   const showOpen = s.open !== null && (s.openSource?.kind === 'usfs-page' || fresh.status !== 'outdated')
   const rg = s.ridbId ? `https://www.recreation.gov/camping/campgrounds/${s.ridbId}` : `https://www.recreation.gov/search?q=${encodeURIComponent(s.name)}`
   const siteNote = Object.entries(v.jurisdiction?.siteNotes ?? {}).find(([n]) => namesMatch(n, s.name))?.[1]
-  const today = pacificToday()
+  const { window: plan, today, isToday } = usePlanWindow()
+  const sign = signDatesFor(v.jurisdiction, s.name)
+  const seasonFacts: SiteSeason = { firstOpen: s.firstOpen, seasonEnd: s.seasonEnd, seasonEndKnown: s.seasonEndKnown, nextOpen: s.nextOpen, season: s.season, ...sign }
+  const stay = isToday ? null : siteStatusForPlan(seasonFacts, plan, today)
   // 'unknown' means the tracked order does not govern this site (a state park inside a forest), so its dates don't belong here
-  const upcoming = [...(v.jurisdiction && v.kind !== 'unknown' ? upcomingForJurisdiction(v.jurisdiction, today) : []), ...upcomingForSite(s, today)].sort((a, b) => a.date.localeCompare(b.date))
+  const upcoming = [
+    ...(v.jurisdiction && v.kind !== 'unknown' ? upcomingForPlan(v.jurisdiction, today) : []),
+    ...upcomingForSite(s, today),
+    ...(s.firstOpen || s.seasonEnd ? [] : upcomingForSignDates(v.jurisdiction, s.name, today)),
+  ].sort((a, b) => a.date.localeCompare(b.date))
+  const groups = groupUpcoming(upcoming, plan.arrive, lastNight(plan))
   return (
     <div className={inline ? 'text-sm leading-snug' : 'max-h-[60vh] w-[280px] overflow-y-auto text-xs leading-snug'}>
       <div className="flex items-start gap-2">
@@ -83,7 +92,17 @@ export function SitePopup({ s: site, v, inline = false }: { s: RecSite; v: FireV
         {siteNote && <p className="mt-1 flex items-start gap-1.5 text-cream"><AlertTriangle size={13} className="mt-0.5 shrink-0" /> <span>{siteNote}</span></p>}
         {v.jurisdiction && <div className="mt-1.5 border-t border-cream/15 pt-1.5"><Confidence j={v.jurisdiction} compact /></div>}
       </div>
-      <Upcoming items={upcoming} today={today} />
+      {stay && (
+        <p className={`mt-2 flex items-start gap-1.5 rounded border p-2 ${stay.kind === 'open' ? 'border-ok bg-ok/15' : stay.kind === 'unknown' ? 'border-pine-600 bg-pine-700/60 text-cream-dim' : 'border-ember/60 bg-ember/10'}`}>
+          <CalendarDays size={13} className="mt-0.5 shrink-0" /> <span>{stay.text}</span>
+        </p>
+      )}
+      {!isToday && showOpen && <p className="mt-1 text-[11px] text-cream-dim/80">USFS page status above is as of today, not your dates.</p>}
+      {isToday ? <Upcoming items={upcoming} today={today} /> : (<>
+        <Upcoming title="By your arrival" items={groups.byArrival} today={today} />
+        <Upcoming title="During your trip" items={groups.during} today={today} />
+        <Upcoming title="Later" items={groups.later} today={today} />
+      </>)}
 
       {loading && <p className="mt-2 text-[11px] text-cream-dim/80">Loading details…</p>}
       <div className={`mt-2 inline-flex items-center gap-1.5 rounded border px-2 py-1 font-mono text-sm ${FEE_STYLE[fee.kind]}`}>
@@ -147,8 +166,13 @@ export function SitePopup({ s: site, v, inline = false }: { s: RecSite; v: FireV
 }
 
 function CampgroundLayerInner({ sites: allSites, all, boundaries, coarse = false, onSelect, backcountryOnly = false, showClosed = false, redFlagZones = null }: { sites: RecSite[] | undefined; all: Jurisdiction[]; boundaries: BoundarySets; coarse?: boolean; onSelect?: (s: RecSite, v: FireVerdict) => void; backcountryOnly?: boolean; showClosed?: boolean; redFlagZones?: GeoJSON.FeatureCollection | null }) {
+  const { window: plan, today, isToday } = usePlanWindow()
+  // Closed for every night of the stay (calendar says the season is over); never true for Today
+  const closedForStay = (s: RecSite) => !isToday && siteStatusForPlan({ firstOpen: s.firstOpen, seasonEnd: s.seasonEnd, seasonEndKnown: s.seasonEndKnown, nextOpen: s.nextOpen, season: s.season }, plan, today).kind === 'closed'
   // Sites the agency page lists as closed are hidden by default; a toggle brings them back
-  const sites = useMemo(() => allSites?.filter((s) => (showClosed || s.open !== false) && (!backcountryOnly || s.kind === 'Dispersed Camping' || s.backcountry)), [allSites, backcountryOnly, showClosed])
+  const sites = useMemo(() => allSites?.filter((s) => (showClosed || (s.open !== false && !closedForStay(s))) && (!backcountryOnly || s.kind === 'Dispersed Camping' || s.backcountry)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allSites, backcountryOnly, showClosed, plan, today, isToday])
   const zoom = useZoom()
   // One shared canvas renderer for the 'sites' pane, kept on the map so toggling the layer off and on
   // doesn't leak a fresh canvas each time. Tolerance is the extra hit-test slack in px around each pin.
@@ -167,12 +191,12 @@ function CampgroundLayerInner({ sites: allSites, all, boundaries, coarse = false
       const v = siteFireVerdict(s, all, boundaries, redFlag)
       return {
         s, v, fee: { kind: s.feeKind, headline: s.feeHeadline },
-        pathOptions: { color: verdictRing(v), weight: coarse ? 3.5 : 2.5, fillColor: s.open === false ? '#8A8F8B' : KIND_COLOR[s.kind], fillOpacity: 0.95, bubblingMouseEvents: false },
+        pathOptions: { color: verdictRing(v), weight: coarse ? 3.5 : 2.5, fillColor: s.open === false || closedForStay(s) ? '#8A8F8B' : KIND_COLOR[s.kind], fillOpacity: 0.95, bubblingMouseEvents: false },
         handlers: coarse && onSelect ? { click: () => onSelect(s, v) } : undefined,
       }
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sites, all, boundaries, coarse, onSelect, redFlagZones])
+  }, [sites, all, boundaries, coarse, onSelect, redFlagZones, plan, today, isToday])
   // Below zoom 8 the pins are hidden, not unmounted — mounting 2,900 markers at once is a visible stall on phones
   const hidden = zoom < 8
   const el = (renderer as unknown as { _container?: HTMLElement })._container

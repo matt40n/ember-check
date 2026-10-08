@@ -6,6 +6,7 @@ import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persi
 import { get, set, del } from 'idb-keyval'
 import './index.css'
 import App from './App.tsx'
+import { PlanWindowProvider } from './hooks/usePlanWindow'
 
 const qc = new QueryClient({ defaultOptions: { queries: { staleTime: 24 * 60 * 60_000, gcTime: 24 * 60 * 60_000, refetchOnWindowFocus: false, retry: 1 } } })
 // Boundaries and the campground index (~500 KB gzipped) persist in IndexedDB so a repeat visit paints pins with no
@@ -15,7 +16,7 @@ const persister = createAsyncStoragePersister({ storage: { getItem: (k) => get(k
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <PersistQueryClientProvider client={qc} persistOptions={{ persister, maxAge: 24 * 60 * 60_000, buster: __BUILD_ID__ }}>
-      <App />
+      <PlanWindowProvider><App /></PlanWindowProvider>
     </PersistQueryClientProvider>
   </StrictMode>,
 )

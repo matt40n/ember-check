@@ -12,6 +12,18 @@ export interface ScheduledChange {
   change: Partial<Omit<Jurisdiction, 'id' | 'name' | 'agency' | 'lat' | 'lng' | 'radiusKm' | 'boundary' | 'scheduled' | 'stale' | 'verifiedOn' | 'pageFireHash' | 'statusHash'>>
 }
 
+/** What the trip planner found for an entry on the chosen dates; set at runtime by planJurisdictions(), never stored. */
+export type PlanMeta = {
+  /** A scheduled change that took effect between today and arrival (so a card can say why it differs from today) */
+  applied?: { on: string; summary: string }
+  /** A scheduled change that lands after arrival, on or before the last night */
+  changesDuring?: { on: string; summary: string }
+  /** The order's printed end date falls inside the stay (after arrival, before the last night) */
+  endsDuring?: string
+  /** The order ran out before arrival; the entry has been set to unknown */
+  ended?: { expires: string; orderNumber?: string; reason: string }
+}
+
 export interface Jurisdiction {
   id: string
   name: string
@@ -52,6 +64,9 @@ export interface Jurisdiction {
   developedSitesRule?: 'exhibit' | 'any_developed'
   /** Site-specific caveats keyed by site name (matched with namesMatch); shown only on that site's card */
   siteNotes?: Record<string, string>
+  /** Season dates reported by a sign or ranger for a named site (no online source), keyed like siteNotes. A
+   *  Recreation.gov calendar beats these; they count only where no calendar exists. */
+  siteDates?: Record<string, { closes?: string; opens?: string; source: string }>
   /** An HTML page to fingerprint/date-check when sourceUrl is a PDF (BLM announcements) */
   checkUrl?: string
   /** Fingerprint of the fire-related sentences on the source page, written by `verify --stamp`; a later page edit that
@@ -65,4 +80,6 @@ export interface Jurisdiction {
   scheduled?: ScheduledChange
   /** Set by applyFreshness() when the entry is too old or expired to trust */
   stale?: { reason: string; original: Jurisdiction }
+  /** Set by planJurisdictions() when a trip window other than Today is active */
+  plan?: PlanMeta
 }

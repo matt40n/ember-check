@@ -1,17 +1,17 @@
 import type { Jurisdiction } from '../types'
 import { STAGE_COLOR, STAGE_SHORT } from '../lib/stage'
 import { countdownLabel, expiryText } from '../lib/time'
-import { pacificToday } from '../lib/scheduled'
+import { usePlanWindow } from '../hooks/usePlanWindow'
 import { formatUpcomingDate } from '../lib/upcoming'
 
 export function JurisdictionList({ items, selectedId, onSelect }: { items: Jurisdiction[]; selectedId: string | null; onSelect: (j: Jurisdiction) => void }) {
+  const { window: plan, today } = usePlanWindow()
   if (items.length === 0) return <p className="p-3 text-sm text-cream-dim">No units match this filter.</p>
-  const today = pacificToday()
   return (
     <ul className="divide-y divide-pine-700">
       {items.map((j) => {
         const e = expiryText(j.expires)
-        const pending = j.scheduled && j.scheduled.on > today ? j.scheduled : null
+        const pending = j.scheduled && j.scheduled.on > plan.arrive ? j.scheduled : null
         return (
           <li key={j.id}>
             <button
@@ -22,7 +22,7 @@ export function JurisdictionList({ items, selectedId, onSelect }: { items: Juris
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-display text-base font-semibold leading-tight">{j.name}</span>
                 <span className="block text-xs text-cream-dim">
-                  {j.agency} · {j.stale ? 'unverified — re-check' : `${STAGE_SHORT[j.stage]} · ${pending ? `changes ${formatUpcomingDate(pending.on, today)}: ${pending.summary}` : countdownLabel(e.days, e.past)}`}
+                  {j.agency} · {j.stale ? 'unverified — re-check' : j.plan?.ended ? `not announced after ${formatUpcomingDate(j.plan.ended.expires, today)}` : `${STAGE_SHORT[j.stage]} · ${pending ? `changes ${formatUpcomingDate(pending.on, today)}: ${pending.summary}` : countdownLabel(e.days, e.past)}`}
                 </span>
               </span>
             </button>

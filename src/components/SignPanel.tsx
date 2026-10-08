@@ -7,8 +7,9 @@ import { countdownLabel, expiryText } from '../lib/time'
 import type { ProbeResult } from '../lib/probe'
 import { Confidence } from './Confidence'
 import { Upcoming } from './Upcoming'
-import { upcomingForJurisdiction } from '../lib/upcoming'
-import { pacificToday } from '../lib/scheduled'
+import { formatUpcomingDate, groupUpcoming, upcomingForPlan } from '../lib/upcoming'
+import { lastNight } from '../lib/plan'
+import { usePlanWindow } from '../hooks/usePlanWindow'
 
 function Row({ label, value, note }: { label: string; value: Allow; note?: string }) {
   return (
@@ -61,9 +62,10 @@ export function SignPanel({ result, redFlag, onClear, stack }: { result: ProbeRe
     )
   }
   const exp = expiryText(j.expires)
-  const today = pacificToday()
+  const { window: plan, today, isToday } = usePlanWindow()
   // The countdown below already shows the order's end date; an announced change overrides it
-  const upcoming = upcomingForJurisdiction(j, today, { includeExpiry: false })
+  const upcoming = upcomingForPlan(j, today, { includeExpiry: !isToday })
+  const groups = groupUpcoming(upcoming, plan.arrive, lastNight(plan))
   // The generic stage blurb can contradict an entry's own allowances (Lava Beds: stage none but no dispersed fires) — derive it
   const explainer = j.stage === 'none'
     ? `${j.campfiresDeveloped === 'prohibited' ? 'No wood fires even in campground rings.' : 'Campfires allowed in campground rings.'} ${j.campfiresDispersed === 'prohibited' ? 'No fires outside developed campgrounds.' : j.campfiresDispersed === 'allowed_with_permit' || j.campfiresDispersed === 'allowed' ? 'Backcountry fires allowed with a free California Campfire Permit.' : 'Backcountry fires: check with the unit.'}`
@@ -83,9 +85,13 @@ export function SignPanel({ result, redFlag, onClear, stack }: { result: ProbeRe
         {j.agency === 'BLM' && !result.wildernessFocus && <span className="text-signgold/55"> · {result.surface === 'BLM' ? 'BLM-managed land here' : result.surface === 'Undetermined' ? "applies on BLM parcels — BLM's land records don't say who owns this exact spot" : 'applies on BLM-managed land'}</span>}
         {result.district && <span className="text-signgold/55"> · {result.district.replace(' Ranger District', ' RD')}</span>}
       </p>
+      {!isToday && <p className="font-display text-xs font-semibold uppercase tracking-[0.2em] text-signgold/75">On {formatUpcomingDate(plan.arrive, today)}</p>}
       <p className="mt-1 font-display text-4xl font-extrabold uppercase leading-[0.95]">
         {redFlag ? 'Red flag — no fires' : result.wildernessFocus && result.wilderness ? result.wilderness.replace(/ Wilderness$/, '') : STAGE_LABEL[j.stage]}
       </p>
+      {j.plan?.ended && <p className="mt-2 rounded border border-unknown bg-pine-950/40 p-2 text-xs text-cream"><b>Not announced.</b> {j.plan.ended.reason}</p>}
+      {j.plan?.changesDuring && <p className="mt-2 rounded border border-signgold/60 bg-signgold/10 p-2 text-xs text-cream"><b>Changes {formatUpcomingDate(j.plan.changesDuring.on, today)}:</b> {j.plan.changesDuring.summary}</p>}
+      {j.plan?.endsDuring && <p className="mt-2 rounded border border-signgold/60 bg-signgold/10 p-2 text-xs text-cream"><b>Order{j.orderNumber ? ` ${j.orderNumber}` : ''} ends {formatUpcomingDate(j.plan.endsDuring, today)}.</b> Rules after that are not announced.</p>}
       {result.governing === false && (
         <p className="mt-2 rounded border border-ember/60 bg-ember/15 p-2 text-xs text-cream">
           <b>Not the governing order for this exact spot.</b> You've cycled to a layer beneath the one that rules here — the rows below describe {j.name}'s order in general. See "Layers at this spot" for what applies.
@@ -99,7 +105,11 @@ export function SignPanel({ result, redFlag, onClear, stack }: { result: ProbeRe
           {exp.days !== null && <span className="text-signgold/60">· {exp.label}</span>}
         </p>
       )}
-      <Upcoming items={upcoming} today={today} variant="sign" />
+      {isToday ? <Upcoming items={upcoming} today={today} variant="sign" /> : (<>
+        <Upcoming title="By your arrival" items={groups.byArrival} today={today} variant="sign" />
+        <Upcoming title="During your trip" items={groups.during} today={today} variant="sign" />
+        <Upcoming title="Later" items={groups.later} today={today} variant="sign" />
+      </>)}
       {(redFlag || result.wilderness) && (
         <p className={`mt-2 rounded p-2 font-display text-lg font-bold uppercase leading-tight ${redFlag || !exempt ? 'bg-ember/20 text-cream' : 'bg-ok/20 text-cream'}`}>
           {redFlag ? 'At this spot today: no fires of any kind' : exempt ? 'At this spot: campfire OK with a CA Campfire Permit' : 'At this spot: no campfires'}
