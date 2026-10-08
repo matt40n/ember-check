@@ -118,3 +118,59 @@ describe('planJurisdictions', () => {
     expect(j.plan).toBeUndefined()
   })
 })
+
+import { monthRange, siteStatusForPlan } from './plan'
+
+const hatCreek = { firstOpen: '2026-09-04', seasonEnd: '2026-10-10', seasonEndKnown: true, nextOpen: '2027-04-23' }
+
+describe('siteStatusForPlan', () => {
+  test('every night inside the calendar window is open', () => {
+    expect(siteStatusForPlan(hatCreek, { arrive: '2026-10-08', nights: 2 }, TODAY)).toEqual({ kind: 'open', text: 'Open both nights (Recreation.gov calendar)' })
+    expect(siteStatusForPlan(hatCreek, { arrive: '2026-10-07', nights: 3 }, TODAY).text).toBe('Open all 3 nights (Recreation.gov calendar)')
+    expect(siteStatusForPlan(hatCreek, { arrive: '2026-10-10', nights: 1 }, TODAY).text).toBe('Open (Recreation.gov calendar)')
+  })
+  test('a calendar that ends inside the stay closes, naming the night', () => {
+    expect(siteStatusForPlan(hatCreek, { arrive: '2026-10-09', nights: 3 }, TODAY)).toEqual({ kind: 'closes', date: '2026-10-10', night: 2, text: 'Closed for the season after Sat, Oct 10 — your second night (Recreation.gov calendar)' })
+  })
+  test('a stay after the season is closed, with the reopening when posted', () => {
+    expect(siteStatusForPlan(hatCreek, { arrive: '2026-10-16', nights: 2 }, TODAY)).toEqual({ kind: 'closed', reopens: '2027-04-23', text: 'Closed for the season; reopens Fri, Apr 23, 2027 (Recreation.gov calendar)' })
+    expect(siteStatusForPlan({ ...hatCreek, nextOpen: null }, { arrive: '2026-10-16', nights: 2 }, TODAY).text).toBe('Closed for the season; next season not posted yet (Recreation.gov calendar)')
+  })
+  test('arriving before it opens, with the opening inside the stay, is opens', () => {
+    expect(siteStatusForPlan(hatCreek, { arrive: '2027-04-22', nights: 3 }, TODAY)).toEqual({ kind: 'opens', date: '2027-04-23', text: 'Opens Fri, Apr 23, 2027 — your second night (Recreation.gov calendar)' })
+  })
+  test('a stay past the last released day with the end unconfirmed is unknown, not open', () => {
+    const s = { firstOpen: '2026-09-04', seasonEnd: '2026-10-10', seasonEndKnown: false, nextOpen: null }
+    expect(siteStatusForPlan(s, { arrive: '2026-10-09', nights: 3 }, TODAY)).toEqual({ kind: 'unknown', text: 'Calendar released through Sat, Oct 10 only; later nights not posted yet (Recreation.gov calendar)' })
+  })
+  test('no calendar and a plain month range gives unknown with the range as a hint', () => {
+    expect(siteStatusForPlan({ season: 'April – October' }, { arrive: '2026-11-07', nights: 2 }, TODAY)).toEqual({ kind: 'unknown', hint: 'Season listed as April – October; your dates fall outside it', text: 'Season not posted; the forest lists April – October (your dates fall outside it)' })
+    expect(siteStatusForPlan({ season: 'April – October' }, { arrive: '2026-10-09', nights: 2 }, TODAY).text).toBe('Season not posted; the forest lists April – October')
+  })
+  test('a month range that is not two plain month names is shown verbatim and never parsed', () => {
+    expect(monthRange('Mid-May - October')).toBeNull()
+    expect(siteStatusForPlan({ season: 'Mid-May - October' }, { arrive: '2026-11-07', nights: 2 }, TODAY)).toEqual({ kind: 'unknown', text: 'Season not posted; the forest lists Mid-May - October' })
+  })
+  test('nothing at all is unknown', () => {
+    expect(siteStatusForPlan({}, { arrive: '2026-10-09', nights: 2 }, TODAY)).toEqual({ kind: 'unknown', text: 'No season dates posted' })
+  })
+  test('a sign that says "closes Oct 13" means Oct 13 is the first closed day; it is a confirmed end and names its source', () => {
+    const bigPine = { season: 'May – October', signClose: '2026-10-13', signSource: 'notice posted at the campground, late Sep 2026' }
+    expect(siteStatusForPlan(bigPine, { arrive: '2026-10-12', nights: 2 }, TODAY)).toEqual({ kind: 'closes', date: '2026-10-13', night: 2, text: 'Closes for the season Tue, Oct 13 — your second night (notice posted at the campground, late Sep 2026)' })
+    expect(siteStatusForPlan(bigPine, { arrive: '2026-10-16', nights: 2 }, TODAY).kind).toBe('closed')
+    expect(siteStatusForPlan(bigPine, { arrive: '2026-10-11', nights: 2 }, TODAY)).toEqual({ kind: 'open', text: 'Open both nights (notice posted at the campground, late Sep 2026)' })
+  })
+  test('a Recreation.gov calendar beats a sign when both exist', () => {
+    const both = { ...hatCreek, signClose: '2026-10-13', signSource: 'sign' }
+    expect((siteStatusForPlan(both, { arrive: '2026-10-09', nights: 3 }, TODAY) as { date: string }).date).toBe('2026-10-10')
+  })
+})
+
+describe('monthRange', () => {
+  test('parses two plain month names in either dash style', () => {
+    expect(monthRange('April – October')).toEqual({ start: 4, end: 10 })
+    expect(monthRange('May - October')).toEqual({ start: 5, end: 10 })
+    expect(monthRange('Year-round')).toBeNull()
+    expect(monthRange(null)).toBeNull()
+  })
+})

@@ -4,7 +4,7 @@
  */
 import type { Jurisdiction, PlanMeta } from '../types'
 import { applyScheduled } from './scheduled'
-import { formatUpcomingDate } from './upcoming'
+import { formatUpcomingDate, type SeasonDates } from './upcoming'
 
 export type TripWindow = { arrive: string; nights: number }
 export const MAX_NIGHTS = 14
@@ -79,4 +79,80 @@ export function planJurisdictions(raw: Jurisdiction[], w: TripWindow, today: str
     }
     return Object.keys(plan).length ? { ...j, plan } : j
   })
+}
+
+export type SiteSeason = SeasonDates & { season?: string | null; signClose?: string | null; signOpen?: string | null; signSource?: string | null }
+export type SiteStatus =
+  | { kind: 'open'; text: string }
+  | { kind: 'closes'; date: string; night: number; text: string }
+  | { kind: 'opens'; date: string; text: string }
+  | { kind: 'closed'; reopens?: string; text: string }
+  | { kind: 'unknown'; hint?: string; text: string }
+
+const CAL = ' (Recreation.gov calendar)'
+const MONTHS_FULL = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
+const ORDINAL = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth']
+
+/** "April – October" → { start: 4, end: 10 }; anything but two plain month names → null (shown verbatim instead) */
+export function monthRange(season: string | null | undefined): { start: number; end: number } | null {
+  const m = season?.trim().match(/^([A-Za-z]+)\s*[–-]\s*([A-Za-z]+)$/)
+  if (!m) return null
+  const start = MONTHS_FULL.indexOf(m[1].toLowerCase()) + 1, end = MONTHS_FULL.indexOf(m[2].toLowerCase()) + 1
+  return start && end ? { start, end } : null
+}
+
+const nightsText = (n: number) => (n === 1 ? '' : n === 2 ? ' both nights' : ` all ${n} nights`)
+const nightOf = (date: string, w: TripWindow) => toDayNumber(date) - toDayNumber(w.arrive) + 1
+
+/**
+ * Open / closes / opens / closed / unknown for the whole stay. A Recreation.gov calendar wins; a sign-reported date
+ * fills in when there is no calendar; the forest's month range is only ever a hint.
+ */
+export function siteStatusForPlan(s: SiteSeason, w: TripWindow, today: string): SiteStatus {
+  const last = lastNight(w)
+  const fmt = (d: string) => formatUpcomingDate(d, today)
+  const hasCalendar = !!(s.firstOpen || s.seasonEnd)
+  const src = hasCalendar ? CAL : s.signSource ? ` (${s.signSource})` : ''
+  // The season window to judge against: the calendar's, else the sign's. Two different conventions meet here:
+  // the calendar's seasonEnd is the LAST BOOKABLE NIGHT; a sign's "closes Oct 13" names the FIRST CLOSED DAY.
+  // `end` is always the last available night.
+  const firstOpen = hasCalendar ? s.firstOpen ?? null : s.signOpen ?? null
+  const end = hasCalendar ? s.seasonEnd ?? null : s.signClose ? addDays(s.signClose, -1) : null
+  const endKnown = hasCalendar ? !!s.seasonEndKnown : !!s.signClose
+  const reopen = hasCalendar ? s.nextOpen ?? null : null
+  if (!hasCalendar && !s.signClose && !s.signOpen) {
+    const range = monthRange(s.season)
+    if (!s.season) return { kind: 'unknown', text: 'No season dates posted' }
+    if (range) {
+      const inRange = (iso: string) => { const m = +iso.slice(5, 7); return range.start <= range.end ? m >= range.start && m <= range.end : m >= range.start || m <= range.end }
+      const outside = !inRange(w.arrive) || !inRange(last)
+      return outside
+        ? { kind: 'unknown', hint: `Season listed as ${s.season}; your dates fall outside it`, text: `Season not posted; the forest lists ${s.season} (your dates fall outside it)` }
+        : { kind: 'unknown', text: `Season not posted; the forest lists ${s.season}` }
+    }
+    return { kind: 'unknown', text: `Season not posted; the forest lists ${s.season}` }
+  }
+  // closed: season ended before arrival and nothing reopens by the last night
+  if (end && endKnown && end < w.arrive && !(reopen && reopen <= last)) {
+    return reopen
+      ? { kind: 'closed', reopens: reopen, text: `Closed for the season; reopens ${fmt(reopen)}${src}` }
+      : { kind: 'closed', text: `Closed for the season; next season not posted yet${src}` }
+  }
+  // opens: the first bookable night (this season's or the next) is after arrival but inside the stay
+  const opening = end && endKnown && end < w.arrive ? reopen : firstOpen && firstOpen > w.arrive ? firstOpen : null
+  if (opening && opening > w.arrive && opening <= last) {
+    return { kind: 'opens', date: opening, text: `Opens ${fmt(opening)} — your ${ORDINAL[nightOf(opening, w) - 1]} night${src}` }
+  }
+  if (firstOpen && firstOpen > last) return { kind: 'closed', reopens: firstOpen, text: `Closed for the season; reopens ${fmt(firstOpen)}${src}` }
+  // closes: available on arrival but the confirmed end is before the last night
+  if (end && endKnown && end < last) {
+    if (hasCalendar) return { kind: 'closes', date: end, night: nightOf(end, w), text: `Closed for the season after ${fmt(end)} — your ${ORDINAL[nightOf(end, w) - 1]} night${src}` }
+    const closeDay = addDays(end, 1) // the sign's own date
+    return { kind: 'closes', date: closeDay, night: nightOf(closeDay, w), text: `Closes for the season ${fmt(closeDay)} — your ${ORDINAL[nightOf(closeDay, w) - 1]} night${src}` }
+  }
+  // open: every night is within the released window
+  if (end && last <= end) return { kind: 'open', text: `Open${nightsText(w.nights)}${src}` }
+  // past the released days with no confirmed end
+  if (end && !endKnown && last > end) return { kind: 'unknown', text: `Calendar released through ${fmt(end)} only; later nights not posted yet${CAL}` }
+  return { kind: 'unknown', text: 'No season dates posted' }
 }
