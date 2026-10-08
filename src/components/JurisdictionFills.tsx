@@ -1,5 +1,5 @@
-import { pacificToday } from '../lib/scheduled'
 import { formatUpcomingDate } from '../lib/upcoming'
+import { usePlanWindow } from '../hooks/usePlanWindow'
 import { useCallback, useMemo, useRef } from 'react'
 import { GeoJSON } from 'react-leaflet'
 import type { Jurisdiction } from '../types'
@@ -23,6 +23,7 @@ interface Props {
 
 /** Stage-colored fills over the agency's real boundary polygons. */
 export function JurisdictionFills({ fc, source, nameField, all, fillOpacity, hiddenUnlessSelected = false, selectedId, onPick, onMiss }: Props) {
+  const { window: plan, today } = usePlanWindow()
   const joined = useMemo(() => {
     if (!fc) return null
     // Largest polygons first so smaller units inside them are drawn (and clickable) on top
@@ -64,17 +65,16 @@ export function JurisdictionFills({ fc, source, nameField, all, fillOpacity, hid
   if (!joined) return null
   return (
     <GeoJSON
-      key={source}
+      key={`${source}:${plan.arrive}:${plan.nights}`}
       pane={source === 'usfs' ? 'forests' : source}
       data={joined}
       style={style}
       onEachFeature={(f, l) => {
         const j = all.find((x) => x.id === f.properties.jid)
         const e = j ? expiryText(j.expires) : null
-        const today = pacificToday()
-        const pending = j?.scheduled && j.scheduled.on > today ? j.scheduled : null
+        const pending = j?.scheduled && j.scheduled.on > plan.arrive ? j.scheduled : null
         l.bindTooltip(
-          `<b>${esc(f.properties.name)}</b><br/>${j ? `${STAGE_LABEL[j.stage]} · ${pending ? `changes ${formatUpcomingDate(pending.on, today)}: ${esc(pending.summary)}` : countdownLabel(e!.days, e!.past)}` : 'No tracked order'}`,
+          `<b>${esc(f.properties.name)}</b><br/>${j ? `${STAGE_LABEL[j.stage]} · ${j.plan?.ended ? `not announced after ${formatUpcomingDate(j.plan.ended.expires, today)}` : pending ? `changes ${formatUpcomingDate(pending.on, today)}: ${esc(pending.summary)}` : countdownLabel(e!.days, e!.past)}` : 'No tracked order'}`,
           { sticky: true, direction: 'top', opacity: 0.95 },
         )
         l.on('click', (ev) => {
