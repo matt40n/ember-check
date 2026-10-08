@@ -1,0 +1,84 @@
+Browser console output (errors and warnings) collected by Playwright/Chromium against the dev server, 2026-10-08.
+The cloud sandbox's egress policy blocks the map-tile, NIFC/NWS live-feed and other third-party hosts (HTTP 403 on CONNECT), which shows as
+'Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED'; those lines are environmental and are counted, not listed. Everything else is listed in full.
+The known React duplicate-key warning for the OpenStreetMap 'Site 4' (Unknown operator-Site 4-35.75639--120.89494) is pre-existing and was not touched.
+
+## 01-today-map-desktop (1440x900) (today)
+  41 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  1 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 02-picker-open-desktop (1440x900) (today)
+  41 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  1 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 03-next-weekend-banner-desktop (1440x900) ?arrive=2026-10-16&nights=2
+  41 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  1 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 04-campground-open-cooper-gulch-desktop (1440x900) ?arrive=2026-10-09&nights=2
+  140 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  2 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 05-campground-closes-cattle-camp-desktop (1440x900) ?arrive=2026-10-14&nights=3
+  127 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  2 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 06-campground-closed-mary-smith-desktop (1440x900) ?arrive=2026-10-09&nights=2
+  140 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  2 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 07-lassen-big-pine-sign-date-desktop (1440x900) ?arrive=2026-10-12&nights=2
+  122 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  2 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 08-spot-panel-shasta-trinity-desktop (1440x900) ?arrive=2026-10-09&nights=2
+  105 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  2 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 09-orders-list-nov-desktop (1440x900) ?arrive=2026-11-07&nights=2
+  41 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  1 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 10-spot-panel-tahoe-not-announced-desktop (1440x900) ?arrive=2026-11-07&nights=2
+  119 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  2 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 01-today-map-phone (375x812) (today)
+  16 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  1 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 02-picker-open-phone (375x812) (today)
+  16 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  1 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 03-next-weekend-banner-phone (375x812) ?arrive=2026-10-16&nights=2
+  16 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  1 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 04-campground-open-cooper-gulch-phone (375x812) ?arrive=2026-10-09&nights=2
+  66 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  2 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 05-campground-closes-cattle-camp-phone (375x812) ?arrive=2026-10-14&nights=3
+  68 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  2 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 06-campground-closed-mary-smith-phone (375x812) ?arrive=2026-10-09&nights=2
+  63 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  2 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 07-lassen-big-pine-sign-date-phone (375x812) ?arrive=2026-10-12&nights=2
+  62 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  2 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 08-spot-panel-shasta-trinity-phone (375x812) ?arrive=2026-10-09&nights=2
+  52 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  2 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 09-orders-list-nov-phone (375x812) ?arrive=2026-11-07&nights=2
+  16 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  1 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
+
+## 10-spot-panel-tahoe-not-announced-phone (375x812) ?arrive=2026-11-07&nights=2
+  55 x blocked network request (net::ERR_TUNNEL_CONNECTION_FAILED)
+  2 x error: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a fut…
