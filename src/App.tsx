@@ -90,6 +90,16 @@ export default function App() {
   const mapRef = useRef<L.Map | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const legendRef = useRef<HTMLDivElement>(null)
+  const topRef = useRef<HTMLDivElement>(null)
+  const [topH, setTopH] = useState(0)
+  useEffect(() => {
+    const el = topRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => setTopH(el.getBoundingClientRect().height))
+    ro.observe(el)
+    setTopH(el.getBoundingClientRect().height)
+    return () => ro.disconnect()
+  }, [])
   const [legendH, setLegendH] = useState(0)
   useEffect(() => {
     const el = legendRef.current
@@ -247,9 +257,9 @@ export default function App() {
         {layers.campgrounds && boundariesForPins && <CampgroundLayer sites={sites.data} all={JURISDICTIONS} boundaries={boundariesForPins} coarse={coarse} onSelect={selectSite} backcountryOnly={layers.backcountryOnly} showClosed={layers.showClosed} redFlagZones={isToday ? redFlagZones : null} />}
       </MapView>
 
-      <div className="pointer-events-none absolute left-0 right-0 top-0 z-[1300] flex flex-col gap-2 p-3">
+      <div ref={topRef} className="pointer-events-none absolute left-0 right-0 top-0 z-[1300] flex flex-col gap-2 p-3">
       <header className="pointer-events-none flex items-start justify-between gap-2">
-        <div className="pointer-events-auto flex min-w-0 items-center gap-2 rounded bg-pine-900/90 px-3 py-2 backdrop-blur md:w-[380px]">
+        <div className="pointer-events-auto relative z-20 flex min-w-0 items-center gap-2 rounded bg-pine-900/90 px-3 py-2 backdrop-blur md:w-[380px]">
           <Flame className="text-signgold" size={20} />
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-xl font-extrabold uppercase leading-none tracking-wide">Ember Check</h1>
@@ -282,10 +292,11 @@ export default function App() {
 
       <aside
         className={`absolute z-[1000] flex flex-col bg-pine-900/95 backdrop-blur transition-transform
-          md:left-3 md:top-[7.5rem] md:bottom-3 md:w-[380px] md:rounded-md md:border md:border-pine-700 ${sidebarOpen ? '' : 'md:hidden'}
+          md:left-3 md:top-[var(--side-top)] md:bottom-3 md:w-[380px] md:rounded-md md:border md:border-pine-700 ${sidebarOpen ? '' : 'md:hidden'}
           max-md:inset-x-0 max-md:max-h-[62vh] max-md:rounded-t-xl max-md:border-t max-md:border-pine-700
           ${drawer ? '' : 'max-md:translate-y-[calc(100%-44px)]'}`}
-        style={coarse ? { bottom: legendH } : undefined}
+        // While planning, the picker chip and banner make the header taller than the fixed 7.5rem the side panel normally starts at
+        style={{ '--side-top': isToday ? '7.5rem' : `max(7.5rem, ${topH}px)`, ...(coarse ? { bottom: legendH } : {}) } as React.CSSProperties}
       >
         <button onClick={() => setDrawer((d) => !d)} className="flex h-11 shrink-0 items-center justify-center gap-2 text-xs font-semibold uppercase tracking-widest text-cream-dim md:hidden" aria-label={drawer ? 'Hide details' : 'Show details'} aria-expanded={drawer}>
           <span className="h-1.5 w-12 rounded-full bg-pine-600" />
@@ -360,7 +371,7 @@ export default function App() {
           </section>
         </div>
         <div className="border-t border-pine-700 p-3 max-md:hidden">
-          <Legend ownership={layers.blm || (selected?.agency === 'BLM' && !result.wildernessFocus && !site)} />
+          <Legend ownership={layers.blm || (selected?.agency === 'BLM' && !result.wildernessFocus && !site)} planning={!isToday} />
           <button onClick={toggleSidebar} className="mt-2 flex w-full items-center justify-center gap-1.5 rounded border border-pine-600 py-1 text-[11px] font-semibold uppercase tracking-widest text-cream-dim hover:bg-pine-700 hover:text-cream" aria-label="Hide panel" aria-expanded={sidebarOpen}>
             <PanelLeftClose size={14} /> Hide panel
           </button>
@@ -376,7 +387,7 @@ export default function App() {
       <div className="absolute bottom-0 right-0 z-[1100] flex items-end md:hidden" style={legendOpen ? { left: 0 } : undefined}>
         {legendOpen && (
           <div ref={legendRef} className="min-w-0 flex-1 border-t border-pine-700 bg-pine-950/95 px-2.5 py-1.5 backdrop-blur [&_.text-xs]:text-[10px] [&_.space-y-1\.5>*+*]:mt-0.5">
-            <Legend ownership={layers.blm || (selected?.agency === 'BLM' && !result.wildernessFocus && !site)} />
+            <Legend ownership={layers.blm || (selected?.agency === 'BLM' && !result.wildernessFocus && !site)} planning={!isToday} />
           </div>
         )}
         <button onClick={toggleLegend} aria-expanded={legendOpen} aria-label={legendOpen ? 'Hide legend' : 'Show legend'} className={`flex shrink-0 items-center gap-0.5 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-cream-dim ${legendOpen ? 'self-stretch border-l border-t border-pine-700 bg-pine-950/95' : 'rounded-tl bg-pine-950/90 backdrop-blur'}`}>

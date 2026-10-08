@@ -31,6 +31,8 @@ entry early and don't leave it for later — schedule it:
 - `status.json` lists `scheduledChanges`. Once one is `inEffect`, fold `change` into the entry and delete the
   `scheduled` block at the next weekly pass. Nothing breaks if it waits.
 
+Sign-reported season dates go in `siteDates` (structured, feeds the planner), with a short `siteNotes` line for the card. The planner reads `scheduled` and `expires`; nothing else is needed for it to work.
+
 **Upcoming dates go everywhere.** Any opening, closing or rule change we know about must show on every place it
 affects, because people plan trips around it. Dated facts flow through `src/lib/upcoming.ts` (scheduled changes,
 order end dates, Recreation.gov closing and reopening nights); add a new kind there rather than burying it in notes.
