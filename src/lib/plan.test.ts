@@ -174,3 +174,11 @@ describe('monthRange', () => {
     expect(monthRange(null)).toBeNull()
   })
 })
+
+import { JURISDICTIONS as RAW } from '../data/restrictions'
+import { applyScheduled } from './scheduled'
+
+test('with the Today window the real data resolves exactly as before', () => {
+  const t = '2026-10-07'
+  expect(planJurisdictions(RAW, { arrive: t, nights: 1 }, t)).toEqual(applyScheduled(RAW, t))
+})

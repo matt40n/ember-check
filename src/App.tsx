@@ -23,7 +23,9 @@ import { useForestBoundaries } from './api/usfs'
 import { useBlmFieldOffices, useNpsUnits, useRangerDistricts, useRecSites, useWilderness } from './api/boundaries'
 import { JURISDICTIONS as RAW, DATA_VERIFIED_ON } from './data/restrictions'
 import { applyFreshness } from './lib/freshness'
-import { applyScheduled, pacificToday } from './lib/scheduled'
+import { pacificToday } from './lib/scheduled'
+import { planJurisdictions } from './lib/plan'
+import { usePlanWindow } from './hooks/usePlanWindow'
 import { CAMPFIRE_PERMIT_URL } from './lib/permit'
 
 /** Most recent verification across all tracked orders — what the header shows */
@@ -39,6 +41,7 @@ const EMPTY: ProbeResult = { jurisdiction: null, unitName: null, district: null,
 type Step = { kind: 'wilderness'; name: string; j: Jurisdiction | null } | { kind: 'order'; j: Jurisdiction } | { kind: 'land'; surface: SurfaceManager; j: null }
 
 export default function App() {
+  const { window: plan, today: planToday, isToday } = usePlanWindow()
   // Freshness is re-evaluated when the tab comes back or the day changes, so a tab left open across a 14-day
   // window or an order's expiry doesn't keep showing a confident stage
   // Local day drives staleness; the Pacific day is when a scheduled change takes effect (a visitor in New York crosses both)
@@ -50,8 +53,8 @@ export default function App() {
     document.addEventListener('visibilitychange', tick)
     return () => { window.clearInterval(id); document.removeEventListener('visibilitychange', tick) }
   }, [])
-  /** Entries older than 14 days or past expiry are shown as Unverified rather than trusted. */
-  const JURISDICTIONS = useMemo(() => applyFreshness(applyScheduled(RAW, pacificToday())), [day])
+  /** Entries as they stand on the arrival day (Today: exactly applyScheduled), then those older than 14 days or past expiry are shown as Unverified rather than trusted. */
+  const JURISDICTIONS = useMemo(() => applyFreshness(planJurisdictions(RAW, plan, planToday)), [day, plan, planToday])
   const [probe, setProbe] = useState<{ lat: number; lng: number } | null>(null)
   const [result, setResult] = useState<ProbeResult>(EMPTY)
   const [agencies, setAgencies] = useState<Set<Agency>>(new Set(AGENCIES))
@@ -59,6 +62,8 @@ export default function App() {
     fills: true, wilderness: true, districts: true, campgrounds: true, backcountryOnly: false, showClosed: false,
     redFlag: true, fires: true, perimeters: true, danger: false, blm: false,
   })
+  /** Red Flag Warnings, wildfires, perimeters and fire danger describe today; they are off and disabled for any other window */
+  const effectiveLayers = isToday ? layers : { ...layers, redFlag: false, fires: false, perimeters: false, danger: false }
   const [drawer, setDrawer] = useState(false)
   const [showAbout, setShowAbout] = useState(false)
   const [ack, setAck] = useState(true)
@@ -227,7 +232,7 @@ export default function App() {
   return (
     <div className="relative h-full w-full overflow-clip">
       <MapView onClick={probeAt} probe={probe} mapRef={mapRef}>
-        <LiveLayers layers={{ ...layers, blm: layers.blm || (selected?.agency === 'BLM' && !result.wildernessFocus && !site) }} onProbe={probeAt} />
+        <LiveLayers layers={{ ...effectiveLayers, blm: layers.blm || (selected?.agency === 'BLM' && !result.wildernessFocus && !site) }} onProbe={probeAt} />
         {layers.fills && (
           <>
             <JurisdictionFills fc={blm.data} source="blm" nameField="ADMU_NAME" all={JURISDICTIONS} fillOpacity={0} hiddenUnlessSelected selectedId={result.wildernessFocus ? null : selected?.id ?? null} onPick={pickFromMap} onMiss={probeAt} />
@@ -237,7 +242,7 @@ export default function App() {
         )}
         {layers.districts && <DistrictLayer fc={districts.data} />}
         {layers.wilderness && <WildernessLayer fc={wilderness.data} all={JURISDICTIONS} onClick={probeAt} selectedName={result.wildernessFocus ? result.wilderness : null} />}
-        {layers.campgrounds && boundariesForPins && <CampgroundLayer sites={sites.data} all={JURISDICTIONS} boundaries={boundariesForPins} coarse={coarse} onSelect={selectSite} backcountryOnly={layers.backcountryOnly} showClosed={layers.showClosed} redFlagZones={redFlagZones} />}
+        {layers.campgrounds && boundariesForPins && <CampgroundLayer sites={sites.data} all={JURISDICTIONS} boundaries={boundariesForPins} coarse={coarse} onSelect={selectSite} backcountryOnly={layers.backcountryOnly} showClosed={layers.showClosed} redFlagZones={isToday ? redFlagZones : null} />}
       </MapView>
 
       <div className="pointer-events-none absolute left-0 right-0 top-0 z-[1300] flex flex-col gap-2 p-3">
@@ -286,13 +291,13 @@ export default function App() {
         <div ref={scrollRef} className="overflow-y-auto p-3 pt-0 md:pt-3">
           {site ? (
             <div className="rounded-md border border-pine-600 bg-pine-800 p-3">
-              <SitePopup s={site.s} v={redFlag.active ? siteFireVerdict(site.s, JURISDICTIONS, boundaries, true) : site.v} inline />
+              <SitePopup s={site.s} v={redFlag.active && isToday ? siteFireVerdict(site.s, JURISDICTIONS, boundaries, true) : site.v} inline />
               <button onClick={() => setSite(null)} className="mt-3 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-signgold">
                 <ChevronLeft size={14} /> Area rules{selected ? ` · ${selected.name}` : ''}
               </button>
             </div>
           ) : (
-            <SignPanel result={result} redFlag={redFlag.active} onClear={clearSelection} stack={cycle && cycle.list.length > 1 ? { names: cycle.list.map((st) => (st.kind === 'wilderness' ? st.name : st.kind === 'land' ? LAND_LABEL[st.surface] : st.j.name)), idx: cycle.idx } : undefined} />
+            <SignPanel result={result} redFlag={redFlag.active && isToday} onClear={clearSelection} stack={cycle && cycle.list.length > 1 ? { names: cycle.list.map((st) => (st.kind === 'wilderness' ? st.name : st.kind === 'land' ? LAND_LABEL[st.surface] : st.j.name)), idx: cycle.idx } : undefined} />
           )}
           {probe && !selected && !site && !(result.surface && result.surface !== 'pending' && result.surface !== 'unknown') && (
             <p className="mt-2 text-xs text-cream-dim">
@@ -301,7 +306,7 @@ export default function App() {
                 : `${result.surface && result.surface !== 'pending' && result.surface !== 'unknown' ? LAND_LABEL[result.surface as SurfaceManager] : 'Not federal land'} — no federal fire order applies here. CAL FIRE burn rules and any county ordinance govern; call the local CAL FIRE unit or fire district.`}
             </p>
           )}
-          {redFlag.headline && <p className="mt-2 text-xs text-ember">{redFlag.headline}</p>}
+          {redFlag.headline && isToday && <p className="mt-2 text-xs text-ember">{redFlag.headline}</p>}
           <SpotConditions pt={probe} />
 
           <section className="mt-4">
@@ -317,10 +322,10 @@ export default function App() {
 
           <section className="mt-4">
             <h2 className="font-display text-sm font-bold uppercase tracking-widest text-cream-dim">Live conditions</h2>
-            <Toggle label="Red Flag Warnings" hint="NWS · hourly" on={layers.redFlag} onChange={(v) => setLayers({ ...layers, redFlag: v })} />
-            <Toggle label="Active wildfires" hint="NIFC · hourly" on={layers.fires} onChange={(v) => setLayers({ ...layers, fires: v })} />
-            <Toggle label="Fire perimeters" hint="NIFC · hourly" on={layers.perimeters} onChange={(v) => setLayers({ ...layers, perimeters: v })} />
-            <Toggle label="Fire danger (ERC percentile)" hint="NFDRS · daily" on={layers.danger} onChange={(v) => setLayers({ ...layers, danger: v })} />
+            <Toggle label="Red Flag Warnings" hint={isToday ? "NWS · hourly" : "today only"} disabled={!isToday} on={effectiveLayers.redFlag} onChange={(v) => setLayers({ ...layers, redFlag: v })} />
+            <Toggle label="Active wildfires" hint={isToday ? "NIFC · hourly" : "today only"} disabled={!isToday} on={effectiveLayers.fires} onChange={(v) => setLayers({ ...layers, fires: v })} />
+            <Toggle label="Fire perimeters" hint={isToday ? "NIFC · hourly" : "today only"} disabled={!isToday} on={effectiveLayers.perimeters} onChange={(v) => setLayers({ ...layers, perimeters: v })} />
+            <Toggle label="Fire danger (ERC percentile)" hint={isToday ? "NFDRS · daily" : "today only"} disabled={!isToday} on={effectiveLayers.danger} onChange={(v) => setLayers({ ...layers, danger: v })} />
           </section>
 
           <section className="mt-4">
