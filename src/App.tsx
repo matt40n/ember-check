@@ -14,6 +14,8 @@ import { JurisdictionFills } from './components/JurisdictionFills'
 import { WildernessLayer } from './components/WildernessLayer'
 import { DistrictLayer } from './components/DistrictLayer'
 import { CampgroundLayer, SitePopup } from './components/CampgroundLayer'
+import { PlanPicker } from './components/PlanPicker'
+import { PlanBanner } from './components/PlanBanner'
 import type { RecSite } from './api/boundaries'
 import type { FireVerdict } from './lib/siteFire'
 import { useCoarsePointer } from './hooks/useCoarsePointer'
@@ -256,12 +258,14 @@ export default function App() {
               {boundariesLoading && <span className="ml-2 text-signgold">loading boundaries…</span>}
             </p>
             {live.problem && <p className="mt-0.5 text-[11px] font-semibold text-ember">{live.problem}</p>}
+            <div className="mt-1"><PlanPicker /></div>
           </div>
         </div>
         <button onClick={() => setShowAbout(true)} className="pointer-events-auto rounded bg-pine-900/90 p-2 text-cream-dim hover:text-cream" aria-label="About and disclaimers">
           <Info size={18} />
         </button>
       </header>
+      <PlanBanner />
       <div className="pointer-events-auto md:w-[380px]">
         <SearchBox sites={sites.data} orders={JURISDICTIONS} onSite={searchSite} onOrder={searchOrder} onPlace={searchPlace} />
       </div>
