@@ -26,8 +26,9 @@ export function PlanPicker() {
     </button>
   )
   return (
-    <div ref={box} className="relative">
-      <button onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="dialog" className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] ${isToday ? 'border-pine-600 text-cream-dim hover:border-signgold' : 'border-signgold bg-signgold/15 text-signgold'}`}>
+    // Not `relative`: the popover anchors to the header card around the chip, so it can be wider than the chip without leaving the screen
+    <div ref={box} className="flex">
+      <button onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="dialog" className={`inline-flex items-center gap-1 rounded-full border px-2 py-0 text-[11px] leading-[14px] ${isToday ? 'border-pine-600 text-cream-dim hover:border-signgold' : 'border-signgold bg-signgold/15 text-signgold'}`}>
         <CalendarDays size={11} /> {isToday ? 'Today' : describeWindow(w, today)} <ChevronDown size={11} />
       </button>
       {open && (

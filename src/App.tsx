@@ -263,12 +263,14 @@ export default function App() {
           <Flame className="text-signgold" size={20} />
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-xl font-extrabold uppercase leading-none tracking-wide">Ember Check</h1>
-            <p className="text-[11px] text-cream-dim">
-              NorCal campfire restrictions · verified {LATEST_VERIFIED}
-              {boundariesLoading && <span className="ml-2 text-signgold">loading boundaries…</span>}
-            </p>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <p className="text-[11px] text-cream-dim">
+                NorCal campfire restrictions · verified {LATEST_VERIFIED}
+                {boundariesLoading && <span className="ml-2 text-signgold">loading boundaries…</span>}
+              </p>
+              <PlanPicker />
+            </div>
             {live.problem && <p className="mt-0.5 text-[11px] font-semibold text-ember">{live.problem}</p>}
-            <div className="mt-1"><PlanPicker /></div>
           </div>
         </div>
         <button onClick={() => setShowAbout(true)} className="pointer-events-auto rounded bg-pine-900/90 p-2 text-cream-dim hover:text-cream" aria-label="About and disclaimers">
