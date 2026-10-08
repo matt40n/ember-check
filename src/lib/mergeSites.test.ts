@@ -34,3 +34,14 @@ describe('season precedence when a USFS site is also on Recreation.gov', () => {
     expect(site.season).toBe('April – October')
   })
 })
+
+import { splitSites } from './mergeSites'
+
+test('season window dates stay on the index record so pins can judge a stay without loading detail', () => {
+  const sites = buildSites(edwHatCreek, {}, [ridbHatCreek], { '232248': extra }, [], [])
+  const { index, chunks } = splitSites(sites)
+  expect(index[0].seasonEnd).toBe('2026-10-10')
+  expect(index[0].seasonEndKnown).toBe(true)
+  expect(chunks[0][0]?.season).toBe(CALENDAR)
+  expect((chunks[0][0] as Record<string, unknown>)?.seasonEnd).toBeUndefined()
+})

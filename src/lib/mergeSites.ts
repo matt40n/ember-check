@@ -36,14 +36,14 @@ export interface RecSite {
   textYear: number | null
   lat: number
   lng: number
-  // ---- detail (only in detail chunks; present on the in-browser fallback path) ----
-  restrictions?: string | null
-  season?: string | null
-  /** Dated season window from Recreation.gov's calendar, for the Upcoming list (src/lib/upcoming.ts) */
+  /** Dated season window from Recreation.gov's calendar; on the index so pins can judge a stay (src/lib/plan.ts) */
   firstOpen?: string | null
   seasonEnd?: string | null
   seasonEndKnown?: boolean
   nextOpen?: string | null
+  // ---- detail (only in detail chunks; present on the in-browser fallback path) ----
+  restrictions?: string | null
+  season?: string | null
   fee?: string | null
   description?: string | null
   reservations?: string | null
@@ -52,8 +52,8 @@ export interface RecSite {
   phone?: string | null
   website?: string | null
 }
-export type SiteDetail = Pick<RecSite, 'restrictions' | 'season' | 'firstOpen' | 'seasonEnd' | 'seasonEndKnown' | 'nextOpen' | 'fee' | 'description' | 'reservations' | 'hours' | 'stayLimit' | 'phone' | 'website'>
-export const DETAIL_FIELDS = ['restrictions', 'season', 'firstOpen', 'seasonEnd', 'seasonEndKnown', 'nextOpen', 'fee', 'description', 'reservations', 'hours', 'stayLimit', 'phone', 'website'] as const
+export type SiteDetail = Pick<RecSite, 'restrictions' | 'season' | 'fee' | 'description' | 'reservations' | 'hours' | 'stayLimit' | 'phone' | 'website'>
+export const DETAIL_FIELDS = ['restrictions', 'season', 'fee', 'description', 'reservations', 'hours', 'stayLimit', 'phone', 'website'] as const
 export const DETAIL_CHUNKS = 24
 export const chunkOf = (idx: number) => idx % DETAIL_CHUNKS
 
@@ -192,8 +192,8 @@ export function buildSites(fc: GeoJSON.FeatureCollection<GeoJSON.Point>, pages: 
 export function splitSites(sites: RecSite[]): { index: RecSite[]; chunks: Record<number, SiteDetail>[] } {
   const chunks: Record<number, SiteDetail>[] = Array.from({ length: DETAIL_CHUNKS }, () => ({}))
   const index = sites.map((s) => {
-    const { restrictions, season, firstOpen, seasonEnd, seasonEndKnown, nextOpen, fee, description, reservations, hours, stayLimit, phone, website, ...lean } = s
-    const detail: SiteDetail = { restrictions, season, firstOpen, seasonEnd, seasonEndKnown, nextOpen, fee, description, reservations, hours, stayLimit, phone, website }
+    const { restrictions, season, fee, description, reservations, hours, stayLimit, phone, website, ...lean } = s
+    const detail: SiteDetail = { restrictions, season, fee, description, reservations, hours, stayLimit, phone, website }
     chunks[chunkOf(s.idx)][s.idx] = Object.fromEntries(Object.entries(detail).filter(([, v]) => v != null)) as SiteDetail
     return lean as RecSite
   })
