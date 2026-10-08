@@ -54,6 +54,8 @@ export interface Jurisdiction {
   siteNotes?: Record<string, string>
   /** An HTML page to fingerprint/date-check when sourceUrl is a PDF (BLM announcements) */
   checkUrl?: string
+  /** Places the bot cannot read but a human should glance at while this unit is restricted (a park's Facebook page). Printed in the bot's issues. */
+  alsoCheck?: string[]
   /** Fingerprint of the fire-related sentences on the source page, written by `verify --stamp`; a later page edit that
    *  leaves these sentences unchanged (weather, road notes) is not worth a human read */
   pageFireHash?: string
