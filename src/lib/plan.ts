@@ -2,6 +2,8 @@
  * Trip window: the dates a visitor is planning for. Everything here is pure and works on Pacific calendar-day
  * strings (YYYY-MM-DD), compared lexically. See docs/superpowers/specs/2026-10-07-plan-for-a-date-design.md.
  */
+import type { Jurisdiction, PlanMeta } from '../types'
+import { applyScheduled } from './scheduled'
 import { formatUpcomingDate } from './upcoming'
 
 export type TripWindow = { arrive: string; nights: number }
@@ -48,4 +50,33 @@ export function describeWindow(w: TripWindow, today: string): string {
   const a = formatUpcomingDate(w.arrive, today)
   if (w.nights === 1) return `${a} (1 night)`
   return `${a} – ${formatUpcomingDate(addDays(w.arrive, w.nights), today)}`
+}
+
+const MONTH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const shortDate = (iso: string) => `${MONTH[+iso.slice(5, 7) - 1]} ${+iso.slice(8, 10)}`
+
+/**
+ * The entries as they stand on the arrival day, tagged with what changes or ends during the stay. Today's window
+ * is exactly applyScheduled(raw, today) with no tags, so the ordinary map is unchanged.
+ */
+export function planJurisdictions(raw: Jurisdiction[], w: TripWindow, today: string): Jurisdiction[] {
+  const resolved = applyScheduled(raw, w.arrive)
+  if (isTodayWindow(w, today)) return resolved
+  const last = lastNight(w)
+  return resolved.map((j, i) => {
+    const before = raw[i]
+    const plan: PlanMeta = {}
+    const sch = before.scheduled
+    if (sch && sch.on > today && sch.on <= w.arrive) plan.applied = { on: sch.on, summary: sch.summary }
+    if (sch && sch.on > w.arrive && sch.on <= last) plan.changesDuring = { on: sch.on, summary: sch.summary }
+    const restricted = j.stage !== 'none' && j.stage !== 'unknown'
+    if (restricted && j.expires !== 'until_rescinded') {
+      if (j.expires < w.arrive) {
+        plan.ended = { expires: j.expires, orderNumber: j.orderNumber, reason: `Order${j.orderNumber ? ` ${j.orderNumber}` : ''} ends ${shortDate(j.expires)}. Rules after that are not announced.` }
+        return { ...j, stage: 'unknown', campfiresDeveloped: 'unknown', campfiresDispersed: 'unknown', stoves: 'unknown', smoking: 'unknown', wildernessExempt: undefined, plan }
+      }
+      if (j.expires >= w.arrive && j.expires < last) plan.endsDuring = j.expires
+    }
+    return Object.keys(plan).length ? { ...j, plan } : j
+  })
 }
