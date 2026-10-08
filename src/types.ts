@@ -64,6 +64,9 @@ export interface Jurisdiction {
   developedSitesRule?: 'exhibit' | 'any_developed'
   /** Site-specific caveats keyed by site name (matched with namesMatch); shown only on that site's card */
   siteNotes?: Record<string, string>
+  /** Season dates reported by a sign or ranger for a named site (no online source), keyed like siteNotes. A
+   *  Recreation.gov calendar beats these; they count only where no calendar exists. */
+  siteDates?: Record<string, { closes?: string; opens?: string; source: string }>
   /** An HTML page to fingerprint/date-check when sourceUrl is a PDF (BLM announcements) */
   checkUrl?: string
   /** Fingerprint of the fire-related sentences on the source page, written by `verify --stamp`; a later page edit that

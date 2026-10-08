@@ -5,6 +5,7 @@
  * A new kind of dated fact belongs here, not in a free-text note.
  */
 import type { Jurisdiction } from '../types'
+import { namesMatch } from './siteFire'
 
 export type UpcomingItem = { date: string; text: string }
 /** The dated part of a campground's Recreation.gov season window (see src/lib/season.ts) */
@@ -42,4 +43,36 @@ export function formatUpcomingDate(date: string, today: string): string {
   const d = new Date(date + 'T12:00:00Z')
   const year = date.slice(0, 4) === today.slice(0, 4) ? '' : `, ${date.slice(0, 4)}`
   return `${WEEKDAY[d.getUTCDay()]}, ${MONTH[d.getUTCMonth()]} ${d.getUTCDate()}${year}`
+}
+
+/** Sign-reported dates for one site, matched loosely by name like siteNotes */
+export function signDatesFor(j: Jurisdiction | null | undefined, siteName: string): { signClose: string | null; signOpen: string | null; signSource: string | null } {
+  const hit = Object.entries(j?.siteDates ?? {}).find(([n]) => namesMatch(n, siteName))?.[1]
+  return { signClose: hit?.closes ?? null, signOpen: hit?.opens ?? null, signSource: hit?.source ?? null }
+}
+
+export function upcomingForSignDates(j: Jurisdiction | null | undefined, siteName: string, today: string): UpcomingItem[] {
+  const d = signDatesFor(j, siteName)
+  const out: UpcomingItem[] = []
+  if (d.signClose && d.signClose >= today) out.push({ date: d.signClose, text: `Closes for the season (${d.signSource})` })
+  if (d.signOpen && d.signOpen > today) out.push({ date: d.signOpen, text: `Opens for the season (${d.signSource})` })
+  return out.sort(byDate)
+}
+
+/** upcomingForJurisdiction plus what the planner found: a change applied by arrival, or an order that ran out */
+export function upcomingForPlan(j: Jurisdiction, today: string, opts: { includeExpiry?: boolean } = {}): UpcomingItem[] {
+  const out = upcomingForJurisdiction(j, today, opts)
+  if (j.plan?.applied) out.push({ date: j.plan.applied.on, text: j.plan.applied.summary })
+  if (j.plan?.ended) out.push({ date: j.plan.ended.expires, text: j.plan.ended.reason })
+  return out.sort(byDate)
+}
+
+export type UpcomingGroups = { byArrival: UpcomingItem[]; during: UpcomingItem[]; later: UpcomingItem[] }
+/** Before the trip (date on or before arrival), during it (through the last night), after. `last` is lastNight(window). */
+export function groupUpcoming(items: UpcomingItem[], arrive: string, last: string): UpcomingGroups {
+  return {
+    byArrival: items.filter((i) => i.date <= arrive),
+    during: items.filter((i) => i.date > arrive && i.date <= last),
+    later: items.filter((i) => i.date > last),
+  }
 }
