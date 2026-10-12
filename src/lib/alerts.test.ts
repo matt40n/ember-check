@@ -131,3 +131,20 @@ describe('newerFireAlerts', () => {
     expect(newerFireAlerts([santaRosa], { name: 'Humboldt-Toiyabe NF', sourceUrl: carson.sourceUrl, effective: '2026-06-29' })).toEqual([santaRosa])
   })
 })
+
+import { watchSince } from './alerts'
+
+describe('watchSince', () => {
+  // The bot stamps verifiedOn at 6 am Pacific; an alert posted later that day carries the same date, so the cutoff
+  // must sit one day before the stamp or that alert is never seen.
+  test('is the day before verifiedOn, or the entry\'s own date when that is later', () => {
+    expect(watchSince('2026-06-29', '2026-10-10')).toBe('2026-10-09')
+    expect(watchSince('2026-10-12', '2026-10-10')).toBe('2026-10-12')
+    expect(watchSince(undefined, '2026-10-10')).toBe('2026-10-09')
+  })
+  test('an alert dated the same day as the last stamp still counts as newer', () => {
+    const since = watchSince('2026-06-29', '2026-10-10')
+    expect('2026-10-10' > since).toBe(true)
+    expect('2026-10-09' > since).toBe(false)
+  })
+})

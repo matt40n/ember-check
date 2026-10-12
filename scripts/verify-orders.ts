@@ -20,7 +20,7 @@ import type { Jurisdiction } from '../src/types'
 
 import { fireSentences, fireTextHash, articleBody, FINGERPRINT_VERSION } from '../src/lib/fingerprint'
 import { parseRss, fireReleasesSince, npsNewsFeedUrl } from '../src/lib/newsFeed'
-import { alertCards, alertsIndexFor, fireAlerts, newerFireAlerts } from '../src/lib/alerts'
+import { alertCards, alertsIndexFor, fireAlerts, newerFireAlerts, watchSince } from '../src/lib/alerts'
 const stamp = process.argv.includes('--stamp')
 const rehash = process.argv.includes('--rehash')
 const jsonOut = process.argv[process.argv.indexOf('--json') + 1]
@@ -107,6 +107,7 @@ async function liveStatus(j: Jurisdiction): Promise<Live | null> {
   return null
 }
 const statuses: Record<string, string> = {}
+const alertsIndexCache: Record<string, Promise<string | null>> = {}
 /**
  * Everything below rewrites `restrictions.ts` as text, anchored on the entry's literal `id: '<id>',`. Two rules
  * keep that honest:
@@ -201,7 +202,8 @@ for (const j of JURISDICTIONS) {
 
   const idx = alertsIndexFor(j.sourceUrl)
   if (idx) {
-    const html = await text(idx)
+    // Several entries share a forest (Humboldt-Toiyabe's districts); fetch each index once per run
+    const html = await (alertsIndexCache[idx] ??= text(idx))
     if (!html) notes.push(`alerts index unreachable: ${idx}`)
     else if (!alertCards(html).length) {
       // Every forest's index carries at least its region's standing alerts. None parsed means the markup changed
@@ -209,10 +211,12 @@ for (const j of JURISDICTIONS) {
       if (status === 'PASS') status = 'WARN'
       notes.push(`alerts index not checked (no alerts could be read from it — the page markup probably changed; fix alertCards in src/lib/alerts.ts): ${idx}`)
     } else {
-      const newer = newerFireAlerts(fireAlerts(html), j)
+      // A reviewed but irrelevant alert is acknowledged by `verifiedOn: V`, like the news feed
+      const since = watchSince(j.effective, j.verifiedOn)
+      const newer = newerFireAlerts(fireAlerts(html), { ...j, effective: since })
       if (newer.length) {
         if (status === 'PASS') status = 'WARN'
-        notes.push(`newer fire alerts since ${j.effective}: ${newer.map((a) => `"${a.title}" (${a.date})`).join('; ')} — ${idx}`)
+        notes.push(`newer fire alerts since ${since}: ${newer.map((a) => `"${a.title}" (${a.date})`).join('; ')} — ${idx}`)
       }
     }
   }
@@ -246,9 +250,9 @@ for (const j of JURISDICTIONS) {
     const xml = await text(feedUrl)
     if (!xml) notes.push(`news feed unreachable: ${feedUrl}`)
     else {
-      // Newer than the notice we recorded AND newer than the last time a human verified this entry: once the release
+      // Newer than the notice we recorded and than the last human verification (see watchSince): once the release
       // has been read, setting `verifiedOn: V` (the usual hand-edit) silences it without faking a notice date
-      const since = [j.noticeUpdated ?? j.effective ?? '2000-01-01', j.verifiedOn].sort().pop()!
+      const since = watchSince(j.noticeUpdated ?? j.effective, j.verifiedOn)
       const fresh = fireReleasesSince(parseRss(xml), since)
       if (fresh.length) {
         if (status === 'PASS') status = 'WARN'

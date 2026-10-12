@@ -30,6 +30,18 @@ function isoDate(month: string, day: string, year: string): string | null {
 }
 const pathOf = (url: string) => url.replace(/^https?:\/\/[^/]+/, '').replace(/[?#].*$/, '').replace(/\/+$/, '').toLowerCase()
 
+/**
+ * The cutoff a "newer than" watch compares against. An entry's own date (effective, or the notice date for a
+ * news feed) is the floor; a human's re-verification (`verifiedOn: V`) moves it forward, which is how a reviewed
+ * but irrelevant alert is acknowledged. The bot stamps verifiedOn at 6 am Pacific, and an alert posted later that
+ * day carries the same date, so the cutoff sits one day before the stamp or that alert would never be seen.
+ */
+export function watchSince(own: string | undefined, verifiedOn: string): string {
+  const d = new Date(verifiedOn + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 1)
+  const dayBefore = d.toISOString().slice(0, 10)
+  return [own ?? '2000-01-01', dayBefore].sort().pop()!
+}
+
 /** Every dated alert on a USFS alerts index, in page order. An index that yields none has changed its markup. */
 export function alertCards(html: string): Alert[] {
   const out: Alert[] = []

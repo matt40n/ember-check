@@ -46,9 +46,10 @@ Both come from the forest's **alerts index** (`fs.usda.gov/r05/<forest>/alerts`)
 checked against — including the ones whose source is a rescission news release, since that is where a
 restriction that comes back after a dry spell will be posted.
 - **Newer fire alerts:** the index lists a fire-restriction alert (campfire, fire restriction, Stage 1/2, fire
-  ban, restrictions lifted or rescinded) that starts after the entry's `effective` date and isn't the entry's own
-  `sourceUrl`. Road, trail and fire-area closures are ignored. Open the alert; if it changes the rules, update
-  the entry and point `sourceUrl` at it. A district entry (Humboldt-Toiyabe's Carson and Bridgeport) skips alerts
+  ban, restrictions lifted or rescinded) that starts after the entry's `effective` date (or after its last
+  human verification, whichever is later) and isn't the entry's own `sourceUrl`. Road, trail and fire-area
+  closures are ignored. Open the alert; if it changes the rules, update the entry and point `sourceUrl` at it.
+  If it doesn't, set `verifiedOn: V` and the warning stops — the same acknowledgment the news-release watch uses. A district entry (Humboldt-Toiyabe's Carson and Bridgeport) skips alerts
   that name only other ranger districts.
 - **Alerts index not checked:** the page loaded but no alerts could be read from it, so the forest redesigned the
   page and nothing is watching for new restrictions. Every USFS entry warns at once. Save the page over
