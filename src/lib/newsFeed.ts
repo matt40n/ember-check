@@ -6,14 +6,16 @@
  */
 export type NewsItem = { title: string; link: string; date: string; description: string }
 
-export const FIRE_RELEASE = /fire (?:restriction|ban|order)|burn ban|campfire|open (?:flame|fire)|charcoal|wood fire|\bstage (?:1|2|i|ii)\b|restrictions? (?:lifted|rescinded|end)/i
+/** Phrases that mean a rule changed. Bare "campfire" or "charcoal" would match ranger talks and cooking demos. */
+export const FIRE_RELEASE = /fire (?:restriction|ban|order)|burn ban|ban(?:ned)? on (?:camp|open )?fires?|campfires? (?:and charcoal )?(?:are |is |remain |will be )?(?:banned|prohibited|not (?:allowed|permitted)|allowed|permitted|lifted)|no (?:open |camp)?fires|open (?:flame|fire)|(?:charcoal|wood fire)s? (?:are |is )?(?:banned|prohibited)|\bstage (?:1|2|i|ii)\b|restrictions? (?:lifted|rescinded|end)/i
 
 const field = (item: string, tag: string) => {
   const m = item.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i'))
   if (!m) return ''
   return m[1].replace(/^\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*$/, '$1').replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/\s+/g, ' ').trim()
 }
-const isoDate = (pubDate: string) => { const d = new Date(pubDate); return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10) }
+/** The release's calendar date in California, so it compares cleanly with the entry's (Pacific) notice date */
+const isoDate = (pubDate: string) => { const d = new Date(pubDate); return isNaN(d.getTime()) ? '' : new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d) }
 
 export function parseRss(xml: string): NewsItem[] {
   if (!/<rss[\s>]|<channel[\s>]/i.test(xml)) return []

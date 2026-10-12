@@ -5,13 +5,11 @@ ran=$(jq -r .ranOn verify.json)
 fails=$(jq -r '[.results[] | select(.status=="FAIL")] | length' verify.json)
 warns=$(jq -r '[.results[] | select(.status=="WARN")] | length' verify.json)
 rows=$(jq -r '.results[] | select(.status!="PASS") | "### \(.status) — \(.name) (`\(.id)`)\n" + (.notes | map("- " + .) | join("\n")) + "\n- Source: \(.sourceUrl)\n"' verify.json)
-checks=$(jq -r '.manualChecks // [] | if length == 0 then "" else "**Check by hand** — the bot cannot read these; glance at each while the unit is restricted:\n" + (map("- \(.name) (`\(.stage)`): " + (.links | join(", "))) | join("\n")) end' verify.json)
+checks=$(jq -r '.manualChecks // [] | if length == 0 then "" else "**Check by hand** — the bot cannot read these; glance at each while the unit is restricted:\n" + (map("- \(.name) (`\(.stage)`): " + (.links | join(", "))) | join("\n")) + "\n" end' verify.json)
 body="Ran $ran: **$fails FAIL**, **$warns WARN**. Entries below kept their old \`verifiedOn\`, so the map will show them as *Unverified* 14 days after that date unless you update them.
 
 $rows
-
 $checks
-
 **What to do (≈ 5 min per order)** — details in [docs/runbooks/weekly.md](../blob/main/docs/runbooks/weekly.md)
 1. Open the source link and the forest's alerts page. Find the current order (new number? new dates? changed exhibit?).
 2. Edit that entry in \`src/data/restrictions.ts\`: \`stage\`, allowances, \`effective\`, \`expires\`, \`orderNumber\`, \`noticeUpdated\`, \`sourceUrl\`, and \`developedSitesListed\` if the exhibit changed. Set \`verifiedOn: V\` (the bot will re-stamp it and refresh \`pageFireHash\` on its next pass).

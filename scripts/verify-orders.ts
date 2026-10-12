@@ -255,7 +255,9 @@ for (const j of JURISDICTIONS) {
     const xml = await text(feedUrl)
     if (!xml) notes.push(`news feed unreachable: ${feedUrl}`)
     else {
-      const since = j.noticeUpdated ?? j.effective ?? '2000-01-01'
+      // Newer than the notice we recorded AND newer than the last time a human verified this entry: once the release
+      // has been read, setting `verifiedOn: V` (the usual hand-edit) silences it without faking a notice date
+      const since = [j.noticeUpdated ?? j.effective ?? '2000-01-01', j.verifiedOn].sort().pop()!
       const fresh = fireReleasesSince(parseRss(xml), since)
       if (fresh.length) {
         if (status === 'PASS') status = 'WARN'
@@ -311,7 +313,8 @@ if (rehash) {
 }
 if (writeJson) {
   const manualChecks = JURISDICTIONS
-    .filter((j) => j.alsoCheck?.length && j.stage !== 'none' && j.stage !== 'unknown')
+    // 'unknown' is included on purpose: a unit the bot cannot pin down is exactly where a social post would settle it
+    .filter((j) => j.alsoCheck?.length && j.stage !== 'none')
     .map((j) => ({ id: j.id, name: j.name, stage: j.stage, links: j.alsoCheck! }))
   await Bun.write(jsonOut, JSON.stringify({ ranOn: today, results, manualChecks }, null, 2))
   console.log(`wrote ${jsonOut}`)

@@ -44,3 +44,17 @@ describe('fireReleasesSince', () => {
 test('feed url', () => {
   expect(npsNewsFeedUrl('whis')).toBe('https://www.nps.gov/feeds/getNewsRSS.htm?id=whis')
 })
+
+describe('FIRE_RELEASE stays about rules, not events', () => {
+  test('a campfire talk, a charcoal cooking demo and a prescribed burn are not restrictions', () => {
+    for (const t of ['Join a ranger for a campfire talk at Manzanita Lake', 'Dutch-oven charcoal cooking demonstration Saturday', 'Prescribed burn planned near the visitor center']) expect(FIRE_RELEASE.test(t)).toBe(false)
+  })
+  test('starts, lifts and bans still match', () => {
+    for (const t of ['Yosemite implements fire restrictions', 'The seasonal ban on campfires & charcoal ends Friday', 'Campfires are prohibited above 9,600 feet', 'Park lifts burn ban', 'Stage 2 fire restrictions begin Monday', 'Campfire restrictions lifted today', 'No open fires until further notice']) expect(FIRE_RELEASE.test(t)).toBe(true)
+  })
+})
+
+test('pubDate becomes the Pacific calendar date, not the UTC one', () => {
+  const [item] = parseRss('<rss><channel><item><title>x</title><link>l</link><pubDate>Thu, 24 Sep 2026 18:30:00 PDT</pubDate></item></channel></rss>')
+  expect(item.date).toBe('2026-09-24') // 01:30 UTC on the 25th
+})
