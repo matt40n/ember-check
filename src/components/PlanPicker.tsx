@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { CalendarDays, ChevronDown } from 'lucide-react'
 import { usePlanWindow } from '../hooks/usePlanWindow'
-import { addDays, describeWindow, MAX_DAYS_AHEAD, MAX_NIGHTS, nextWeekend, thisWeekend, todayWindow } from '../lib/plan'
+import { addDays, describeWindow, formatWindow, MAX_DAYS_AHEAD, MAX_NIGHTS, nextWeekend, parseWindow, thisWeekend, todayWindow } from '../lib/plan'
 
 /** "Today ▾" chip in the header: presets and a date + nights picker for the trip window */
 export function PlanPicker() {
@@ -10,6 +10,7 @@ export function PlanPicker() {
   const [open, setOpen] = useState(false)
   const [arrive, setArrive] = useState(w.arrive)
   const [nights, setNights] = useState(w.nights)
+  const [problem, setProblem] = useState<string | null>(null)
   const box = useRef<HTMLDivElement>(null)
   useEffect(() => { setArrive(w.arrive); setNights(w.nights) }, [w])
   useEffect(() => {
@@ -19,7 +20,12 @@ export function PlanPicker() {
     document.addEventListener('mousedown', away); document.addEventListener('keydown', esc)
     return () => { document.removeEventListener('mousedown', away); document.removeEventListener('keydown', esc) }
   }, [open])
-  const choose = (next: typeof w) => { set(next); setOpen(false) }
+  const choose = (next: typeof w) => {
+    // set() silently falls back to Today for anything out of range; say so here instead
+    const accepted = parseWindow(formatWindow(next, today), today)
+    if (accepted.arrive !== next.arrive || accepted.nights !== next.nights) { setProblem(`Pick an arrival between today and ${describeWindow(todayWindow(addDays(today, MAX_DAYS_AHEAD)), today).replace(' (1 night)', '')}, and 1 to ${MAX_NIGHTS} nights.`); return }
+    setProblem(null); set(next); setOpen(false)
+  }
   const preset = (label: string, next: typeof w) => (
     <button key={label} onClick={() => choose(next)} className={`rounded-full border px-2.5 py-0.5 text-xs ${w.arrive === next.arrive && w.nights === next.nights ? 'border-signgold bg-signgold text-pine-900' : 'border-pine-600 text-cream hover:border-signgold'}`}>
       {label}
@@ -50,6 +56,7 @@ export function PlanPicker() {
               <input type="number" value={nights} min={1} max={MAX_NIGHTS} onChange={(e) => setNights(Math.max(1, Math.min(MAX_NIGHTS, Number(e.target.value) || 1)))} className="mt-0.5 w-full rounded border border-pine-600 bg-pine-800 px-2 py-1 text-cream" />
             </label>
           </div>
+          {problem && <p role="alert" className="mt-2 text-ember">{problem}</p>}
           <button onClick={() => choose({ arrive, nights })} className="mt-3 w-full rounded bg-signgold py-1.5 font-semibold text-pine-900 hover:bg-signgold/90">
             Show the map for these dates
           </button>

@@ -9,7 +9,7 @@ import { namesMatch } from './siteFire'
 
 export type UpcomingItem = { date: string; text: string }
 /** The dated part of a campground's Recreation.gov season window (see src/lib/season.ts) */
-export type SeasonDates = { firstOpen?: string | null; seasonEnd?: string | null; seasonEndKnown?: boolean; nextOpen?: string | null }
+export type SeasonDates = { firstOpen?: string | null; seasonEnd?: string | null; seasonEndKnown?: boolean; nextOpen?: string | null; prevEnd?: string | null }
 
 const byDate = (a: UpcomingItem, b: UpcomingItem) => a.date.localeCompare(b.date)
 const CAL = ' (Recreation.gov calendar)'

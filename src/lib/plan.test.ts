@@ -182,3 +182,20 @@ test('with the Today window the real data resolves exactly as before', () => {
   const t = '2026-10-07'
   expect(planJurisdictions(RAW, { arrive: t, nights: 1 }, t)).toEqual(applyScheduled(RAW, t))
 })
+
+describe('a season that already ended with nothing posted after it', () => {
+  // The calendar shape for a campground closed for the winter: no current run, only prevEnd
+  const closedNow = { firstOpen: null, seasonEnd: null, seasonEndKnown: false, nextOpen: null, prevEnd: '2026-09-25', season: 'April – October' }
+  test('is closed for any stay after that end, with the calendar named as the source', () => {
+    expect(siteStatusForPlan(closedNow, { arrive: '2026-10-16', nights: 2 }, TODAY)).toEqual({ kind: 'closed', text: 'Closed for the season; next season not posted yet (Recreation.gov calendar)' })
+  })
+  test('counts as closed for the pins, not unknown', () => {
+    expect(siteStatusForPlan(closedNow, { arrive: '2026-11-07', nights: 1 }, TODAY).kind).toBe('closed')
+  })
+})
+
+test('a sign that only gives an opening day makes later stays open', () => {
+  const sign = { season: 'May – October', signOpen: '2027-05-01', signSource: 'ranger at the kiosk' }
+  expect(siteStatusForPlan(sign, { arrive: '2027-06-10', nights: 2 }, TODAY)).toEqual({ kind: 'open', text: 'Open both nights (ranger at the kiosk)' })
+  expect(siteStatusForPlan(sign, { arrive: '2027-04-20', nights: 2 }, TODAY).kind).toBe('closed')
+})

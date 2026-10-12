@@ -41,6 +41,8 @@ export interface RecSite {
   seasonEnd?: string | null
   seasonEndKnown?: boolean
   nextOpen?: string | null
+  /** Last bookable night of a season that already ended, when no current run is posted (closed for the winter) */
+  prevEnd?: string | null
   // ---- detail (only in detail chunks; present on the in-browser fallback path) ----
   restrictions?: string | null
   season?: string | null
@@ -80,7 +82,7 @@ const exactName = (a: string, b: string) => { const x = norm(a); return x.length
 
 type Draft = Omit<RecSite, 'idx' | 'feeKind' | 'feeHeadline' | 'textYear'>
 /** The calendar's dated window, when this campground was read with the current recipe (older records carry only the phrase) */
-const seasonDates = (x?: RidbExtra) => (x?.windowEnd ? { firstOpen: x.firstOpen, seasonEnd: x.seasonEnd, seasonEndKnown: x.seasonEndKnown, nextOpen: x.nextOpen } : {})
+const seasonDates = (x?: RidbExtra) => (x?.windowEnd ? { firstOpen: x.firstOpen, seasonEnd: x.seasonEnd, seasonEndKnown: x.seasonEndKnown, nextOpen: x.nextOpen, prevEnd: x.prevEnd } : {})
 const feeRange = (min?: number | null, max?: number | null) => (min ? (max && max !== min ? `$${min}–$${max}/night` : `$${min}/night`) : null)
 
 export function buildSites(fc: GeoJSON.FeatureCollection<GeoJSON.Point>, pages: Record<string, SitePage>, ridb: RidbSite[], extra: Record<string, RidbExtra>, csp: CspSite[], osm: OsmSite[], blm: BlmSite[] = [], unlocated: RidbUnlocated[] = []): RecSite[] {

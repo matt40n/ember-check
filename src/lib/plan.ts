@@ -111,14 +111,17 @@ const nightOf = (date: string, w: TripWindow) => toDayNumber(date) - toDayNumber
 export function siteStatusForPlan(s: SiteSeason, w: TripWindow, today: string): SiteStatus {
   const last = lastNight(w)
   const fmt = (d: string) => formatUpcomingDate(d, today)
-  const hasCalendar = !!(s.firstOpen || s.seasonEnd)
+  // A calendar with no current run but a prevEnd is a campground closed for the winter: judge it as a season
+  // that ended on prevEnd with nothing posted after (nextOpen, when the park releases it)
+  const winter = !s.firstOpen && !s.seasonEnd && !!s.prevEnd
+  const hasCalendar = !!(s.firstOpen || s.seasonEnd || winter)
   const src = hasCalendar ? CAL : s.signSource ? ` (${s.signSource})` : ''
   // The season window to judge against: the calendar's, else the sign's. Two different conventions meet here:
   // the calendar's seasonEnd is the LAST BOOKABLE NIGHT; a sign's "closes Oct 13" names the FIRST CLOSED DAY.
   // `end` is always the last available night.
   const firstOpen = hasCalendar ? s.firstOpen ?? null : s.signOpen ?? null
-  const end = hasCalendar ? s.seasonEnd ?? null : s.signClose ? addDays(s.signClose, -1) : null
-  const endKnown = hasCalendar ? !!s.seasonEndKnown : !!s.signClose
+  const end = winter ? s.prevEnd! : hasCalendar ? s.seasonEnd ?? null : s.signClose ? addDays(s.signClose, -1) : null
+  const endKnown = winter ? true : hasCalendar ? !!s.seasonEndKnown : !!s.signClose
   const reopen = hasCalendar ? s.nextOpen ?? null : null
   if (!hasCalendar && !s.signClose && !s.signOpen) {
     const range = monthRange(s.season)
@@ -150,8 +153,9 @@ export function siteStatusForPlan(s: SiteSeason, w: TripWindow, today: string): 
     const closeDay = addDays(end, 1) // the sign's own date
     return { kind: 'closes', date: closeDay, night: nightOf(closeDay, w), text: `Closes for the season ${fmt(closeDay)} — your ${ORDINAL[nightOf(closeDay, w) - 1]} night${src}` }
   }
-  // open: every night is within the released window
+  // open: every night is within the released window (or, for a sign that only gives an opening day, after it)
   if (end && last <= end) return { kind: 'open', text: `Open${nightsText(w.nights)}${src}` }
+  if (!end && firstOpen && firstOpen <= w.arrive) return { kind: 'open', text: `Open${nightsText(w.nights)}${src}` }
   // past the released days with no confirmed end
   if (end && !endKnown && last > end) return { kind: 'unknown', text: `Calendar released through ${fmt(end)} only; later nights not posted yet${CAL}` }
   return { kind: 'unknown', text: 'No season dates posted' }

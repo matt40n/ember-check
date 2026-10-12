@@ -45,3 +45,9 @@ test('season window dates stay on the index record so pins can judge a stay with
   expect(chunks[0][0]?.season).toBe(CALENDAR)
   expect((chunks[0][0] as Record<string, unknown>)?.seasonEnd).toBeUndefined()
 })
+
+test('a campground closed for the season keeps its prevEnd on the index record', () => {
+  const closed = { ...extra, season: 'Closed since Sep 25; next season not posted yet (Recreation.gov calendar)', firstOpen: null, seasonEnd: null, seasonEndKnown: false, nextOpen: null, prevEnd: '2026-09-25' }
+  const [site] = buildSites(edwHatCreek, {}, [ridbHatCreek], { '232248': closed }, [], [])
+  expect(site.prevEnd).toBe('2026-09-25')
+})

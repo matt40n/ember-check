@@ -87,7 +87,7 @@ export function SignPanel({ result, redFlag, onClear, stack }: { result: ProbeRe
       </p>
       {!isToday && <p className="font-display text-xs font-semibold uppercase tracking-[0.2em] text-signgold/75">On {formatUpcomingDate(plan.arrive, today)}</p>}
       <p className="mt-1 font-display text-4xl font-extrabold uppercase leading-[0.95]">
-        {redFlag ? 'Red flag — no fires' : result.wildernessFocus && result.wilderness ? result.wilderness.replace(/ Wilderness$/, '') : STAGE_LABEL[j.stage]}
+        {redFlag ? 'Red flag — no fires' : result.wildernessFocus && result.wilderness ? result.wilderness.replace(/ Wilderness$/, '') : j.plan?.ended ? 'Not announced' : STAGE_LABEL[j.stage]}
       </p>
       {j.plan?.ended && <p className="mt-2 rounded border border-unknown bg-pine-950/40 p-2 text-xs text-cream"><b>Not announced.</b> {j.plan.ended.reason}</p>}
       {j.plan?.changesDuring && <p className="mt-2 rounded border border-signgold/60 bg-signgold/10 p-2 text-xs text-cream"><b>Changes {formatUpcomingDate(j.plan.changesDuring.on, today)}:</b> {j.plan.changesDuring.summary}</p>}

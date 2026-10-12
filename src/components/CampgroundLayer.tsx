@@ -47,7 +47,7 @@ export function SitePopup({ s: site, v, inline = false }: { s: RecSite; v: FireV
   const siteNote = Object.entries(v.jurisdiction?.siteNotes ?? {}).find(([n]) => namesMatch(n, s.name))?.[1]
   const { window: plan, today, isToday } = usePlanWindow()
   const sign = signDatesFor(v.jurisdiction, s.name)
-  const seasonFacts: SiteSeason = { firstOpen: s.firstOpen, seasonEnd: s.seasonEnd, seasonEndKnown: s.seasonEndKnown, nextOpen: s.nextOpen, season: s.season, ...sign }
+  const seasonFacts: SiteSeason = { firstOpen: s.firstOpen, seasonEnd: s.seasonEnd, seasonEndKnown: s.seasonEndKnown, nextOpen: s.nextOpen, prevEnd: s.prevEnd, season: s.season, ...sign }
   const stay = isToday ? null : siteStatusForPlan(seasonFacts, plan, today)
   // 'unknown' means the tracked order does not govern this site (a state park inside a forest), so its dates don't belong here
   const upcoming = [
@@ -168,7 +168,7 @@ export function SitePopup({ s: site, v, inline = false }: { s: RecSite; v: FireV
 function CampgroundLayerInner({ sites: allSites, all, boundaries, coarse = false, onSelect, backcountryOnly = false, showClosed = false, redFlagZones = null }: { sites: RecSite[] | undefined; all: Jurisdiction[]; boundaries: BoundarySets; coarse?: boolean; onSelect?: (s: RecSite, v: FireVerdict) => void; backcountryOnly?: boolean; showClosed?: boolean; redFlagZones?: GeoJSON.FeatureCollection | null }) {
   const { window: plan, today, isToday } = usePlanWindow()
   // Closed for every night of the stay (calendar says the season is over); never true for Today
-  const closedForStay = (s: RecSite) => !isToday && siteStatusForPlan({ firstOpen: s.firstOpen, seasonEnd: s.seasonEnd, seasonEndKnown: s.seasonEndKnown, nextOpen: s.nextOpen, season: s.season }, plan, today).kind === 'closed'
+  const closedForStay = (s: RecSite) => !isToday && siteStatusForPlan({ firstOpen: s.firstOpen, seasonEnd: s.seasonEnd, seasonEndKnown: s.seasonEndKnown, nextOpen: s.nextOpen, prevEnd: s.prevEnd, season: s.season }, plan, today).kind === 'closed'
   // Sites the agency page lists as closed are hidden by default; a toggle brings them back
   const sites = useMemo(() => allSites?.filter((s) => (showClosed || (s.open !== false && !closedForStay(s))) && (!backcountryOnly || s.kind === 'Dispersed Camping' || s.backcountry)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
