@@ -13,7 +13,7 @@ const Dot = ({ style, className = '' }: { style?: React.CSSProperties; className
 /** Colors sampled from BLM's Surface Management Agency tiles (the 'BLM land ownership' layer). */
 export const OWNERSHIP_COLORS: [string, string][] = [['BLM', '#fee679'], ['Forest Service', '#ccebc5'], ['National Park', '#cabddc'], ['Fish & Wildlife', '#7fcca7'], ['Reclamation', '#ffffb3'], ['Tribal (BIA)', '#fdb46c'], ['Military', '#fbb4ce'], ['State', '#b3e3ee'], ['Private / other', 'transparent']]
 
-export function Legend({ ownership = false }: { ownership?: boolean }) {
+export function Legend({ ownership = false, planning = false }: { ownership?: boolean; planning?: boolean }) {
   return (
     <div className="space-y-1.5 text-xs text-cream-dim">
       <div className="flex flex-wrap gap-x-3 gap-y-1">
@@ -21,7 +21,7 @@ export function Legend({ ownership = false }: { ownership?: boolean }) {
         {ORDER.map((s) => (
           <span key={s} className="inline-flex items-center gap-1.5">
             <Sq style={{ background: STAGE_COLOR[s], opacity: 0.85 }} />
-            {STAGE_LABEL[s]}
+            {s === 'unknown' && planning ? 'Unverified / not announced' : STAGE_LABEL[s]}
           </span>
         ))}
         <span className="inline-flex items-center gap-1.5"><Sq className="border-2 border-[#9BE7A0] bg-ok/50" />Wilderness, fire exemption</span>

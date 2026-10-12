@@ -52,3 +52,43 @@ describe('formatUpcomingDate', () => {
     expect(formatUpcomingDate('2027-04-23', TODAY)).toBe('Fri, Apr 23, 2027')
   })
 })
+
+import { groupUpcoming, signDatesFor, upcomingForPlan, upcomingForSignDates } from './upcoming'
+
+const lassen: Jurisdiction = { ...stage1, id: 'usfs-lassen', name: 'Lassen NF', stage: 'none', expires: 'until_rescinded', siteDates: { 'Big Pine Campground': { closes: '2026-10-13', source: 'notice posted at the campground, late Sep 2026' } } }
+
+describe('sign-reported dates', () => {
+  test('are found by the same loose name match as siteNotes', () => {
+    expect(signDatesFor(lassen, 'Big Pine Campground')).toEqual({ signClose: '2026-10-13', signOpen: null, signSource: 'notice posted at the campground, late Sep 2026' })
+    expect(signDatesFor(lassen, 'Cave Campground')).toEqual({ signClose: null, signOpen: null, signSource: null })
+    expect(signDatesFor(null, 'Big Pine Campground').signClose).toBeNull()
+  })
+  test('appear in the Upcoming list once, naming the source, and only while ahead', () => {
+    expect(upcomingForSignDates(lassen, 'Big Pine Campground', TODAY)).toEqual([{ date: '2026-10-13', text: 'Closes for the season (notice posted at the campground, late Sep 2026)' }])
+    expect(upcomingForSignDates(lassen, 'Big Pine Campground', '2026-10-14')).toEqual([])
+  })
+})
+
+describe('upcomingForPlan', () => {
+  test('is upcomingForJurisdiction when there is no plan metadata', () => {
+    expect(upcomingForPlan(stage1, TODAY)).toEqual([{ date: '2026-10-31', text: 'Fire order 17-26-15 ends, unless lifted earlier or renewed' }])
+  })
+  test('a change applied by arrival is listed on its date so the reader sees why the card differs from today', () => {
+    const j: Jurisdiction = { ...stage1, stage: 'none', plan: { applied: { on: '2026-10-10', summary: 'Fire restrictions lift' } } }
+    expect(upcomingForPlan(j, TODAY)).toEqual([{ date: '2026-10-10', text: 'Fire restrictions lift' }])
+  })
+  test('an order that ended before arrival is listed on its end date with the not-announced wording', () => {
+    const j: Jurisdiction = { ...stage1, stage: 'unknown', plan: { ended: { expires: '2026-10-31', orderNumber: '17-26-15', reason: 'Order 17-26-15 ends Oct 31. Rules after that are not announced.' } } }
+    expect(upcomingForPlan(j, TODAY)).toEqual([{ date: '2026-10-31', text: 'Order 17-26-15 ends Oct 31. Rules after that are not announced.' }])
+  })
+})
+
+describe('groupUpcoming', () => {
+  const items = [{ date: '2026-10-08', text: 'a' }, { date: '2026-10-09', text: 'b' }, { date: '2026-10-10', text: 'c' }, { date: '2026-10-31', text: 'd' }]
+  test('splits by arrival and last night', () => {
+    expect(groupUpcoming(items, '2026-10-09', '2026-10-10')).toEqual({ byArrival: [items[0], items[1]], during: [items[2]], later: [items[3]] })
+  })
+  test('Today puts everything in later (items are always after today)', () => {
+    expect(groupUpcoming(items, '2026-10-07', '2026-10-07')).toEqual({ byArrival: [], during: [], later: items })
+  })
+})

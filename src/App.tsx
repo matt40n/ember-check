@@ -14,6 +14,8 @@ import { JurisdictionFills } from './components/JurisdictionFills'
 import { WildernessLayer } from './components/WildernessLayer'
 import { DistrictLayer } from './components/DistrictLayer'
 import { CampgroundLayer, SitePopup } from './components/CampgroundLayer'
+import { PlanPicker } from './components/PlanPicker'
+import { PlanBanner } from './components/PlanBanner'
 import type { RecSite } from './api/boundaries'
 import type { FireVerdict } from './lib/siteFire'
 import { useCoarsePointer } from './hooks/useCoarsePointer'
@@ -23,7 +25,9 @@ import { useForestBoundaries } from './api/usfs'
 import { useBlmFieldOffices, useNpsUnits, useRangerDistricts, useRecSites, useWilderness } from './api/boundaries'
 import { JURISDICTIONS as RAW, DATA_VERIFIED_ON } from './data/restrictions'
 import { applyFreshness } from './lib/freshness'
-import { applyScheduled, pacificToday } from './lib/scheduled'
+import { pacificToday } from './lib/scheduled'
+import { planJurisdictions } from './lib/plan'
+import { usePlanWindow } from './hooks/usePlanWindow'
 import { CAMPFIRE_PERMIT_URL } from './lib/permit'
 
 /** Most recent verification across all tracked orders — what the header shows */
@@ -39,6 +43,7 @@ const EMPTY: ProbeResult = { jurisdiction: null, unitName: null, district: null,
 type Step = { kind: 'wilderness'; name: string; j: Jurisdiction | null } | { kind: 'order'; j: Jurisdiction } | { kind: 'land'; surface: SurfaceManager; j: null }
 
 export default function App() {
+  const { window: plan, today: planToday, isToday } = usePlanWindow()
   // Freshness is re-evaluated when the tab comes back or the day changes, so a tab left open across a 14-day
   // window or an order's expiry doesn't keep showing a confident stage
   // Local day drives staleness; the Pacific day is when a scheduled change takes effect (a visitor in New York crosses both)
@@ -50,8 +55,8 @@ export default function App() {
     document.addEventListener('visibilitychange', tick)
     return () => { window.clearInterval(id); document.removeEventListener('visibilitychange', tick) }
   }, [])
-  /** Entries older than 14 days or past expiry are shown as Unverified rather than trusted. */
-  const JURISDICTIONS = useMemo(() => applyFreshness(applyScheduled(RAW, pacificToday())), [day])
+  /** Entries as they stand on the arrival day (Today: exactly applyScheduled), then those older than 14 days or past expiry are shown as Unverified rather than trusted. */
+  const JURISDICTIONS = useMemo(() => applyFreshness(planJurisdictions(RAW, plan, planToday)), [day, plan, planToday])
   const [probe, setProbe] = useState<{ lat: number; lng: number } | null>(null)
   const [result, setResult] = useState<ProbeResult>(EMPTY)
   const [agencies, setAgencies] = useState<Set<Agency>>(new Set(AGENCIES))
@@ -59,6 +64,8 @@ export default function App() {
     fills: true, wilderness: true, districts: true, campgrounds: true, backcountryOnly: false, showClosed: false,
     redFlag: true, fires: true, perimeters: true, danger: false, blm: false,
   })
+  /** Red Flag Warnings, wildfires, perimeters and fire danger describe today; they are off and disabled for any other window */
+  const effectiveLayers = isToday ? layers : { ...layers, redFlag: false, fires: false, perimeters: false, danger: false }
   const [drawer, setDrawer] = useState(false)
   const [showAbout, setShowAbout] = useState(false)
   const [ack, setAck] = useState(true)
@@ -83,6 +90,16 @@ export default function App() {
   const mapRef = useRef<L.Map | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const legendRef = useRef<HTMLDivElement>(null)
+  const topRef = useRef<HTMLDivElement>(null)
+  const [topH, setTopH] = useState(0)
+  useEffect(() => {
+    const el = topRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => setTopH(el.getBoundingClientRect().height))
+    ro.observe(el)
+    setTopH(el.getBoundingClientRect().height)
+    return () => ro.disconnect()
+  }, [])
   const [legendH, setLegendH] = useState(0)
   useEffect(() => {
     const el = legendRef.current
@@ -227,7 +244,7 @@ export default function App() {
   return (
     <div className="relative h-full w-full overflow-clip">
       <MapView onClick={probeAt} probe={probe} mapRef={mapRef}>
-        <LiveLayers layers={{ ...layers, blm: layers.blm || (selected?.agency === 'BLM' && !result.wildernessFocus && !site) }} onProbe={probeAt} />
+        <LiveLayers layers={{ ...effectiveLayers, blm: layers.blm || (selected?.agency === 'BLM' && !result.wildernessFocus && !site) }} onProbe={probeAt} />
         {layers.fills && (
           <>
             <JurisdictionFills fc={blm.data} source="blm" nameField="ADMU_NAME" all={JURISDICTIONS} fillOpacity={0} hiddenUnlessSelected selectedId={result.wildernessFocus ? null : selected?.id ?? null} onPick={pickFromMap} onMiss={probeAt} />
@@ -237,19 +254,22 @@ export default function App() {
         )}
         {layers.districts && <DistrictLayer fc={districts.data} />}
         {layers.wilderness && <WildernessLayer fc={wilderness.data} all={JURISDICTIONS} onClick={probeAt} selectedName={result.wildernessFocus ? result.wilderness : null} />}
-        {layers.campgrounds && boundariesForPins && <CampgroundLayer sites={sites.data} all={JURISDICTIONS} boundaries={boundariesForPins} coarse={coarse} onSelect={selectSite} backcountryOnly={layers.backcountryOnly} showClosed={layers.showClosed} redFlagZones={redFlagZones} />}
+        {layers.campgrounds && boundariesForPins && <CampgroundLayer sites={sites.data} all={JURISDICTIONS} boundaries={boundariesForPins} coarse={coarse} onSelect={selectSite} backcountryOnly={layers.backcountryOnly} showClosed={layers.showClosed} redFlagZones={isToday ? redFlagZones : null} />}
       </MapView>
 
-      <div className="pointer-events-none absolute left-0 right-0 top-0 z-[1300] flex flex-col gap-2 p-3">
+      <div ref={topRef} className="pointer-events-none absolute left-0 right-0 top-0 z-[1300] flex flex-col gap-2 p-3">
       <header className="pointer-events-none flex items-start justify-between gap-2">
-        <div className="pointer-events-auto flex min-w-0 items-center gap-2 rounded bg-pine-900/90 px-3 py-2 backdrop-blur md:w-[380px]">
+        <div className="pointer-events-auto relative z-20 flex min-w-0 items-center gap-2 rounded bg-pine-900/90 px-3 py-2 backdrop-blur md:w-[380px]">
           <Flame className="text-signgold" size={20} />
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-xl font-extrabold uppercase leading-none tracking-wide">Ember Check</h1>
-            <p className="text-[11px] text-cream-dim">
-              NorCal campfire restrictions · verified {LATEST_VERIFIED}
-              {boundariesLoading && <span className="ml-2 text-signgold">loading boundaries…</span>}
-            </p>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <p className="text-[11px] text-cream-dim">
+                NorCal campfire restrictions · verified {LATEST_VERIFIED}
+                {boundariesLoading && <span className="ml-2 text-signgold">loading boundaries…</span>}
+              </p>
+              <PlanPicker />
+            </div>
             {live.problem && <p className="mt-0.5 text-[11px] font-semibold text-ember">{live.problem}</p>}
           </div>
         </div>
@@ -257,6 +277,7 @@ export default function App() {
           <Info size={18} />
         </button>
       </header>
+      <PlanBanner />
       <div className="pointer-events-auto md:w-[380px]">
         <SearchBox sites={sites.data} orders={JURISDICTIONS} onSite={searchSite} onOrder={searchOrder} onPlace={searchPlace} />
       </div>
@@ -273,10 +294,11 @@ export default function App() {
 
       <aside
         className={`absolute z-[1000] flex flex-col bg-pine-900/95 backdrop-blur transition-transform
-          md:left-3 md:top-[7.5rem] md:bottom-3 md:w-[380px] md:rounded-md md:border md:border-pine-700 ${sidebarOpen ? '' : 'md:hidden'}
+          md:left-3 md:top-[var(--side-top)] md:bottom-3 md:w-[380px] md:rounded-md md:border md:border-pine-700 ${sidebarOpen ? '' : 'md:hidden'}
           max-md:inset-x-0 max-md:max-h-[62vh] max-md:rounded-t-xl max-md:border-t max-md:border-pine-700
           ${drawer ? '' : 'max-md:translate-y-[calc(100%-44px)]'}`}
-        style={coarse ? { bottom: legendH } : undefined}
+        // While planning, the picker chip and banner make the header taller than the fixed 7.5rem the side panel normally starts at
+        style={{ '--side-top': isToday ? '7.5rem' : `max(7.5rem, ${topH}px)`, ...(coarse ? { bottom: legendH } : {}) } as React.CSSProperties}
       >
         <button onClick={() => setDrawer((d) => !d)} className="flex h-11 shrink-0 items-center justify-center gap-2 text-xs font-semibold uppercase tracking-widest text-cream-dim md:hidden" aria-label={drawer ? 'Hide details' : 'Show details'} aria-expanded={drawer}>
           <span className="h-1.5 w-12 rounded-full bg-pine-600" />
@@ -286,13 +308,13 @@ export default function App() {
         <div ref={scrollRef} className="overflow-y-auto p-3 pt-0 md:pt-3">
           {site ? (
             <div className="rounded-md border border-pine-600 bg-pine-800 p-3">
-              <SitePopup s={site.s} v={redFlag.active ? siteFireVerdict(site.s, JURISDICTIONS, boundaries, true) : site.v} inline />
+              <SitePopup s={site.s} v={redFlag.active && isToday ? siteFireVerdict(site.s, JURISDICTIONS, boundaries, true) : site.v} inline />
               <button onClick={() => setSite(null)} className="mt-3 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-signgold">
                 <ChevronLeft size={14} /> Area rules{selected ? ` · ${selected.name}` : ''}
               </button>
             </div>
           ) : (
-            <SignPanel result={result} redFlag={redFlag.active} onClear={clearSelection} stack={cycle && cycle.list.length > 1 ? { names: cycle.list.map((st) => (st.kind === 'wilderness' ? st.name : st.kind === 'land' ? LAND_LABEL[st.surface] : st.j.name)), idx: cycle.idx } : undefined} />
+            <SignPanel result={result} redFlag={redFlag.active && isToday} onClear={clearSelection} stack={cycle && cycle.list.length > 1 ? { names: cycle.list.map((st) => (st.kind === 'wilderness' ? st.name : st.kind === 'land' ? LAND_LABEL[st.surface] : st.j.name)), idx: cycle.idx } : undefined} />
           )}
           {probe && !selected && !site && !(result.surface && result.surface !== 'pending' && result.surface !== 'unknown') && (
             <p className="mt-2 text-xs text-cream-dim">
@@ -301,7 +323,7 @@ export default function App() {
                 : `${result.surface && result.surface !== 'pending' && result.surface !== 'unknown' ? LAND_LABEL[result.surface as SurfaceManager] : 'Not federal land'} — no federal fire order applies here. CAL FIRE burn rules and any county ordinance govern; call the local CAL FIRE unit or fire district.`}
             </p>
           )}
-          {redFlag.headline && <p className="mt-2 text-xs text-ember">{redFlag.headline}</p>}
+          {redFlag.headline && isToday && <p className="mt-2 text-xs text-ember">{redFlag.headline}</p>}
           <SpotConditions pt={probe} />
 
           <section className="mt-4">
@@ -317,10 +339,10 @@ export default function App() {
 
           <section className="mt-4">
             <h2 className="font-display text-sm font-bold uppercase tracking-widest text-cream-dim">Live conditions</h2>
-            <Toggle label="Red Flag Warnings" hint="NWS · hourly" on={layers.redFlag} onChange={(v) => setLayers({ ...layers, redFlag: v })} />
-            <Toggle label="Active wildfires" hint="NIFC · hourly" on={layers.fires} onChange={(v) => setLayers({ ...layers, fires: v })} />
-            <Toggle label="Fire perimeters" hint="NIFC · hourly" on={layers.perimeters} onChange={(v) => setLayers({ ...layers, perimeters: v })} />
-            <Toggle label="Fire danger (ERC percentile)" hint="NFDRS · daily" on={layers.danger} onChange={(v) => setLayers({ ...layers, danger: v })} />
+            <Toggle label="Red Flag Warnings" hint={isToday ? "NWS · hourly" : "today only"} disabled={!isToday} on={effectiveLayers.redFlag} onChange={(v) => setLayers({ ...layers, redFlag: v })} />
+            <Toggle label="Active wildfires" hint={isToday ? "NIFC · hourly" : "today only"} disabled={!isToday} on={effectiveLayers.fires} onChange={(v) => setLayers({ ...layers, fires: v })} />
+            <Toggle label="Fire perimeters" hint={isToday ? "NIFC · hourly" : "today only"} disabled={!isToday} on={effectiveLayers.perimeters} onChange={(v) => setLayers({ ...layers, perimeters: v })} />
+            <Toggle label="Fire danger (ERC percentile)" hint={isToday ? "NFDRS · daily" : "today only"} disabled={!isToday} on={effectiveLayers.danger} onChange={(v) => setLayers({ ...layers, danger: v })} />
           </section>
 
           <section className="mt-4">
@@ -351,7 +373,7 @@ export default function App() {
           </section>
         </div>
         <div className="border-t border-pine-700 p-3 max-md:hidden">
-          <Legend ownership={layers.blm || (selected?.agency === 'BLM' && !result.wildernessFocus && !site)} />
+          <Legend ownership={layers.blm || (selected?.agency === 'BLM' && !result.wildernessFocus && !site)} planning={!isToday} />
           <button onClick={toggleSidebar} className="mt-2 flex w-full items-center justify-center gap-1.5 rounded border border-pine-600 py-1 text-[11px] font-semibold uppercase tracking-widest text-cream-dim hover:bg-pine-700 hover:text-cream" aria-label="Hide panel" aria-expanded={sidebarOpen}>
             <PanelLeftClose size={14} /> Hide panel
           </button>
@@ -367,7 +389,7 @@ export default function App() {
       <div className="absolute bottom-0 right-0 z-[1100] flex items-end md:hidden" style={legendOpen ? { left: 0 } : undefined}>
         {legendOpen && (
           <div ref={legendRef} className="min-w-0 flex-1 border-t border-pine-700 bg-pine-950/95 px-2.5 py-1.5 backdrop-blur [&_.text-xs]:text-[10px] [&_.space-y-1\.5>*+*]:mt-0.5">
-            <Legend ownership={layers.blm || (selected?.agency === 'BLM' && !result.wildernessFocus && !site)} />
+            <Legend ownership={layers.blm || (selected?.agency === 'BLM' && !result.wildernessFocus && !site)} planning={!isToday} />
           </div>
         )}
         <button onClick={toggleLegend} aria-expanded={legendOpen} aria-label={legendOpen ? 'Hide legend' : 'Show legend'} className={`flex shrink-0 items-center gap-0.5 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-cream-dim ${legendOpen ? 'self-stretch border-l border-t border-pine-700 bg-pine-950/95' : 'rounded-tl bg-pine-950/90 backdrop-blur'}`}>
