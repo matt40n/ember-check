@@ -209,7 +209,7 @@ function CampgroundLayerInner({ sites: allSites, all, boundaries, coarse = false
       {rows.map(({ s, v, fee, pathOptions, handlers }) => {
         return (
           <CircleMarker
-            key={`${s.ridbId ?? s.forest}-${s.name}-${s.lat}-${s.lng}`}
+            key={s.idx}
             center={[s.lat, s.lng]}
             radius={r}
             pane="sites"
