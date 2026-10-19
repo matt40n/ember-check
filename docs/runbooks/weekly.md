@@ -5,6 +5,12 @@ The bots do the routine work. This is what's left for a human.
 1. **Open issues labeled `bot`.** Each lists orders that failed or warned verification, with the reason.
    For each order: open the source link → find the current order → edit its entry in
    `src/data/restrictions.ts` → `bun run build && bun run check-exhibits` → push to main. Close the issue.
+   **A cloud routine does this step first.** When the bot opens or comments on a `bot` issue, a claude.ai routine
+   ("Ember Check: handle verify-bot issues", in Matt's claude.ai/code/routines) reads the sources, edits the entry,
+   runs build and verify, pushes to `main`, and comments on the issue with each decision and its source sentence.
+   It closes the issue only when everything it named was resolved; otherwise its comment says what is left for a
+   human. It ignores the Saturday Facebook reminder, and it exits at once when the newest activity on the issue is a
+   human's comment, so replying on the issue does not start it again. Check its run log if an issue sits untouched.
 2. **Open issues labeled `field-report`.** Someone saw a sign or was told something that disagrees with the map.
    Trust signs over the map; if it's a site-specific quirk, add it to that jurisdiction's `siteNotes`.
    **Season closing dates:** a campground with a Recreation.gov calendar (even for part of its sites) gets its
