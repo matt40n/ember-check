@@ -84,7 +84,10 @@ async function liveStatus(j: Jurisdiction): Promise<Live | null> {
   const park = j.sourceUrl.match(/^https?:\/\/(?:www\.)?nps\.gov\/([a-z]{4})\//)?.[1]
   if (park) {
     const url = `https://www.nps.gov/${park}/park-alerts-${park}.json`
-    const body = await text(url)
+    // nps.gov sits behind CloudFront and some edges keep this feed for weeks (Whiskeytown's ended burn ban was still
+    // served to the GitHub runner on Oct 24, 2026, nine days after other edges dropped it). A query string is not in
+    // the cache key there, so it forces a fresh copy; one miss per park per day.
+    const body = await text(`${url}?_=${today}`)
     let alerts: NpsAlert[]
     try { alerts = JSON.parse(body ?? '') } catch { return { url, error: body ? 'alert feed is not JSON' : 'alert feed unreachable' } }
     const now = new Date()
