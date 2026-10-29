@@ -168,11 +168,11 @@ export const JURISDICTIONS: Jurisdiction[] = [
     notes: 'No campfire or open flame of any kind. Target shooting banned. Sierra foothills from Yuba/Nevada to Mariposa incl. Merced River, Cosumnes, South Yuba.', verifiedOn: V,
   },
   {
-    id: 'blm-bishop', statusHash: 's1:blm:v6:a4saie:p3', pageFireHash: 'v6:12uiz25:158', checkUrl: 'https://www.blm.gov/announcement/blm-announces-seasonal-fire-restrictions-eastern-sierra-0', noticeUpdated: '2026-06-22', boundary: { source: 'blm', match: 'Bishop Field Office' }, name: 'BLM Bishop Field Office', agency: 'BLM', lat: 37.6, lng: -118.4, radiusKm: 50,
-    stage: 'stage2', campfiresDeveloped: 'prohibited', campfiresDispersed: 'prohibited', stoves: 'allowed_with_permit', smoking: 'prohibited',
-    effective: '2026-06-22', expires: 'until_rescinded', orderNumber: 'CAC09000-26-06',
-    sourceUrl: 'https://www.blm.gov/sites/default/files/docs/2026-06/BIFO_Fire_Restriction_Order_June_2026_508_signed.pdf',
-    notes: "Signed order CAC09000-26-06 bans campfires and open flame of any kind — including in developed campgrounds; the press release reads looser than the order. Gas stoves OK with a CA Campfire Permit. Inyo, Mono and part of Alpine counties. Target shooting banned.", verifiedOn: '2026-10-26',
+    id: 'blm-bishop', statusHash: 's1:blm:v6:a4saie:p3', pageFireHash: 'v6:12uiz25:158', noticeUpdated: '2026-10-26', boundary: { source: 'blm', match: 'Bishop Field Office' }, name: 'BLM Bishop Field Office', agency: 'BLM', lat: 37.6, lng: -118.4, radiusKm: 50,
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
+    effective: '2026-10-26', expires: 'until_rescinded',
+    sourceUrl: 'https://www.blm.gov/announcement/blm-eases-seasonal-fire-restrictions-eastern-sierra',
+    notes: 'Seasonal fire order CAC09000-26-06 rescinded effective Oct 26, 2026 (BLM announcement Oct 26; rescission signed Oct 22). Campfires and target shooting are allowed again with a free CA Campfire Permit, unless posted otherwise, on BLM land in Inyo and Mono counties. The statewide year-round BLM fire order still applies: 5-ft clearance to bare soil, a round-point shovel on hand, and a permit for any campfire or stove outside a developed campground.', verifiedOn: V,
   },
 
   // ───────────── National Park Service ─────────────
