@@ -61,11 +61,11 @@ export const JURISDICTIONS: Jurisdiction[] = [
     notes: 'Fire restrictions rescinded effective midnight Oct 1, 2026 (press release Sep 29): Order 06-26-05 and its Exhibit A no longer apply, and the forest took the alert page down. Standing rules: a free CA Campfire Permit is required for campfires, stoves and barbecues outside developed campgrounds, with 5 ft cleared around the fire; fireworks are always illegal. The forest says it may bring restrictions back if the weather trends drier than expected.', verifiedOn: '2026-10-31',
   },
   {
-    id: 'usfs-plumas', pageFireHash: 'v6:5t9b9l:zs', developedSitesListed: ['Big Cove Campground', 'Chilcoot Campground', 'Conklin Park Campground', 'Cottonwood Group Campground', 'Cottonwood Springs Campground', 'Crocker Campground', 'Frenchman Campground', 'Frenchman Picnic Area', 'Gold Lake 4x4 Campground', 'Gold Lake Campground', 'Goose Lake Campground', 'Grasshopper Flat Campground', 'Grizzly Campground', 'Haven Lake Campground', 'Lakes Basin Campground', 'Laufman Campground', 'Lightning Tree Campground', 'Meadow View Campground', 'Portola Picnic Area', 'Ross Camp', 'Spring Creek Campground', 'Antelope Picnic Area', 'Boulder Creek Campground', 'Brady\'s Camp', 'Deanes Valley Campground', 'Gansner Bar Campground', 'Greenville Campground', 'Grizzly Creek Campground', 'Grizzly Forebay Boat-in Campground', 'Hallsted Campground', 'Hutchins Group Camp', 'Lone Rock Campground', 'Long Point Campground', 'Long Point Group Campground', 'Lower Bucks Lake Campground', 'Meadow Camp', 'Mill Creek Campground', 'Queen Lily Campground', 'North Fork Campground', 'Red Bridge Campground', 'Rock Creek Camp', 'Round Valley Picnic Area', 'Sandy Point Day Use Area', 'Silver Lake Campground', 'Snake Lake Campground', 'Spanish Creek Campground', 'Sundew Campground', 'Whitehorse Campground', 'Black Rock Tent Campground', 'Blue Water Beach Day Use Area', 'Cottage Creek Campground', 'Pancake Beach Day Use Area', 'Paradise Lake Picnic Area', 'Peninsula Tent Campground', 'Red Feather Campground', 'Strawberry Campground', 'Sly Campground', 'South Fork Horse Camp', 'Wyandotte Campground'], developedSitesComplete: true, noticeUpdated: '2026-09-05', boundary: { source: 'usfs', match: 'Plumas National Forest' }, wildernessNote: 'No wilderness exemption: Bucks Lake Wilderness is under the Stage I order (fires only at Exhibit A sites).', name: 'Plumas NF', agency: 'USFS', lat: 39.9, lng: -120.9, radiusKm: 50,
-    stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed_with_permit', smoking: 'prohibited',
-    effective: '2026-09-04', expires: '2026-11-01', orderNumber: '05-11-26-04',
+    id: 'usfs-plumas', pageFireHash: 'v6:5t9b9l:zs', noticeUpdated: '2026-11-02', boundary: { source: 'usfs', match: 'Plumas National Forest' }, name: 'Plumas NF', agency: 'USFS', lat: 39.9, lng: -120.9, radiusKm: 50,
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'allowed',
+    effective: '2026-11-02', expires: 'until_rescinded',
     sourceUrl: 'https://www.fs.usda.gov/r05/plumas/alerts/stage-i-fire-restrictions-plumas-national-forest',
-    notes: 'Lowered from Stage II to Stage I at 2 pm Sep 4, 2026 after widespread rain (order 05-11-26-04 supersedes 05-11-26-03). Campfires and stove fires only at the 59 Exhibit A designated sites, no permit needed there; elsewhere permit holders may use gas/pressurized-fuel pits, stoves, lanterns and pellet grills with a shut-off. Sandy Point: BBQs only. Not a season-ending event — forest says fire danger is still elevated.', verifiedOn: '2026-10-31',
+    notes: 'Stage I order 05-11-26-04 ran "from 2:00 p.m. on September 4, 2026, through November 1, 2026" and expired on that date; no replacement order on the forest alerts page as of Nov 2. A free CA Campfire Permit is required for a campfire or stove outside developed recreation sites.', verifiedOn: V,
   },
   {
     id: 'usfs-tahoe', pageFireHash: 'v6:1k8qhpo:hy', noticeUpdated: '2026-10-27', boundary: { source: 'usfs', match: 'Tahoe National Forest' }, name: 'Tahoe NF', agency: 'USFS', lat: 39.4, lng: -120.6, radiusKm: 50,
@@ -110,18 +110,18 @@ export const JURISDICTIONS: Jurisdiction[] = [
     notes: 'Charcoal banned outside Exhibit A sites. Permanent wilderness elevation bans (no fires above ~10,000 ft in John Muir/Ansel Adams) remain. Rock Fire area closure through Dec 31.', verifiedOn: '2026-10-26',
   },
   {
-    id: 'usfs-htnf-carson', pageFireHash: 'v6:s9ntmd:uk', developedSitesRule: 'any_developed', noticeUpdated: '2026-06-29', boundary: { source: 'usfs', match: 'Humboldt-Toiyabe National Forest' }, name: 'Humboldt-Toiyabe — Carson RD', agency: 'USFS', lat: 38.7, lng: -119.8, radiusKm: 35,
-    stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed_with_permit', smoking: 'prohibited',
-    effective: '2026-06-29', expires: '2026-10-31', orderNumber: '04-17-01-26-04',
-    sourceUrl: 'https://www.fs.usda.gov/r04/humboldt-toiyabe/alerts/stage-1-fire-restrictions-carson-ranger-district',
-    notes: 'No chainsaws or engine tools 1 pm–1 am. CA Campfire Permit required on the California side.', verifiedOn: '2026-10-31',
+    id: 'usfs-htnf-carson', pageFireHash: 'v6:s9ntmd:uk', noticeUpdated: '2026-11-02', boundary: { source: 'usfs', match: 'Humboldt-Toiyabe National Forest' }, name: 'Humboldt-Toiyabe — Carson RD', agency: 'USFS', lat: 38.7, lng: -119.8, radiusKm: 35,
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'allowed',
+    effective: '2026-11-01', expires: 'until_rescinded',
+    sourceUrl: 'https://www.fs.usda.gov/r04/humboldt-toiyabe/alerts',
+    notes: 'Stage 1 order 04-17-01-26-04 expired Oct 31, 2026; its alert page is gone and the forest alerts index no longer lists it (checked Nov 2). CA Campfire Permit required on the California side. Standing area orders on the alerts index still restrict day use, camping and fires in parts of the Carson RD, including the Whites, Thomas, Jones and Galena Creek areas.', verifiedOn: V,
   },
   {
-    id: 'usfs-htnf-bridgeport', pageFireHash: 'v6:1j02kd8:20v', developedSitesRule: 'any_developed', noticeUpdated: '2026-10-05', name: 'Humboldt-Toiyabe — Bridgeport RD', agency: 'USFS', lat: 38.2, lng: -119.4, radiusKm: 35,
-    stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed_with_permit', smoking: 'prohibited',
-    effective: '2026-06-29', expires: '2026-10-31', orderNumber: '04-17-02-26-03',
-    sourceUrl: 'https://www.fs.usda.gov/r04/humboldt-toiyabe/fire/fire-restrictions',
-    notes: 'Hoover Wilderness: no dispersed fires under Stage 1.', verifiedOn: '2026-10-31',
+    id: 'usfs-htnf-bridgeport', pageFireHash: 'v6:1j02kd8:20v', noticeUpdated: '2026-11-02', wildernessNote: 'Standing order: camping, campfire and transportation restrictions in the Hoover Wilderness and the Red, Blue and Big Virginia Lakes area.', name: 'Humboldt-Toiyabe — Bridgeport RD', agency: 'USFS', lat: 38.2, lng: -119.4, radiusKm: 35,
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'allowed',
+    effective: '2026-11-01', expires: 'until_rescinded',
+    sourceUrl: 'https://www.fs.usda.gov/r04/humboldt-toiyabe/alerts',
+    notes: 'Stage 1 order 04-17-02-26-03 expired Oct 31, 2026; the forest alerts index no longer lists a Stage 1 order (checked Nov 2). A free CA Campfire Permit is required for a campfire or stove outside developed sites.', verifiedOn: V,
   },
 
   // ───────────── BLM California ─────────────
@@ -177,11 +177,11 @@ export const JURISDICTIONS: Jurisdiction[] = [
 
   // ───────────── National Park Service ─────────────
   {
-    id: 'nps-yosemite', statusHash: 's1:nps:none', pageFireHash: 'v6:ac8ozh:2ai', alsoCheck: ['https://www.facebook.com/YosemiteNPS'], developedSitesRule: 'any_developed', noticeUpdated: '2026-08-02', boundary: { source: 'nps', match: 'Yosemite National Park' }, name: 'Yosemite NP', agency: 'NPS', lat: 37.85, lng: -119.55, radiusKm: 45,
-    stage: 'stage2', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed', smoking: 'prohibited',
-    effective: '2026-08-02', expires: 'until_rescinded', orderNumber: "Superintendent's Stage 2",
+    id: 'nps-yosemite', statusHash: 's1:nps:none', pageFireHash: 'v6:ac8ozh:2ai', alsoCheck: ['https://www.facebook.com/YosemiteNPS'], noticeUpdated: '2026-11-02', confidence: 'medium', confidenceNote: 'The park restrictions page says there are no seasonal fire restrictions in place, but the park published no 2026 rescission release, so the lift date is unknown.', boundary: { source: 'nps', match: 'Yosemite National Park' }, wildernessNote: 'Year-round: wilderness campfires only below 9,600 ft in existing fire rings, never within 100 ft of a trail or water, on Half Dome, on El Capitan from the trail to the rim, in the Upper and Lower Cathedral Lakes basins, or within a quarter mile of Kibbie Lake.', name: 'Yosemite NP', agency: 'NPS', lat: 37.85, lng: -119.55, radiusKm: 45,
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed', smoking: 'unknown',
+    effective: '2026-11-02', expires: 'until_rescinded',
     sourceUrl: 'https://www.nps.gov/yose/planyourvisit/firerestrictions.htm',
-    notes: 'Stage 2 applies below 8,000 ft. Between 8,000 and 9,600 ft: existing rings only, 100 ft from water/trail. Never above 9,600 ft. Twig stoves banned; gas/alcohol/tablet stoves OK.', verifiedOn: '2026-10-31',
+    notes: 'The park fire restrictions page says "There are no seasonal fire restrictions in place" (read Nov 2, 2026), ending the Stage 2 restrictions below 8,000 ft. Gas, liquid-fuel, propane and alcohol stoves are always allowed. Campfires at Little Yosemite Valley and the High Sierra Camp campgrounds only in NPS fire rings. Wilderness fires need a wilderness permit.', verifiedOn: V,
   },
   {
     id: 'nps-lassen-volcanic', statusHash: 's1:nps:none', pageFireHash: 'v6:1e2wwai:nz', alsoCheck: ['https://www.facebook.com/LassenNPS'], noticeUpdated: '2026-09-03', confidence: 'medium', confidenceNote: 'No rescission notice was published. The park says any current restriction is posted as an alert, and its alert feed has listed none since Sep 3, 2026. The visitor phone line is intermittent — email lavo_information@nps.gov to confirm.', boundary: { source: 'nps', match: 'Lassen Volcanic National Park' }, name: 'Lassen Volcanic NP', agency: 'NPS', lat: 40.5, lng: -121.45, radiusKm: 20,
@@ -240,17 +240,17 @@ export const JURISDICTIONS: Jurisdiction[] = [
   },
   {
     id: 'calfire-huu', pageFireHash: 'v6:1ewz05i:o8', name: 'CAL FIRE Humboldt-Del Norte Unit', agency: 'CAL FIRE', lat: 40.8, lng: -123.9, radiusKm: 30,
-    stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
-    effective: '2026-06-15', expires: 'until_rescinded', noticeUpdated: '2026-06-15', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
-    sourceUrl: 'https://krcrtv.com/north-coast-news/eureka-local-news/cal-fire-suspends-burn-permits-across-the-northstate-starting-monday',
-    notes: CALFIRE_NOTES, verifiedOn: '2026-10-31',
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
+    effective: '2026-11-01', expires: 'until_rescinded', noticeUpdated: '2026-10-28', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
+    sourceUrl: 'https://krcrtv.com/north-coast-news/eureka-local-news/cal-fire-to-lift-burn-permit-suspension-in-humboldt-del-norte-on-nov-1',
+    notes: 'Burn permit suspension lifted at 6 am Nov 1, 2026 in Humboldt, Del Norte and western Trinity (KRCR, Oct 27; CAL FIRE\'s burn status table agrees). Valid CAL FIRE and North Coast AQMD permit holders may burn on permissive burn days.', verifiedOn: V,
   },
   {
     id: 'calfire-btu', pageFireHash: 'v6:1ewz05i:o8', name: 'CAL FIRE Butte Unit', agency: 'CAL FIRE', lat: 39.7, lng: -121.6, radiusKm: 30,
-    stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
-    effective: '2026-06-15', expires: 'until_rescinded', noticeUpdated: '2026-06-15', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
-    sourceUrl: 'https://krcrtv.com/north-coast-news/eureka-local-news/cal-fire-suspends-burn-permits-across-the-northstate-starting-monday',
-    notes: CALFIRE_NOTES, verifiedOn: '2026-10-31',
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
+    effective: '2026-11-01', expires: 'until_rescinded', noticeUpdated: '2026-10-28', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
+    sourceUrl: 'https://www.sierradailynews.com/state/butte-county-ends-burn-suspension-november-1-2026-permits-no-longer-required/',
+    notes: 'Burn suspension lifted Nov 1, 2026 in unincorporated Butte County (SierraDailyNews, Oct 28; CAL FIRE\'s burn status table lists Butte as Permit Required from 8 am Nov 1). Burning only on permissive burn days; Paradise and Gridley still require permits.', verifiedOn: V,
   },
   {
     id: 'calfire-sku', pageFireHash: 'v6:1ewz05i:o8', name: 'CAL FIRE Siskiyou Unit', agency: 'CAL FIRE', lat: 41.7, lng: -122.4, radiusKm: 30,
@@ -261,17 +261,17 @@ export const JURISDICTIONS: Jurisdiction[] = [
   },
   {
     id: 'calfire-lnu', pageFireHash: 'v6:a2sapy:6t', name: 'CAL FIRE Sonoma-Lake-Napa Unit', agency: 'CAL FIRE', lat: 38.6, lng: -122.6, radiusKm: 30,
-    stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
-    effective: '2026-06-15', expires: 'until_rescinded', noticeUpdated: '2026-06-15', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
-    sourceUrl: 'https://permitsonoma.org/sonomacountyannouncesburnsuspensiononjune15',
-    notes: CALFIRE_NOTES, verifiedOn: '2026-10-31',
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
+    effective: '2026-11-01', expires: 'until_rescinded', noticeUpdated: '2026-10-30', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
+    sourceUrl: 'https://sonomacounty.gov/calfire-to-lift-burn-permit-suspension-in-sonoma-county-x193083',
+    notes: 'Burn permit suspension lifted at 8 am Nov 1, 2026 across the unit\'s State Responsibility Area (Sonoma County announcement; CAL FIRE\'s burn status table lists Sonoma, Lake and Napa as Permit Required from Nov 1). A permit is required to burn, on permissive burn days only.', verifiedOn: V,
   },
   {
     id: 'calfire-meu', pageFireHash: 'v6:1k724y7:ah', name: 'CAL FIRE Mendocino Unit', agency: 'CAL FIRE', lat: 39.3, lng: -123.4, radiusKm: 30,
-    stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
-    effective: '2026-06-16', expires: 'until_rescinded', noticeUpdated: '2026-06-16', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
-    sourceUrl: 'https://mendovoice.com/2026/06/cal-fire-suspends-burn-permits-for-mendocino-county/',
-    notes: CALFIRE_NOTES, verifiedOn: '2026-10-31',
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
+    effective: '2026-11-01', expires: 'until_rescinded', noticeUpdated: '2026-11-01', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
+    sourceUrl: 'https://kymkemp.com/2026/11/01/mendocino-unit-lifts-burn-suspension-in-mendocino-county/',
+    notes: 'Residential burn permit suspension lifted at 8 am Nov 1, 2026 (Redheaded Blackbelt, Nov 1; CAL FIRE\'s burn status table agrees). Burning only on permissive burn days; agricultural burns still need a CAL FIRE inspection.', verifiedOn: V,
   },
   {
     id: 'calfire-neu', pageFireHash: 'v6:16vpy7x:gv', name: 'CAL FIRE Nevada-Yuba-Placer Unit', agency: 'CAL FIRE', lat: 39.2, lng: -121.1, radiusKm: 30,
@@ -296,10 +296,10 @@ export const JURISDICTIONS: Jurisdiction[] = [
   },
   {
     id: 'calfire-lmu', pageFireHash: 'v6:1xjicry:ol', name: 'CAL FIRE Lassen-Modoc Unit', agency: 'CAL FIRE', lat: 40.9, lng: -120.9, radiusKm: 30,
-    stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
-    effective: '2026-06-17', expires: 'until_rescinded', noticeUpdated: '2026-06-17', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
-    sourceUrl: 'https://plumassun.org/2026/06/15/cal-fire-suspends-residential-burn-permits-june-17/',
-    notes: CALFIRE_NOTES, verifiedOn: '2026-10-31',
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
+    effective: '2026-11-01', expires: 'until_rescinded', noticeUpdated: '2026-10-30', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
+    sourceUrl: 'https://plumassun.org/2026/10/30/cal-fire-lifts-burn-permit-suspension-nov-1/',
+    notes: 'Burn permit suspension lifted at 6 am Nov 1, 2026 across Lassen, Modoc and Plumas counties (Plumas Sun, Oct 30; CAL FIRE\'s burn status table agrees). CAL FIRE burn permits remain required; burn only on permissive burn days.', verifiedOn: V,
   },
   // ───────────── State Parks ─────────────
   {
