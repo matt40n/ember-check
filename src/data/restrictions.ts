@@ -114,14 +114,14 @@ export const JURISDICTIONS: Jurisdiction[] = [
     stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'allowed',
     effective: '2026-11-01', expires: 'until_rescinded',
     sourceUrl: 'https://www.fs.usda.gov/r04/humboldt-toiyabe/alerts',
-    notes: 'Stage 1 order 04-17-01-26-04 expired Oct 31, 2026; its alert page is gone and the forest alerts index no longer lists it (checked Nov 2). CA Campfire Permit required on the California side. Standing area orders on the alerts index still restrict day use, camping and fires in parts of the Carson RD, including the Whites, Thomas, Jones and Galena Creek areas.', verifiedOn: '2026-11-02',
+    notes: 'Stage 1 order 04-17-01-26-04 expired Oct 31, 2026; its alert page is gone and the forest alerts index no longer lists it (checked Nov 2). CA Campfire Permit required on the California side. Standing area orders on the alerts index still restrict day use, camping and fires in parts of the Carson RD, including the Whites, Thomas, Jones and Galena Creek areas.', verifiedOn: V,
   },
   {
     id: 'usfs-htnf-bridgeport', pageFireHash: 'v6:88lhi0:o3', noticeUpdated: '2026-11-02', wildernessNote: 'Standing order: camping, campfire and transportation restrictions in the Hoover Wilderness and the Red, Blue and Big Virginia Lakes area.', name: 'Humboldt-Toiyabe — Bridgeport RD', agency: 'USFS', lat: 38.2, lng: -119.4, radiusKm: 35,
     stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'allowed',
     effective: '2026-11-01', expires: 'until_rescinded',
     sourceUrl: 'https://www.fs.usda.gov/r04/humboldt-toiyabe/alerts',
-    notes: 'Stage 1 order 04-17-02-26-03 expired Oct 31, 2026; the forest alerts index no longer lists a Stage 1 order (checked Nov 2). A free CA Campfire Permit is required for a campfire or stove outside developed sites.', verifiedOn: '2026-11-02',
+    notes: 'Stage 1 order 04-17-02-26-03 expired Oct 31, 2026; the forest alerts index no longer lists a Stage 1 order (checked Nov 2). A free CA Campfire Permit is required for a campfire or stove outside developed sites.', verifiedOn: V,
   },
 
   // ───────────── BLM California ─────────────
@@ -161,11 +161,11 @@ export const JURISDICTIONS: Jurisdiction[] = [
     notes: 'Seasonal fire order CA-320-26-01 rescinded effective Oct 15, 2026 (BLM Northern California District announcement, Oct 15). Campfires and target shooting are allowed again with a free CA Campfire Permit, unless posted otherwise. The statewide year-round BLM fire order still applies: 5-ft clearance to bare soil, a round-point shovel on hand, and a permit for any campfire or stove outside a developed campground.', verifiedOn: '2026-11-05',
   },
   {
-    id: 'blm-mother-lode', statusHash: 's1:blm:v6:tzvq9u:z2', pageFireHash: 'v6:qlneti:ajw', checkUrl: 'https://www.blm.gov/programs/public-safety-and-fire/fire-and-aviation/regional-info/california/fire-restrictions', noticeUpdated: '2026-05-15', boundary: { source: 'blm', match: 'Mother Lode Field Office' }, name: 'BLM Mother Lode Field Office', agency: 'BLM', lat: 38.5, lng: -120.6, radiusKm: 55,
-    stage: 'stage2', campfiresDeveloped: 'prohibited', campfiresDispersed: 'prohibited', stoves: 'allowed_with_permit', smoking: 'prohibited',
-    effective: '2026-05-15', expires: 'until_rescinded', orderNumber: 'CAC08000-26-05',
-    sourceUrl: 'https://www.blm.gov/sites/default/files/docs/2026-05/MLFO_Fire_Restriction_Order_2026_508.pdf',
-    notes: 'No campfire or open flame of any kind. Target shooting banned. Sierra foothills from Yuba/Nevada to Mariposa incl. Merced River, Cosumnes, South Yuba.', verifiedOn: '2026-11-02',
+    id: 'blm-mother-lode', statusHash: 's1:blm:v6:tzvq9u:z2', pageFireHash: 'v6:qlneti:ajw', checkUrl: 'https://www.blm.gov/programs/public-safety-and-fire/fire-and-aviation/regional-info/california/fire-restrictions', noticeUpdated: '2026-11-05', confidence: 'medium', confidenceNote: 'No rescission notice was published. BLM California\'s fire-restrictions page, read Nov 5, 2026, lists only the standing Fire Prevention Order for the Mother Lode Field Office; order CAC08000-26-05 ("until rescinded") is no longer listed there.', boundary: { source: 'blm', match: 'Mother Lode Field Office' }, name: 'BLM Mother Lode Field Office', agency: 'BLM', lat: 38.5, lng: -120.6, radiusKm: 55,
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
+    effective: '2026-11-05', expires: 'until_rescinded',
+    sourceUrl: 'https://www.blm.gov/programs/public-safety-and-fire/fire-and-aviation/regional-info/california/fire-restrictions#Mother%20Lode',
+    notes: 'Seasonal Fire Prevention Order CAC08000-26-05 (campfire and open-flame ban, May 15, 2026) no longer appears in the Mother Lode section of BLM California\'s fire-restrictions page (checked Nov 5, 2026); there was no rescission notice. The standing order applies: 5-ft clearance to bare soil, a round-point shovel on hand, and a free CA Campfire Permit for any campfire, charcoal or wood stove outside a developed campground. Some areas, such as South Yuba, keep year-round restrictions; check posted signs.', verifiedOn: V,
   },
   {
     id: 'blm-bishop', statusHash: 's1:blm:v6:1wuqx5c:tj', pageFireHash: 'v6:1fkgp8y:r2', noticeUpdated: '2026-10-26', boundary: { source: 'blm', match: 'Bishop Field Office' }, name: 'BLM Bishop Field Office', agency: 'BLM', lat: 37.6, lng: -118.4, radiusKm: 50,
