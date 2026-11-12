@@ -47,11 +47,11 @@ export const JURISDICTIONS: Jurisdiction[] = [
     notes: 'Fire restrictions lifted Sep 30, 2026 at noon (press release Sep 29). With a valid CA Campfire Permit, open campfires and camp stoves are allowed again outside designated campgrounds. On Oct 1 the forest\'s alert for Order 08-26-08 was still posted, with a first line saying restrictions lift Sep 30.', verifiedOn: '2026-11-12',
   },
   {
-    id: 'usfs-modoc', pageFireHash: 'v6:1m9g8mz:1ep', noticeUpdated: '2026-10-01', boundary: { source: 'usfs', match: 'Modoc National Forest' }, name: 'Modoc NF', agency: 'USFS', lat: 41.6, lng: -120.8, radiusKm: 65,
+    id: 'usfs-modoc', pageFireHash: 'v6:1m9g8mz:1ep', noticeUpdated: '2026-11-10', boundary: { source: 'usfs', match: 'Modoc National Forest' }, name: 'Modoc NF', agency: 'USFS', lat: 41.6, lng: -120.8, radiusKm: 65,
     stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'allowed',
     effective: '2026-09-27', expires: 'until_rescinded',
     sourceUrl: 'https://www.fs.usda.gov/r05/modoc/alerts/forest-fire-restrictions-2026',
-    notes: 'Fire restrictions (Order 09-26-01) lifted as of 12:01 a.m. Sep 27, 2026 (forest notice dated Sep 25). Campfires are allowed again outside developed campgrounds and recreation sites; a free CA Campfire Permit is still required. The page keeps the text of the old order below the notice.', verifiedOn: '2026-11-09',
+    notes: 'Fire restrictions (Order 09-26-01) lifted as of 12:01 a.m. Sep 27, 2026 (forest notice dated Sep 25). Campfires are allowed again outside developed campgrounds and recreation sites; a free CA Campfire Permit is still required. The page keeps the text of the old order below the notice.', verifiedOn: V,
   },
   {
     id: 'usfs-lassen', pageFireHash: 'v6:19vjjbr:vw', siteNotes: { 'Big Pine Campground': 'Closes for the season Oct 13, 2026 per the notice posted at the campground; nothing online carries a date (first-come, first-served, no Recreation.gov calendar).', 'Cave Campground': 'Closes for the season Oct 13, 2026 per the notice posted at the campground; nothing online carries a date (first-come, first-served, no Recreation.gov calendar).' }, siteDates: { 'Big Pine Campground': { closes: '2026-10-13', source: 'notice posted at the campground, late Sep 2026' }, 'Cave Campground': { closes: '2026-10-13', source: 'notice posted at the campground, late Sep 2026' } }, noticeUpdated: '2026-09-29', boundary: { source: 'usfs', match: 'Lassen National Forest' }, name: 'Lassen NF', agency: 'USFS', lat: 40.5, lng: -121.3, radiusKm: 50,
@@ -114,14 +114,14 @@ export const JURISDICTIONS: Jurisdiction[] = [
     stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'allowed',
     effective: '2026-11-01', expires: 'until_rescinded',
     sourceUrl: 'https://www.fs.usda.gov/r04/humboldt-toiyabe/alerts',
-    notes: 'Stage 1 order 04-17-01-26-04 expired Oct 31, 2026; its alert page is gone and the forest alerts index no longer lists it (checked Nov 2). CA Campfire Permit required on the California side. Standing area orders on the alerts index still restrict day use, camping and fires in parts of the Carson RD, including the Whites, Thomas, Jones and Galena Creek areas.', verifiedOn: '2026-11-09',
+    notes: 'Stage 1 order 04-17-01-26-04 expired Oct 31, 2026; its alert page is gone and the forest alerts index no longer lists it (checked Nov 2). CA Campfire Permit required on the California side. Standing area orders on the alerts index still restrict day use, camping and fires in parts of the Carson RD, including the Whites, Thomas, Jones and Galena Creek areas.', verifiedOn: V,
   },
   {
     id: 'usfs-htnf-bridgeport', pageFireHash: 'v6:1i74n43:po', noticeUpdated: '2026-11-02', wildernessNote: 'Standing order: camping, campfire and transportation restrictions in the Hoover Wilderness and the Red, Blue and Big Virginia Lakes area.', name: 'Humboldt-Toiyabe — Bridgeport RD', agency: 'USFS', lat: 38.2, lng: -119.4, radiusKm: 35,
     stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'allowed',
     effective: '2026-11-01', expires: 'until_rescinded',
     sourceUrl: 'https://www.fs.usda.gov/r04/humboldt-toiyabe/alerts',
-    notes: 'Stage 1 order 04-17-02-26-03 expired Oct 31, 2026; the forest alerts index no longer lists a Stage 1 order (checked Nov 2). A free CA Campfire Permit is required for a campfire or stove outside developed sites.', verifiedOn: '2026-11-09',
+    notes: 'Stage 1 order 04-17-02-26-03 expired Oct 31, 2026; the forest alerts index no longer lists a Stage 1 order (checked Nov 2). A free CA Campfire Permit is required for a campfire or stove outside developed sites.', verifiedOn: V,
   },
 
   // ───────────── BLM California ─────────────
