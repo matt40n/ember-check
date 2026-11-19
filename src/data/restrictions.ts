@@ -303,11 +303,11 @@ export const JURISDICTIONS: Jurisdiction[] = [
   },
   // ───────────── State Parks ─────────────
   {
-    id: 'csp-folsom-peninsula', pageFireHash: 'v6:v715r0:95', name: 'Folsom Lake SRA — Peninsula CG', agency: 'State Parks', lat: 38.75, lng: -121.1, radiusKm: 8,
-    stage: 'stage2', campfiresDeveloped: 'prohibited', campfiresDispersed: 'prohibited', stoves: 'allowed', smoking: 'unknown',
-    effective: '2026-06-10', expires: '2026-12-31',
-    sourceUrl: 'https://www.parks.ca.gov/post/113',
-    notes: 'Campfires, wood/charcoal cooking and liquid-fuel torches prohibited for the rest of the 2026 season. Other state parks: no statewide order — fires only in provided rings; check each park.', verifiedOn: '2026-11-16',
+    id: 'csp-folsom-peninsula', noticeUpdated: '2026-11-19', confidence: 'medium', confidenceNote: 'State Parks published no lift notice. The Peninsula fire-restriction alert (parks.ca.gov/post/113) now returns 404 and the Folsom Lake SRA page no longer lists it (checked Nov 19). The order ran for the remainder of the 2026 fire season. Call the Folsom sector office to confirm.', name: 'Folsom Lake SRA — Peninsula CG', agency: 'State Parks', lat: 38.75, lng: -121.1, radiusKm: 8,
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed', smoking: 'unknown',
+    effective: '2026-11-19', expires: 'until_rescinded',
+    sourceUrl: 'https://www.parks.ca.gov/?page_id=500',
+    notes: 'The seasonal Peninsula Campground order (from Jun 10, 2026, "for the remainder of the 2026 fire season") banned campfires, wood/charcoal cooking and liquid-fuel torches. Its alert has been taken down and the park page lists no fire restriction, so the usual State Parks rule applies again: fires only in the provided rings. No dispersed camping in the SRA. Peninsula is remote and can close for winter or road conditions.', verifiedOn: V,
   },
   {
     id: 'csp-auburn', pageFireHash: 'v6:127jfoa:5c', confidence: 'low', confidenceNote: '2026 district order not located; based on the pattern of prior years.', name: 'Auburn SRA', agency: 'State Parks', lat: 38.92, lng: -121.0, radiusKm: 12,
