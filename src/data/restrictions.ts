@@ -12,8 +12,9 @@ export const V = DATA_VERIFIED_ON
 /** Ranger districts administered by a different forest than the polygon they sit in (Ukonom RD is Six Rivers-managed inside Klamath's boundary). */
 export const DISTRICT_OVERRIDES: Record<string, string> = { 'Ukonom Ranger District': 'usfs-six-rivers' }
 
-/** The 11 CAL FIRE units below differ only by unit, centre point and press release; these two fields are identical for all of them. */
-const CALFIRE_NOTES = 'Residential debris-burn permits suspended in State Responsibility Area. Campfires in organized campgrounds and on private land with owner permission (and a CA Campfire Permit) remain legal unless a local ordinance says otherwise. This is the trigger counties use for local bans.'
+/** The 11 CAL FIRE units below differ only by unit, centre point and press release; these two fields are identical for all of them while a suspension is in force.
+ *  Exported so noUnusedLocals doesn't fail in the off-season, when every unit carries its own lift note. */
+export const CALFIRE_NOTES = 'Residential debris-burn permits suspended in State Responsibility Area. Campfires in organized campgrounds and on private land with owner permission (and a CA Campfire Permit) remain legal unless a local ordinance says otherwise. This is the trigger counties use for local bans.'
 const CALFIRE_CONFIDENCE_NOTE = 'Burn-permit suspensions are announced via press release, not a durable page; county ordinances may add campfire limits.'
 
 export const JURISDICTIONS: Jurisdiction[] = [
@@ -96,11 +97,11 @@ export const JURISDICTIONS: Jurisdiction[] = [
     notes: 'Fire restriction orders STF-16-2026-11 (Moderate Hazard) and -12 (High Hazard) were terminated in a Forest Service release dated Oct 29, 2026, citing recent and forecast precipitation and cooler nights. A valid CA Campfire Permit is required for a campfire outside a developed recreation site; attend it and clear flammables around it. Emigrant, Carson-Iceberg and Mokelumne Wildernesses keep their permanent elevation/area limits.', verifiedOn: '2026-11-19',
   },
   {
-    id: 'usfs-sierra', pageFireHash: 'v6:56tpt4:ws', developedSitesListed: ['Big Sandy Campground', 'Chilkoot Campground', 'Clover Meadow Campground', 'Denver Church Picnic Site', 'The Falls Picnic Site', 'Forks Campground', 'Fresno Dome Campground', 'Gaggs Campground', 'Greys Mountain Campground', 'Granite Creek Campground', 'Jerseydale Campground', 'Kelty Meadows', 'Lakeside Picnic Site', 'Little Denver Picnic Site', 'Lower Chiquito Campground', 'Lone Sequoia Campground', 'Lupine Cedar Bluff Campground', 'Nelder Grove Campground', 'Pine Point Picnic Site', 'Pine Slope Picnic Site', 'Recreation Point Group Campground', 'Rocky Point Picnic Site', 'Spring Cove Campground', 'Soquel Campground', 'Summerdale Campground', 'Whisky Falls Campground', 'Whiskers Campground', 'Wishon Point Campground', 'Badger Flat Campground', 'Badger Flat Group Site', 'Bald Mountain Base Camp', 'Bear Wallow Camping Area', 'Billy Creek Lower Campground', 'Billy Creek Upper Campground', 'Billy Creek Picnic Site', 'Bolsillo Campground', 'Bretz Mill Campground', 'Buck Meadow Campground', 'Catavee Campground', 'College Campground', 'Deer Creek Campground', 'Dinkey Creek Campground', 'Dorabelle Campground', 'Dorabelle Picnic Site', 'Dowville Picnic Site', 'Florence Lake Picnic Site', 'Gravel Flat Camping Area', 'Jackass Meadows Campground', 'Kirch Flat Campground', 'Kirch Flat Group Site', 'Lily Pad Campground', 'Marmot Rock Campground', 'Midge Creek Group Campground', 'Mono Creek Campground', 'Mono Creek Trailhead Campground', 'Portal Forebay Campground', 'Rancheria Campground', 'Sample Meadow Campground', 'Swanson Meadow Campground', 'Trapper Springs Campground', 'Upper Kings Group Campground', 'Vermillion Campground', 'Voyager Rock Camping Area', 'Ward Lake Campground', 'West Kaiser Campground', 'Wishon Village Campground'], developedSitesComplete: true, noticeUpdated: '2026-09-10', boundary: { source: 'usfs', match: 'Sierra National Forest' }, wildernessExempt: ['Ansel Adams Wilderness', 'John Muir Wilderness', 'Kaiser Wilderness', 'Dinkey Lakes Wilderness', 'Monarch Wilderness'], wildernessNote: 'Per Exhibit B map: no fires above 10,000 ft, nor at ~28 named lakes/meadows (Sadler, Rutherford, Chittenden, Lady, Jackass, Margaret Lakes, Devils Bathtub, Rae, Woodchuck, Crown, Portal Lake, etc.). Wilderness permit with campfire authorization still applies.', name: 'Sierra NF', agency: 'USFS', lat: 37.3, lng: -119.3, radiusKm: 50,
-    stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'prohibited', stoves: 'allowed_with_permit', smoking: 'prohibited',
-    effective: '2026-08-07', expires: '2026-11-14', orderNumber: '05-15-00-26-10',
+    id: 'usfs-sierra', noticeUpdated: '2026-11-19', boundary: { source: 'usfs', match: 'Sierra National Forest' }, wildernessNote: 'Standing order 05-15-00-26-09: no fires above 10,000 ft (north of the ridgeline boundary) or 10,400 ft (south of it) in the Ansel Adams and John Muir Wildernesses, nor in the areas in its Exhibits A to O. A wilderness permit is still required.', name: 'Sierra NF', agency: 'USFS', lat: 37.3, lng: -119.3, radiusKm: 50,
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'allowed',
+    effective: '2026-11-15', expires: 'until_rescinded',
     sourceUrl: 'https://www.fs.usda.gov/r05/sierra/alerts/sierra-national-forest-fire-restrictions',
-    notes: 'Campfires still allowed inside designated wilderness, except above 10,000 ft (north) / 10,400 ft (south) in Ansel Adams and John Muir (order 05-15-00-26-09).', verifiedOn: '2026-11-19',
+    notes: 'Fire restrictions order 05-15-00-26-10 ran "from August 7, 2026, through November 14, 2026" and expired on that date; the forest alerts page lists no replacement order and the newsroom has none (checked Nov 19). A free CA Campfire Permit is required for a campfire or stove outside developed recreation sites. The standing high-elevation wilderness campfire limits still apply.', verifiedOn: V,
   },
   {
     id: 'usfs-inyo', pageFireHash: 'v6:s98dwe:4n', noticeUpdated: '2026-10-30', boundary: { source: 'usfs', match: 'Inyo National Forest' }, wildernessNote: 'Standing orders: campfire limits in the Ansel Adams and John Muir Wildernesses (no fires above about 10,000 ft) and in the Golden Trout and Hoover Wildernesses. See the forest alerts index.', name: 'Inyo NF', agency: 'USFS', lat: 37.4, lng: -118.6, radiusKm: 60,
@@ -226,17 +227,17 @@ export const JURISDICTIONS: Jurisdiction[] = [
   // they share stays in the two consts above so it can't drift between units.
   {
     id: 'calfire-shu', pageFireHash: 'v6:1ewz05i:o8', name: 'CAL FIRE Shasta-Trinity Unit', agency: 'CAL FIRE', lat: 40.55, lng: -122.1, radiusKm: 30,
-    stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
-    effective: '2026-06-15', expires: 'until_rescinded', noticeUpdated: '2026-06-15', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
-    sourceUrl: 'https://krcrtv.com/north-coast-news/eureka-local-news/cal-fire-suspends-burn-permits-across-the-northstate-starting-monday',
-    notes: CALFIRE_NOTES, verifiedOn: '2026-11-19',
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
+    effective: '2026-11-01', expires: 'until_rescinded', noticeUpdated: '2026-10-30', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
+    sourceUrl: 'https://www.activenorcal.com/cal-fire-lifts-the-burn-permit-suspension-in-shasta-and-eastern-trinity-counties-nov-1/',
+    notes: 'Burn suspension lifted Nov 1, 2026 in Shasta County and eastern Trinity County (Active NorCal, Oct 30; CAL FIRE\'s burn status table lists Shasta and Trinity as Permit Required from 6 am Nov 1). Burning only on permissive burn days with a valid permit.', verifiedOn: V,
   },
   {
     id: 'calfire-tgu', pageFireHash: 'v6:1ewz05i:o8', name: 'CAL FIRE Tehama-Glenn Unit', agency: 'CAL FIRE', lat: 39.9, lng: -122.3, radiusKm: 30,
-    stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
-    effective: '2026-06-15', expires: 'until_rescinded', noticeUpdated: '2026-06-15', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
-    sourceUrl: 'https://krcrtv.com/north-coast-news/eureka-local-news/cal-fire-suspends-burn-permits-across-the-northstate-starting-monday',
-    notes: CALFIRE_NOTES, verifiedOn: '2026-11-19',
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
+    effective: '2026-11-01', expires: 'until_rescinded', noticeUpdated: '2026-10-30', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
+    sourceUrl: 'https://kqms.com/localnews/cal-fire-will-lift-burn-ban-on-sunday/',
+    notes: 'Burn suspension lifted Nov 1, 2026 in the Tehama-Glenn Unit (KQMS, Oct 28, updated Oct 30; CAL FIRE\'s burn status table lists Tehama and Glenn as Permit Required from 8 am Nov 1). Permits are free; piles no larger than 4 ft by 4 ft; burning only on permissive burn days.', verifiedOn: V,
   },
   {
     id: 'calfire-huu', pageFireHash: 'v6:g6en8b:ov', name: 'CAL FIRE Humboldt-Del Norte Unit', agency: 'CAL FIRE', lat: 40.8, lng: -123.9, radiusKm: 30,
@@ -254,10 +255,10 @@ export const JURISDICTIONS: Jurisdiction[] = [
   },
   {
     id: 'calfire-sku', pageFireHash: 'v6:1ewz05i:o8', name: 'CAL FIRE Siskiyou Unit', agency: 'CAL FIRE', lat: 41.7, lng: -122.4, radiusKm: 30,
-    stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
-    effective: '2026-06-15', expires: 'until_rescinded', noticeUpdated: '2026-06-15', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
-    sourceUrl: 'https://krcrtv.com/north-coast-news/eureka-local-news/cal-fire-suspends-burn-permits-across-the-northstate-starting-monday',
-    notes: CALFIRE_NOTES, verifiedOn: '2026-11-19',
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
+    effective: '2026-11-01', expires: 'until_rescinded', noticeUpdated: '2026-11-02', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
+    sourceUrl: 'https://www.activenorcal.com/prescribed-burns-light-up-shasta-trinity-and-siskiyou-counties-as-fire-season-winds-down/',
+    notes: 'Burn suspension lifted 6 am Nov 1, 2026 in the Siskiyou Unit\'s State Responsibility Area (Active NorCal, Nov 2; CAL FIRE\'s burn status table lists Siskiyou as Permit Required from Nov 1). Permits still required; piles capped at 4 ft by 4 ft with 10 ft of bare-soil clearance; call the Siskiyou County APCD (530-842-8123) before burning.', verifiedOn: V,
   },
   {
     id: 'calfire-lnu', pageFireHash: 'v6:1oxb245:17p', name: 'CAL FIRE Sonoma-Lake-Napa Unit', agency: 'CAL FIRE', lat: 38.6, lng: -122.6, radiusKm: 30,
@@ -275,24 +276,24 @@ export const JURISDICTIONS: Jurisdiction[] = [
   },
   {
     id: 'calfire-neu', pageFireHash: 'v6:16vpy7x:gv', name: 'CAL FIRE Nevada-Yuba-Placer Unit', agency: 'CAL FIRE', lat: 39.2, lng: -121.1, radiusKm: 30,
-    stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
-    effective: '2026-06-15', expires: 'until_rescinded', noticeUpdated: '2026-06-15', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
-    sourceUrl: 'https://yubanet.com/regional/cal-fire-suspends-burn-permits-in-nevada-yuba-placer-and-sierra-counties-on-june-15-2026/',
-    notes: CALFIRE_NOTES, verifiedOn: '2026-11-19',
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
+    effective: '2026-11-03', expires: 'until_rescinded', noticeUpdated: '2026-11-03', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
+    sourceUrl: 'https://yubanet.com/regional/nevada-yuba-placer-and-sierra-counties-burn-permit-suspension-lifted-starting-nov-3-2026/',
+    notes: 'Burn suspension lifted 8 am Nov 3, 2026 in Nevada, Yuba, Placer and Sierra counties (YubaNet, Nov 3; CAL FIRE\'s burn status table agrees). Burning only on permissive burn days with a valid permit; check the local air district first.', verifiedOn: V,
   },
   {
     id: 'calfire-aeu', pageFireHash: 'v6:1w2f1b1:ri', name: 'CAL FIRE Amador-El Dorado Unit', agency: 'CAL FIRE', lat: 38.6, lng: -120.9, radiusKm: 30,
-    stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
-    effective: '2026-06-15', expires: 'until_rescinded', noticeUpdated: '2026-06-15', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
-    sourceUrl: 'https://www.eldoradocountyfire.com/cal-fire-implements-burn-permit-suspension-in-el-dorado-county-due-to-high-fire-danger',
-    notes: CALFIRE_NOTES, verifiedOn: '2026-11-19',
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
+    effective: '2026-11-06', expires: 'until_rescinded', noticeUpdated: '2026-11-10', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
+    sourceUrl: 'https://www.ledger.news/news/cal-fire-aeu-burn-permit-suspension-lifted/article_0ade8a09-5cf7-42b4-aaf0-07163eeeb159.html',
+    notes: 'Burn suspension lifted 8 am Nov 6, 2026 in the State Responsibility Areas of Alpine, Amador, El Dorado, Sacramento and San Joaquin counties (Ledger Dispatch, updated Nov 10; CAL FIRE\'s burn status table lists Amador and El Dorado as Permit Required from Nov 6). Burning only on permissive burn days; burn barrels are illegal in Amador and El Dorado counties.', verifiedOn: V,
   },
   {
     id: 'calfire-tcu', pageFireHash: 'v6:11ypn24:m1', name: 'CAL FIRE Tuolumne-Calaveras Unit', agency: 'CAL FIRE', lat: 38.1, lng: -120.5, radiusKm: 30,
-    stage: 'stage1', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
-    effective: '2026-06-15', expires: 'until_rescinded', noticeUpdated: '2026-06-15', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
-    sourceUrl: 'https://new.thepinetree.net/?p=202470',
-    notes: CALFIRE_NOTES, verifiedOn: '2026-11-19',
+    stage: 'none', campfiresDeveloped: 'allowed', campfiresDispersed: 'allowed_with_permit', stoves: 'allowed_with_permit', smoking: 'unknown',
+    effective: '2026-11-06', expires: 'until_rescinded', noticeUpdated: '2026-11-04', confidence: 'medium', confidenceNote: CALFIRE_CONFIDENCE_NOTE,
+    sourceUrl: 'https://new.thepinetree.net/?p=206352',
+    notes: 'Burn suspension lifted 8 am Nov 6, 2026 in the State Responsibility Areas of Tuolumne, Calaveras, eastern Stanislaus and eastern San Joaquin counties (The Pine Tree, Nov 4). Hazard-reduction burning needs a free CAL FIRE permit and a permissive burn day.', verifiedOn: V,
   },
   {
     id: 'calfire-lmu', pageFireHash: 'v6:3ywql3:kz', name: 'CAL FIRE Lassen-Modoc Unit', agency: 'CAL FIRE', lat: 40.9, lng: -120.9, radiusKm: 30,
